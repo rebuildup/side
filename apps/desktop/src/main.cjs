@@ -16,9 +16,9 @@ const LOG_LINE_LIMIT = 400;
 
 const resolveServerEntry = () => {
   if (app.isPackaged) {
-    return path.join(app.getAppPath(), 'server', 'src', 'index.js');
+    return path.join(app.getAppPath(), 'server', 'index.js');
   }
-  return path.resolve(__dirname, '..', '..', 'server', 'src', 'index.js');
+  return path.resolve(__dirname, '..', '..', 'server', 'dist', 'index.js');
 };
 
 const resolveNodeBinary = () =>

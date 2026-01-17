@@ -11,7 +11,8 @@
     "build": "node scripts/prepare.cjs && electron-builder --win --x64"
   },
   "dependencies": {
-    "express": "^4.19.2",
+    "@hono/node-server": "^1.12.2",
+    "hono": "^4.5.10",
     "node-pty": "^1.0.0",
     "ws": "^8.17.0"
   },

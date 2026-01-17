@@ -97,6 +97,41 @@ const normalizeWorkspacePath = (value: string): string =>
     .replace(/\\/g, '/')
     .toLowerCase();
 
+const getPathSeparator = (value: string): string =>
+  value.includes('\\') ? '\\' : '/';
+
+const joinPath = (base: string, next: string): string => {
+  const separator = getPathSeparator(base);
+  const trimmed = base.replace(/[\\/]+$/, '');
+  return trimmed ? `${trimmed}${separator}${next}` : next;
+};
+
+const getParentPath = (value: string): string => {
+  const trimmed = value.replace(/[\\/]+$/, '');
+  if (!trimmed) return value;
+  if (/^[A-Za-z]:$/.test(trimmed)) {
+    return `${trimmed}\\`;
+  }
+  if (trimmed === '/') {
+    return '/';
+  }
+  const lastSlash = Math.max(
+    trimmed.lastIndexOf('/'),
+    trimmed.lastIndexOf('\\')
+  );
+  if (trimmed.startsWith('/') && lastSlash === 0) {
+    return '/';
+  }
+  if (lastSlash <= 0) {
+    return trimmed;
+  }
+  const parent = trimmed.slice(0, lastSlash);
+  if (/^[A-Za-z]:$/.test(parent)) {
+    return `${parent}\\`;
+  }
+  return parent;
+};
+
 const parseUrlState = (): UrlState => {
   if (typeof window === 'undefined') {
     return {
@@ -177,6 +212,10 @@ export default function App() {
     : defaultDeckState;
   const wsBase = getWsBase();
   const previewRoot = workspacePathDraft.trim() || defaultRoot;
+  const canPreviewBack = useMemo(() => {
+    if (!previewRoot) return false;
+    return getParentPath(previewRoot) !== previewRoot;
+  }, [previewRoot]);
 
   const workspaceById = useMemo(
     () => new Map(workspaces.map((workspace) => [workspace.id, workspace])),
@@ -429,6 +468,14 @@ export default function App() {
     };
   }, [isWorkspaceModalOpen, previewRoot]);
 
+  useEffect(() => {
+    if (!isWorkspaceModalOpen) return;
+    if (workspacePathDraft.trim()) return;
+    if (defaultRoot) {
+      setWorkspacePathDraft(defaultRoot);
+    }
+  }, [defaultRoot, isWorkspaceModalOpen, workspacePathDraft]);
+
   const handleCreateWorkspace = async (path: string) => {
     const trimmedPath = path.trim();
     const resolvedPath = trimmedPath || defaultRoot;
@@ -561,50 +608,16 @@ export default function App() {
 
   const handlePreviewToggleDir = (node: FileTreeNode) => {
     if (node.type !== 'dir') return;
-    if (node.expanded) {
-      setPreviewTree((prev) =>
-        updateTreeNode(prev, node.path, (item) => ({
-          ...item,
-          expanded: false
-        }))
-      );
-      return;
+    const nextPath = joinPath(previewRoot, node.name);
+    setWorkspacePathDraft(nextPath);
+  };
+
+  const handlePreviewBack = () => {
+    if (!previewRoot) return;
+    const parent = getParentPath(previewRoot);
+    if (parent && parent !== previewRoot) {
+      setWorkspacePathDraft(parent);
     }
-    if (node.children && node.children.length > 0) {
-      setPreviewTree((prev) =>
-        updateTreeNode(prev, node.path, (item) => ({
-          ...item,
-          expanded: true
-        }))
-      );
-      return;
-    }
-    setPreviewTree((prev) =>
-      updateTreeNode(prev, node.path, (item) => ({
-        ...item,
-        loading: true
-      }))
-    );
-    previewFiles(previewRoot, node.path)
-      .then((entries) => {
-        setPreviewTree((prev) =>
-          updateTreeNode(prev, node.path, (item) => ({
-            ...item,
-            expanded: true,
-            loading: false,
-            children: toTreeNodes(entries)
-          }))
-        );
-      })
-      .catch((error: unknown) => {
-        setPreviewError(getErrorMessage(error));
-        setPreviewTree((prev) =>
-          updateTreeNode(prev, node.path, (item) => ({
-            ...item,
-            loading: false
-          }))
-        );
-      });
   };
 
   const handleToggleDir = (node: FileTreeNode) => {
@@ -802,7 +815,7 @@ export default function App() {
   };
 
   const handleOpenWorkspaceModal = () => {
-    setWorkspacePathDraft('');
+    setWorkspacePathDraft(defaultRoot || '');
     setIsWorkspaceModalOpen(true);
   };
 
@@ -839,6 +852,9 @@ export default function App() {
             entries={previewTree}
             loading={previewLoading}
             error={previewError}
+            mode="navigator"
+            canBack={canPreviewBack}
+            onBack={handlePreviewBack}
             onToggleDir={handlePreviewToggleDir}
             onOpenFile={() => undefined}
             onRefresh={handlePreviewRefresh}

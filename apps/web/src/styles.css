@@ -437,7 +437,14 @@ textarea {
 }
 
 .file-tree .panel-body {
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.tree-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .tree-row {

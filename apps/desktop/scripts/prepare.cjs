@@ -3,7 +3,7 @@ const path = require('path');
 
 const rootDir = path.resolve(__dirname, '..', '..', '..');
 const desktopDir = path.resolve(rootDir, 'apps', 'desktop');
-const serverSrc = path.resolve(rootDir, 'apps', 'server');
+const serverSrc = path.resolve(rootDir, 'apps', 'server', 'dist');
 const webDist = path.resolve(rootDir, 'apps', 'web', 'dist');
 const serverDest = path.resolve(desktopDir, 'server');
 const webDest = path.resolve(desktopDir, 'web', 'dist');
@@ -15,6 +15,9 @@ const removeIfExists = (target) => {
 };
 
 const copyDir = (from, to) => {
+  if (!fs.existsSync(from)) {
+    throw new Error(`Missing build output: ${from}`);
+  }
   fs.mkdirSync(to, { recursive: true });
   fs.cpSync(from, to, { recursive: true });
 };

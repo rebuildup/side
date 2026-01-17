@@ -8,9 +8,10 @@
     "dev:web": "npm --workspace apps/web run dev",
     "dev:server": "npm --workspace apps/server run dev",
     "dev:desktop": "npm --workspace apps/desktop run dev",
+    "build:server": "npm --workspace apps/server run build",
     "build:web": "npm --workspace apps/web run build",
-    "build:desktop": "npm run build:web && npm --workspace apps/desktop run build",
+    "build:desktop": "npm run build:web && npm run build:server && npm --workspace apps/desktop run build",
     "build": "npm run build:web",
-    "serve": "npm run build:web && npm --workspace apps/server run serve"
+    "serve": "npm run build:web && npm run build:server && npm --workspace apps/server run serve"
   }
 }

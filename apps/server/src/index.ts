@@ -1,20 +1,50 @@
 import crypto from 'node:crypto';
 import fsSync from 'node:fs';
 import fs from 'node:fs/promises';
-import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import express from 'express';
-import { WebSocketServer } from 'ws';
-import { spawn } from 'node-pty';
+import { Hono, type Context } from 'hono';
+import type { ContentfulStatusCode } from 'hono/utils/http-status';
+import { serve } from '@hono/node-server';
+import { serveStatic } from '@hono/node-server/serve-static';
+import { WebSocketServer, type WebSocket } from 'ws';
+import { spawn, type IDisposable, type IPty } from 'node-pty';
 import { DatabaseSync } from 'node:sqlite';
+
+type Workspace = {
+  id: string;
+  name: string;
+  path: string;
+  createdAt: string;
+};
+
+type Deck = {
+  id: string;
+  name: string;
+  root: string;
+  workspaceId: string;
+  createdAt: string;
+};
+
+type TerminalSession = {
+  id: string;
+  deckId: string;
+  title: string;
+  createdAt: string;
+  term: IPty;
+  sockets: Set<WebSocket>;
+  buffer: string;
+  lastActive: number;
+  dispose: IDisposable | null;
+};
+
+type HttpError = Error & { status?: number };
 
 const DEFAULT_ROOT = process.env.DEFAULT_ROOT || os.homedir();
 const PORT = Number(process.env.PORT || 8787);
 
-const app = express();
-app.use(express.json({ limit: '2mb' }));
+const app = new Hono();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const distDir = path.resolve(__dirname, '..', '..', 'web', 'dist');
@@ -24,21 +54,20 @@ const dbPath = process.env.DB_PATH || path.join(dataDir, 'deck-ide.db');
 fsSync.mkdirSync(path.dirname(dbPath), { recursive: true });
 const db = new DatabaseSync(dbPath);
 
-app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') {
-    res.sendStatus(204);
-    return;
+app.use('*', async (c, next) => {
+  c.header('Access-Control-Allow-Origin', '*');
+  c.header('Access-Control-Allow-Methods', 'GET,POST,PUT,OPTIONS');
+  c.header('Access-Control-Allow-Headers', 'Content-Type');
+  if (c.req.method === 'OPTIONS') {
+    return c.body(null, 204);
   }
-  next();
+  await next();
 });
 
-const workspaces = new Map();
-const workspacePathIndex = new Map();
-const decks = new Map();
-const terminals = new Map();
+const workspaces = new Map<string, Workspace>();
+const workspacePathIndex = new Map<string, string>();
+const decks = new Map<string, Deck>();
+const terminals = new Map<string, TerminalSession>();
 const TERMINAL_BUFFER_LIMIT = Number(
   process.env.TERMINAL_BUFFER_LIMIT || 50000
 );
@@ -76,26 +105,30 @@ function normalizeWorkspacePath(inputPath = '') {
   return path.resolve(inputPath || DEFAULT_ROOT);
 }
 
-function getWorkspaceKey(workspacePath) {
+function getWorkspaceKey(workspacePath: string) {
   const normalized = workspacePath.replace(/[\\/]+$/, '');
   return process.platform === 'win32' ? normalized.toLowerCase() : normalized;
 }
 
-function getWorkspaceName(workspacePath, index) {
+function getWorkspaceName(workspacePath: string, index: number) {
   const trimmed = workspacePath.replace(/[\\/]+$/, '');
   const base = path.basename(trimmed);
   return base || `Project ${index}`;
 }
 
-function createWorkspace(inputPath, name) {
+function createHttpError(message: string, status: number): HttpError {
+  const error = new Error(message) as HttpError;
+  error.status = status;
+  return error;
+}
+
+function createWorkspace(inputPath: string, name?: string) {
   const resolvedPath = normalizeWorkspacePath(inputPath);
   const key = getWorkspaceKey(resolvedPath);
   if (workspacePathIndex.has(key)) {
-    const error = new Error('Workspace path already exists');
-    error.status = 409;
-    throw error;
+    throw createHttpError('Workspace path already exists', 409);
   }
-  const workspace = {
+  const workspace: Workspace = {
     id: crypto.randomUUID(),
     name: name || getWorkspaceName(resolvedPath, workspaces.size + 1),
     path: resolvedPath,
@@ -113,19 +146,17 @@ function createWorkspace(inputPath, name) {
   return workspace;
 }
 
-function requireWorkspace(workspaceId) {
+function requireWorkspace(workspaceId: string) {
   const workspace = workspaces.get(workspaceId);
   if (!workspace) {
-    const error = new Error('Workspace not found');
-    error.status = 404;
-    throw error;
+    throw createHttpError('Workspace not found', 404);
   }
   return workspace;
 }
 
-function createDeck(name, workspaceId) {
+function createDeck(name: string | undefined, workspaceId: string) {
   const workspace = requireWorkspace(workspaceId);
-  const deck = {
+  const deck: Deck = {
     id: crypto.randomUUID(),
     name: name || `Deck ${decks.size + 1}`,
     root: workspace.path,
@@ -143,7 +174,7 @@ function createDeck(name, workspaceId) {
   return deck;
 }
 
-function appendToTerminalBuffer(session, data) {
+function appendToTerminalBuffer(session: TerminalSession, data: string) {
   session.buffer += data;
   if (session.buffer.length > TERMINAL_BUFFER_LIMIT) {
     session.buffer = session.buffer.slice(
@@ -152,7 +183,7 @@ function appendToTerminalBuffer(session, data) {
   }
 }
 
-function getNextTerminalIndex(deckId) {
+function getNextTerminalIndex(deckId: string) {
   let count = 0;
   terminals.forEach((session) => {
     if (session.deckId === deckId) {
@@ -162,7 +193,7 @@ function getNextTerminalIndex(deckId) {
   return count + 1;
 }
 
-function createTerminalSession(deck, title) {
+function createTerminalSession(deck: Deck, title?: string) {
   const id = crypto.randomUUID();
   const shell =
     process.env.SHELL ||
@@ -178,7 +209,7 @@ function createTerminalSession(deck, title) {
     env
   });
   const resolvedTitle = title || `Terminal ${getNextTerminalIndex(deck.id)}`;
-  const session = {
+  const session: TerminalSession = {
     id,
     deckId: deck.id,
     title: resolvedTitle,
@@ -212,23 +243,32 @@ function createTerminalSession(deck, title) {
   return session;
 }
 
-function resolveSafePath(workspacePath, inputPath = '') {
+function resolveSafePath(workspacePath: string, inputPath = '') {
   const root = path.resolve(workspacePath);
   const resolved = path.resolve(root, inputPath);
   const relative = path.relative(root, resolved);
   if (relative.startsWith('..') || path.isAbsolute(relative)) {
-    const error = new Error('Path escapes root');
-    error.status = 400;
-    throw error;
+    throw createHttpError('Path escapes root', 400);
   }
   return resolved;
 }
 
-function handleError(res, error) {
-  const status = error.status || 500;
-  res.status(status).json({
-    error: error.message || 'Unexpected error'
-  });
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function handleError(c: Context, error: unknown) {
+  const status = ((error as HttpError)?.status ?? 500) as ContentfulStatusCode;
+  const message = getErrorMessage(error) || 'Unexpected error';
+  return c.json({ error: message }, status);
+}
+
+async function readJson<T>(c: Context): Promise<T | null> {
+  try {
+    return await c.req.json<T>();
+  } catch {
+    return null;
+  }
 }
 
 function loadPersistedState() {
@@ -238,14 +278,18 @@ function loadPersistedState() {
     )
     .all();
   workspaceRows.forEach((row) => {
-    const workspace = {
-      id: row.id,
-      name: row.name,
-      path: row.path,
-      createdAt: row.created_at
+    const id = String(row.id);
+    const name = String(row.name);
+    const workspacePath = String(row.path);
+    const createdAt = String(row.created_at);
+    const workspace: Workspace = {
+      id,
+      name,
+      path: workspacePath,
+      createdAt
     };
-    workspaces.set(workspace.id, workspace);
-    workspacePathIndex.set(getWorkspaceKey(workspace.path), workspace.id);
+    workspaces.set(id, workspace);
+    workspacePathIndex.set(getWorkspaceKey(workspacePath), id);
   });
 
   const deckRows = db
@@ -254,13 +298,14 @@ function loadPersistedState() {
     )
     .all();
   deckRows.forEach((row) => {
-    if (!workspaces.has(row.workspace_id)) return;
-    const deck = {
-      id: row.id,
-      name: row.name,
-      root: row.root,
-      workspaceId: row.workspace_id,
-      createdAt: row.created_at
+    const workspaceId = String(row.workspace_id);
+    if (!workspaces.has(workspaceId)) return;
+    const deck: Deck = {
+      id: String(row.id),
+      name: String(row.name),
+      root: String(row.root),
+      workspaceId,
+      createdAt: String(row.created_at)
     };
     decks.set(deck.id, deck);
   });
@@ -268,54 +313,51 @@ function loadPersistedState() {
 
 loadPersistedState();
 
-app.get('/api/workspaces', (req, res) => {
-  res.json(Array.from(workspaces.values()));
+app.get('/api/workspaces', (c) => {
+  return c.json(Array.from(workspaces.values()));
 });
 
-app.post('/api/workspaces', (req, res) => {
+app.post('/api/workspaces', async (c) => {
   try {
-    if (!req.body?.path) {
-      const error = new Error('path is required');
-      error.status = 400;
-      throw error;
+    const body = await readJson<{ path?: string; name?: string }>(c);
+    if (!body?.path) {
+      throw createHttpError('path is required', 400);
     }
-    const workspace = createWorkspace(req.body?.path, req.body?.name);
-    res.status(201).json(workspace);
+    const workspace = createWorkspace(body.path, body.name);
+    return c.json(workspace, 201);
   } catch (error) {
-    handleError(res, error);
+    return handleError(c, error);
   }
 });
 
-app.get('/api/config', (req, res) => {
-  res.json({ defaultRoot: normalizeWorkspacePath(DEFAULT_ROOT) });
+app.get('/api/config', (c) => {
+  return c.json({ defaultRoot: normalizeWorkspacePath(DEFAULT_ROOT) });
 });
 
-app.get('/api/decks', (req, res) => {
-  res.json(Array.from(decks.values()));
+app.get('/api/decks', (c) => {
+  return c.json(Array.from(decks.values()));
 });
 
-app.post('/api/decks', (req, res) => {
+app.post('/api/decks', async (c) => {
   try {
-    const workspaceId = req.body?.workspaceId;
+    const body = await readJson<{ name?: string; workspaceId?: string }>(c);
+    const workspaceId = body?.workspaceId;
     if (!workspaceId) {
-      const error = new Error('workspaceId is required');
-      error.status = 400;
-      throw error;
+      throw createHttpError('workspaceId is required', 400);
     }
-    const deck = createDeck(req.body?.name, workspaceId);
-    res.status(201).json(deck);
+    const deck = createDeck(body?.name, workspaceId);
+    return c.json(deck, 201);
   } catch (error) {
-    handleError(res, error);
+    return handleError(c, error);
   }
 });
 
-app.get('/api/terminals', (req, res) => {
-  const deckId = req.query.deckId;
+app.get('/api/terminals', (c) => {
+  const deckId = c.req.query('deckId');
   if (!deckId) {
-    res.status(400).json({ error: 'deckId is required' });
-    return;
+    return c.json({ error: 'deckId is required' }, 400);
   }
-  const sessions = [];
+  const sessions: Array<{ id: string; title: string; createdAt: string }> = [];
   terminals.forEach((session) => {
     if (session.deckId === deckId) {
       sessions.push({
@@ -326,25 +368,21 @@ app.get('/api/terminals', (req, res) => {
     }
   });
   sessions.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
-  res.json(sessions);
+  return c.json(sessions);
 });
 
-app.get('/api/files', async (req, res) => {
+app.get('/api/files', async (c) => {
   try {
-    const workspaceId = req.query.workspaceId;
+    const workspaceId = c.req.query('workspaceId');
     if (!workspaceId) {
-      const error = new Error('workspaceId is required');
-      error.status = 400;
-      throw error;
+      throw createHttpError('workspaceId is required', 400);
     }
     const workspace = requireWorkspace(workspaceId);
-    const requestedPath = req.query.path || '';
+    const requestedPath = c.req.query('path') || '';
     const target = resolveSafePath(workspace.path, requestedPath);
     const stats = await fs.stat(target);
     if (!stats.isDirectory()) {
-      const error = new Error('Path is not a directory');
-      error.status = 400;
-      throw error;
+      throw createHttpError('Path is not a directory', 400);
     }
     const entries = await fs.readdir(target, { withFileTypes: true });
     const normalizedBase = requestedPath.replace(/\\/g, '/');
@@ -364,23 +402,21 @@ app.get('/api/files', async (req, res) => {
       }
       return a.name.localeCompare(b.name);
     });
-    res.json(mapped);
+    return c.json(mapped);
   } catch (error) {
-    handleError(res, error);
+    return handleError(c, error);
   }
 });
 
-app.get('/api/preview', async (req, res) => {
+app.get('/api/preview', async (c) => {
   try {
-    const rootInput = req.query.path || DEFAULT_ROOT;
-    const requestedPath = req.query.subpath || '';
+    const rootInput = c.req.query('path') || DEFAULT_ROOT;
+    const requestedPath = c.req.query('subpath') || '';
     const rootPath = normalizeWorkspacePath(rootInput);
     const target = resolveSafePath(rootPath, requestedPath);
     const stats = await fs.stat(target);
     if (!stats.isDirectory()) {
-      const error = new Error('Path is not a directory');
-      error.status = 400;
-      throw error;
+      throw createHttpError('Path is not a directory', 400);
     }
     const entries = await fs.readdir(target, { withFileTypes: true });
     const normalizedBase = String(requestedPath || '').replace(/\\/g, '/');
@@ -400,71 +436,80 @@ app.get('/api/preview', async (req, res) => {
       }
       return a.name.localeCompare(b.name);
     });
-    res.json(mapped);
+    return c.json(mapped);
   } catch (error) {
-    handleError(res, error);
+    return handleError(c, error);
   }
 });
 
-app.get('/api/file', async (req, res) => {
+app.get('/api/file', async (c) => {
   try {
-    const workspaceId = req.query.workspaceId;
+    const workspaceId = c.req.query('workspaceId');
     if (!workspaceId) {
-      const error = new Error('workspaceId is required');
-      error.status = 400;
-      throw error;
+      throw createHttpError('workspaceId is required', 400);
     }
     const workspace = requireWorkspace(workspaceId);
-    const target = resolveSafePath(workspace.path, req.query.path || '');
+    const target = resolveSafePath(workspace.path, c.req.query('path') || '');
     const contents = await fs.readFile(target, 'utf8');
-    res.json({ path: req.query.path, contents });
+    return c.json({ path: c.req.query('path'), contents });
   } catch (error) {
-    handleError(res, error);
+    return handleError(c, error);
   }
 });
 
-app.put('/api/file', async (req, res) => {
+app.put('/api/file', async (c) => {
   try {
-    const workspaceId = req.body?.workspaceId;
+    const body = await readJson<{
+      workspaceId?: string;
+      path?: string;
+      contents?: string;
+    }>(c);
+    const workspaceId = body?.workspaceId;
     if (!workspaceId) {
-      const error = new Error('workspaceId is required');
-      error.status = 400;
-      throw error;
+      throw createHttpError('workspaceId is required', 400);
     }
     const workspace = requireWorkspace(workspaceId);
-    const target = resolveSafePath(workspace.path, req.body?.path || '');
-    const contents = req.body?.contents ?? '';
+    const target = resolveSafePath(workspace.path, body?.path || '');
+    const contents = body?.contents ?? '';
     await fs.mkdir(path.dirname(target), { recursive: true });
     await fs.writeFile(target, contents, 'utf8');
-    res.json({ path: req.body?.path, saved: true });
+    return c.json({ path: body?.path, saved: true });
   } catch (error) {
-    handleError(res, error);
+    return handleError(c, error);
+  }
+});
+
+app.post('/api/terminals', async (c) => {
+  try {
+    const body = await readJson<{ deckId?: string; title?: string }>(c);
+    const deckId = body?.deckId;
+    if (!deckId || !decks.has(deckId)) {
+      throw createHttpError('deckId is required', 400);
+    }
+    const deck = decks.get(deckId);
+    if (!deck) {
+      throw createHttpError('deck not found', 404);
+    }
+    const session = createTerminalSession(deck, body?.title);
+    return c.json({ id: session.id, title: session.title }, 201);
+  } catch (error) {
+    return handleError(c, error);
   }
 });
 
 if (hasStatic) {
-  app.use(express.static(distDir));
-  app.get('*', (req, res) => {
-    if (req.path.startsWith('/api')) {
-      res.sendStatus(404);
-      return;
+  const serveAssets = serveStatic({ root: distDir });
+  const serveIndex = serveStatic({ root: distDir, path: 'index.html' });
+  app.use('/assets/*', serveAssets);
+  app.get('*', async (c, next) => {
+    if (c.req.path.startsWith('/api')) {
+      return c.text('Not found', 404);
     }
-    res.sendFile(path.join(distDir, 'index.html'));
+    return serveIndex(c, next);
   });
 }
 
-app.post('/api/terminals', (req, res) => {
-  const deckId = req.body?.deckId;
-  if (!deckId || !decks.has(deckId)) {
-    res.status(400).json({ error: 'deckId is required' });
-    return;
-  }
-  const deck = decks.get(deckId);
-  const session = createTerminalSession(deck, req.body?.title);
-  res.status(201).json({ id: session.id, title: session.title });
-});
-
-const server = http.createServer(app);
+const server = serve({ fetch: app.fetch, port: PORT });
 const wss = new WebSocketServer({ server });
 
 wss.on('connection', (socket, req) => {
@@ -516,16 +561,14 @@ setInterval(() => {
       session.sockets.size === 0 &&
       now - session.lastActive > TERMINAL_IDLE_TIMEOUT_MS
     ) {
-      if (session.dispose) {
-        session.dispose.dispose();
-      }
+      session.dispose?.dispose();
       session.term.kill();
       terminals.delete(id);
     }
   });
 }, 60_000).unref();
 
-server.listen(PORT, () => {
+server.on('listening', () => {
   const baseUrl = `http://localhost:${PORT}`;
   console.log(`Deck IDE server listening on ${baseUrl}`);
   console.log(`UI: ${baseUrl}`);

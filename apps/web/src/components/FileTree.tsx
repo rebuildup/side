@@ -4,6 +4,7 @@ const LABEL_LOADING = '\u8aad\u307f\u8fbc\u307f\u4e2d...';
 const LABEL_FILES = '\u30d5\u30a1\u30a4\u30eb';
 const LABEL_REFRESH = '\u66f4\u65b0';
 const LABEL_EMPTY = '\u30d5\u30a1\u30a4\u30eb\u304c\u898b\u3064\u304b\u308a\u307e\u305b\u3093\u3002';
+const LABEL_BACK = '\u623b\u308b';
 
 const ChevronIcon = () => (
   <svg viewBox="0 0 24 24" aria-hidden="true" className="tree-chevron-icon">
@@ -52,6 +53,7 @@ const FileIcon = () => (
 const renderEntries = (
   entries: FileTreeNode[],
   depth: number,
+  mode: 'tree' | 'navigator',
   onToggleDir: (node: FileTreeNode) => void,
   onOpenFile: (node: FileTreeNode) => void
 ): JSX.Element[] =>
@@ -61,12 +63,14 @@ const renderEntries = (
         type="button"
         className={`tree-row ${
           entry.type === 'dir' ? 'is-dir' : ''
-        } ${entry.expanded ? 'is-open' : ''}`}
+        } ${mode === 'tree' && entry.expanded ? 'is-open' : ''}`}
         style={{ paddingLeft: 12 + depth * 16 }}
         onClick={() =>
           entry.type === 'dir' ? onToggleDir(entry) : onOpenFile(entry)
         }
-        aria-expanded={entry.type === 'dir' ? entry.expanded : undefined}
+        aria-expanded={
+          entry.type === 'dir' && mode === 'tree' ? entry.expanded : undefined
+        }
         title={entry.path}
       >
         <span className="tree-chevron" aria-hidden="true">
@@ -78,8 +82,11 @@ const renderEntries = (
         <span className="tree-label">{entry.name}</span>
         {entry.loading ? <span className="tree-meta">{LABEL_LOADING}</span> : null}
       </button>
-      {entry.expanded && entry.children && entry.children.length > 0
-        ? renderEntries(entry.children, depth + 1, onToggleDir, onOpenFile)
+      {mode === 'tree' &&
+      entry.expanded &&
+      entry.children &&
+      entry.children.length > 0
+        ? renderEntries(entry.children, depth + 1, mode, onToggleDir, onOpenFile)
         : null}
     </div>
   ));
@@ -89,6 +96,9 @@ interface FileTreeProps {
   entries?: FileTreeNode[];
   loading?: boolean;
   error?: string | null;
+  mode?: 'tree' | 'navigator';
+  canBack?: boolean;
+  onBack?: () => void;
   onToggleDir: (node: FileTreeNode) => void;
   onOpenFile: (node: FileTreeNode) => void;
   onRefresh: () => void;
@@ -99,6 +109,9 @@ export function FileTree({
   entries = [],
   loading,
   error,
+  mode = 'tree',
+  canBack,
+  onBack,
   onToggleDir,
   onOpenFile,
   onRefresh
@@ -111,9 +124,21 @@ export function FileTree({
           <div className="panel-title">{LABEL_FILES}</div>
           <div className="panel-subtitle">{root}</div>
         </div>
-        <button type="button" className="chip" onClick={onRefresh}>
-          {LABEL_REFRESH}
-        </button>
+        <div className="tree-actions">
+          {onBack ? (
+            <button
+              type="button"
+              className="chip"
+              onClick={onBack}
+              disabled={canBack === false}
+            >
+              {LABEL_BACK}
+            </button>
+          ) : null}
+          <button type="button" className="chip" onClick={onRefresh}>
+            {LABEL_REFRESH}
+          </button>
+        </div>
       </div>
       <div className="panel-body tree-body">
         {loading ? <div className="tree-state">{LABEL_LOADING}</div> : null}
@@ -121,7 +146,7 @@ export function FileTree({
         {safeEntries.length === 0 && !loading ? (
           <div className="tree-state">{LABEL_EMPTY}</div>
         ) : null}
-        {renderEntries(safeEntries, 0, onToggleDir, onOpenFile)}
+        {renderEntries(safeEntries, 0, mode, onToggleDir, onOpenFile)}
       </div>
     </section>
   );
