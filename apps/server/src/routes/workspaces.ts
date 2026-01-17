@@ -58,11 +58,13 @@ export function createWorkspaceRouter(
     }
   });
 
-  router.get('/config', (c) => {
-    return c.json({ defaultRoot: normalizeWorkspacePath(DEFAULT_ROOT) });
-  });
-
   return router;
+}
+
+export function getConfigHandler() {
+  return (c: any) => {
+    return c.json({ defaultRoot: normalizeWorkspacePath(DEFAULT_ROOT) });
+  };
 }
 
 export function requireWorkspace(workspaces: Map<string, Workspace>, workspaceId: string): Workspace {

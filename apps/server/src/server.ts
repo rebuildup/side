@@ -21,7 +21,7 @@ import { corsMiddleware } from './middleware/cors.js';
 import { basicAuthMiddleware } from './middleware/auth.js';
 import { apiRateLimitMiddleware } from './middleware/rateLimit.js';
 import { checkDatabaseIntegrity, handleDatabaseCorruption, initializeDatabase, loadPersistedState } from './utils/database.js';
-import { createWorkspaceRouter } from './routes/workspaces.js';
+import { createWorkspaceRouter, getConfigHandler } from './routes/workspaces.js';
 import { createDeckRouter } from './routes/decks.js';
 import { createFileRouter } from './routes/files.js';
 import { createTerminalRouter } from './routes/terminals.js';
@@ -64,11 +64,12 @@ export function createServer() {
   app.route('/api/decks', createDeckRouter(db, workspaces, decks));
   app.route('/api/terminals', createTerminalRouter(decks, terminals));
 
-  // File routes need special handling due to different endpoints
+  // Config endpoint
+  app.get('/api/config', getConfigHandler());
+
+  // File routes - mount at /api to handle /api/files, /api/preview, /api/file
   const fileRouter = createFileRouter(workspaces);
-  app.route('/api/files', fileRouter);
-  app.route('/api/preview', fileRouter);
-  app.route('/api/file', fileRouter);
+  app.route('/api', fileRouter);
 
   // Serve static files
   if (hasStatic) {

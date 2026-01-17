@@ -3,9 +3,12 @@
   "version": "1.0.0",
   "type": "module",
   "exports": {
-    "./types": "./types.ts",
-    "./utils": "./utils.ts",
-    "./utils-node": "./utils-node.ts"
+    "./types": "./dist/types.js",
+    "./utils": "./dist/utils.js",
+    "./utils-node": "./dist/utils-node.js"
+  },
+  "scripts": {
+    "build": "tsc"
   },
   "devDependencies": {
     "typescript": "^5.7.2"

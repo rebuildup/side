@@ -19,7 +19,14 @@
       "Bash(find . -type f -name \"*.ts\" -exec sh -c 'echo \"\"{}:\"\"; wc -l \"\"{}\"\" | awk \"\"{print \\\\$1}\"\"' ;)",
       "Bash(timeout 5 npm start)",
       "Bash(tree:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(exit 0)",
+      "Bash(set PORT=8788)",
+      "Bash(powershell -Command \"$env:PORT=''9999''; timeout 5 node dist/index.js\")",
+      "Bash(npm run check:*)",
+      "Bash(npx madge:*)",
+      "Bash(npm run:*)",
+      "Bash(node -e:*)"
     ]
   }
 }

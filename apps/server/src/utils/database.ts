@@ -27,6 +27,10 @@ export function handleDatabaseCorruption(dbPath: string): void {
 }
 
 export function initializeDatabase(db: DatabaseSync): void {
+  // Enable WAL mode for better concurrent access
+  db.exec('PRAGMA journal_mode = WAL;');
+  db.exec('PRAGMA synchronous = NORMAL;');
+
   db.exec(`
     CREATE TABLE IF NOT EXISTS workspaces (
       id TEXT PRIMARY KEY,
@@ -45,6 +49,9 @@ export function initializeDatabase(db: DatabaseSync): void {
       created_at TEXT NOT NULL
     );
   `);
+
+  // Create indexes for better query performance
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_decks_workspace_id ON decks(workspace_id);`);
 }
 
 export function loadPersistedState(

@@ -1,8 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { Hono, type Context } from 'hono';
-import type { ContentfulStatusCode } from 'hono/utils/http-status';
-import rateLimit from 'express-rate-limit';
+import type { MiddlewareHandler } from 'hono';
 import type { Workspace } from '../types.js';
 import { MAX_FILE_SIZE, NODE_ENV, DEFAULT_ROOT } from '../config.js';
 import { createHttpError, handleError, readJson } from '../utils/error.js';
@@ -10,19 +9,80 @@ import { resolveSafePath, normalizeWorkspacePath } from '../utils/path.js';
 import { requireWorkspace } from './workspaces.js';
 import { sortFileEntries } from '@deck-ide/shared/utils-node';
 
-const fileUploadLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 30,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: 'Too many file upload requests, please try again later.',
-  skip: () => NODE_ENV === 'development' && !process.env.ENABLE_RATE_LIMIT
-});
+// File upload rate limiting configuration
+const FILE_UPLOAD_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+const FILE_UPLOAD_MAX_REQUESTS = 30;
+
+interface RateLimitEntry {
+  count: number;
+  resetTime: number;
+}
+
+const uploadRateLimits = new Map<string, RateLimitEntry>();
+
+// Cleanup old entries periodically
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, entry] of uploadRateLimits.entries()) {
+    if (now > entry.resetTime + 60000) {
+      uploadRateLimits.delete(ip);
+    }
+  }
+}, 60000).unref();
+
+function getClientIP(c: Context): string {
+  const forwarded = c.req.header('x-forwarded-for');
+  if (forwarded) {
+    return forwarded.split(',')[0].trim();
+  }
+  const realIp = c.req.header('x-real-ip');
+  if (realIp) {
+    return realIp;
+  }
+  const raw = c.req.raw as any;
+  if (raw.socket?.remoteAddress) {
+    return raw.socket.remoteAddress;
+  }
+  return 'unknown';
+}
+
+const fileUploadRateLimitMiddleware: MiddlewareHandler = async (c, next) => {
+  // Skip rate limiting in development unless explicitly enabled
+  if (NODE_ENV === 'development' && !process.env.ENABLE_RATE_LIMIT) {
+    return next();
+  }
+
+  const ip = getClientIP(c);
+  const now = Date.now();
+
+  let entry = uploadRateLimits.get(ip);
+
+  if (!entry || now > entry.resetTime) {
+    entry = { count: 1, resetTime: now + FILE_UPLOAD_WINDOW_MS };
+    uploadRateLimits.set(ip, entry);
+  } else {
+    entry.count += 1;
+  }
+
+  c.header('RateLimit-Limit', String(FILE_UPLOAD_MAX_REQUESTS));
+  c.header('RateLimit-Remaining', String(Math.max(0, FILE_UPLOAD_MAX_REQUESTS - entry.count)));
+  c.header('RateLimit-Reset', String(Math.ceil(entry.resetTime / 1000)));
+
+  if (entry.count > FILE_UPLOAD_MAX_REQUESTS) {
+    c.header('Retry-After', String(Math.ceil((entry.resetTime - now) / 1000)));
+    return c.json(
+      { error: 'Too many file upload requests, please try again later.' },
+      429
+    );
+  }
+
+  return next();
+};
 
 export function createFileRouter(workspaces: Map<string, Workspace>) {
   const router = new Hono();
 
-  router.get('/', async (c) => {
+  router.get('/files', async (c) => {
     try {
       const workspaceId = c.req.query('workspaceId');
       if (!workspaceId) {
@@ -102,43 +162,30 @@ export function createFileRouter(workspaces: Map<string, Workspace>) {
     }
   });
 
-  router.put('/file', async (c) => {
-    return new Promise<Response>((resolve, reject) => {
-      const req = c.req.raw as any;
-      const res = {
-        setHeader: (name: string, value: string) => c.header(name, value),
-        status: (code: number) => ({ json: (data: any) => { const resp = c.json(data, code as ContentfulStatusCode); resolve(resp); return resp; } })
-      } as any;
-      fileUploadLimiter(req, res, async (err?: any) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        try {
-          const body = await readJson<{
-            workspaceId?: string;
-            path?: string;
-            contents?: string;
-          }>(c);
-          const workspaceId = body?.workspaceId;
-          if (!workspaceId) {
-            throw createHttpError('workspaceId is required', 400);
-          }
-          const workspace = requireWorkspace(workspaces, workspaceId);
-          const target = await resolveSafePath(workspace.path, body?.path || '');
-          const contents = body?.contents ?? '';
-          const contentSize = Buffer.byteLength(contents, 'utf8');
-          if (contentSize > MAX_FILE_SIZE) {
-            throw createHttpError(`Content size exceeds maximum allowed size of ${Math.round(MAX_FILE_SIZE / 1024 / 1024)}MB`, 413);
-          }
-          await fs.mkdir(path.dirname(target), { recursive: true });
-          await fs.writeFile(target, contents, 'utf8');
-          resolve(c.json({ path: body?.path, saved: true }));
-        } catch (error) {
-          resolve(handleError(c, error));
-        }
-      });
-    });
+  router.put('/file', fileUploadRateLimitMiddleware, async (c) => {
+    try {
+      const body = await readJson<{
+        workspaceId?: string;
+        path?: string;
+        contents?: string;
+      }>(c);
+      const workspaceId = body?.workspaceId;
+      if (!workspaceId) {
+        throw createHttpError('workspaceId is required', 400);
+      }
+      const workspace = requireWorkspace(workspaces, workspaceId);
+      const target = await resolveSafePath(workspace.path, body?.path || '');
+      const contents = body?.contents ?? '';
+      const contentSize = Buffer.byteLength(contents, 'utf8');
+      if (contentSize > MAX_FILE_SIZE) {
+        throw createHttpError(`Content size exceeds maximum allowed size of ${Math.round(MAX_FILE_SIZE / 1024 / 1024)}MB`, 413);
+      }
+      await fs.mkdir(path.dirname(target), { recursive: true });
+      await fs.writeFile(target, contents, 'utf8');
+      return c.json({ path: body?.path, saved: true });
+    } catch (error) {
+      return handleError(c, error);
+    }
   });
 
   return router;
