@@ -118,12 +118,17 @@ export function setupWebSocketServer(
       return;
     }
 
+    const wsConnectTime = Date.now();
+    console.log(`[PERF] WebSocket connected to terminal ${id} at ${wsConnectTime}`);
+
     session.sockets.add(socket);
     session.lastActive = Date.now();
 
     // Send buffer content if available
     if (session.buffer) {
       try {
+        const bufferSize = session.buffer.length;
+        console.log(`[PERF] Sending ${bufferSize} chars of buffered data to terminal ${id}`);
         socket.send(session.buffer);
       } catch (error) {
         console.error(`Failed to send buffer to socket ${socketId}:`, error);
@@ -150,6 +155,23 @@ export function setupWebSocketServer(
         }
 
         session.lastActive = Date.now();
+
+        // Debug: Log responses from client
+        if (message.match(/\x1b\[\d+;\d+R/)) {
+          console.log(`[RESPONSE] CPR (cursor position) from client to terminal ${id}`);
+        }
+        if (message.match(/\x1b\[\?[^;]+;[0-4]\$y/)) {
+          console.log(`[RESPONSE] DECRQM (mode status) from client to terminal ${id}`);
+        }
+        if (message.match(/\x1b\[\?[\d;]+c/)) {
+          console.log(`[RESPONSE] DA1 (device attributes) from client to terminal ${id}`);
+        }
+        if (message.match(/\x1b\[>[^c]*c/)) {
+          console.log(`[RESPONSE] DA2 from client to terminal ${id}`);
+        }
+        if (message.match(/\x1b\]1[012];rgb:/)) {
+          console.log(`[RESPONSE] OSC color response from client to terminal ${id}`);
+        }
 
         // Check for resize message
         if (message.startsWith('\u0000resize:')) {

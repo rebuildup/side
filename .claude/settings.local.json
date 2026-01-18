@@ -3,7 +3,8 @@
     "allow": [
       "Bash(npm run build:server:*)",
       "Bash(npm run build:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "WebSearch"
     ],
     "deny": [],
     "ask": []

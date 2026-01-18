@@ -67,7 +67,12 @@ export function createTerminalRouter(
         spawnOptions.encoding = 'utf8';
       }
 
+      const spawnStart = Date.now();
       term = spawn(shell, [], spawnOptions);
+      const spawnTime = Date.now() - spawnStart;
+      if (spawnTime > 100) {
+        console.log(`[PERF] Terminal spawn took ${spawnTime}ms for deck ${deck.id}`);
+      }
     } catch (spawnError) {
       const message = spawnError instanceof Error ? spawnError.message : 'Failed to spawn terminal';
       console.error(`Failed to spawn terminal for deck ${deck.id}:`, spawnError);
@@ -75,6 +80,9 @@ export function createTerminalRouter(
     }
 
     const resolvedTitle = title || `Terminal ${getNextTerminalIndex(deck.id)}`;
+    const sessionStart = Date.now();
+    let firstDataReceived = false;
+
     const session: TerminalSession = {
       id,
       deckId: deck.id,
@@ -89,26 +97,55 @@ export function createTerminalRouter(
 
     // Set up data handler
     try {
-      session.dispose = term.onData((data: string) => {
+      session.dispose = term.onData((data: string | Buffer) => {
+        // Track time to first data
+        if (!firstDataReceived) {
+          firstDataReceived = true;
+          const timeToFirstData = Date.now() - sessionStart;
+          if (timeToFirstData > 100) {
+            console.log(`[PERF] Time to first data: ${timeToFirstData}ms for terminal ${id}`);
+          }
+        }
+
         try {
-          appendToTerminalBuffer(session, data);
+          // Convert to string for storage and transmission
+          const strData = typeof data === 'string' ? data : data.toString('utf8');
+          appendToTerminalBuffer(session, strData);
           session.lastActive = Date.now();
 
-          // Debug: Log escape sequences for TUI debugging
+          // Debug: Log terminal queries sent to client
+          if (strData.match(/\x1b\[(\?)?(\d*)n/)) {
+            console.log(`[QUERY] DSR request from terminal ${id}`);
+          }
+          if (strData.match(/\x1b\[(\?)?c/)) {
+            console.log(`[QUERY] DA (Device Attributes) request from terminal ${id}`);
+          }
+          if (strData.match(/\x1b\[>c/)) {
+            console.log(`[QUERY] DA2 request from terminal ${id}`);
+          }
+          if (strData.match(/\x1b\[\?\d+\$p/)) {
+            console.log(`[QUERY] DECRQM (mode query) from terminal ${id}`);
+          }
+          if (strData.match(/\x1b\]1[012];?\?/)) {
+            const match = strData.match(/\x1b\]1([012]);?\?/);
+            const type = match ? ['FG', 'BG', 'Cursor'][parseInt(match[1])] : 'unknown';
+            console.log(`[QUERY] OSC color query (${type}) from terminal ${id}`);
+          }
+
           if (process.env.DEBUG_TERMINAL) {
-            const buffer = Buffer.from(data, 'utf8');
+            const buffer = typeof data === 'string' ? Buffer.from(data, 'utf8') : data;
             const hexDump = buffer.toString('hex').match(/.{1,2}/g)?.join(' ') || '';
-            if (data.includes('\x1b') || data.includes('\x07')) {
-              console.log(`[TERM ${id}] Escape seq (${data.length} bytes): ${hexDump.slice(0, 200)}`);
+            if (strData.includes('\x1b') || strData.includes('\x07')) {
+              console.log(`[TERM ${id}] Escape seq (${strData.length} chars, ${buffer.length} bytes): ${hexDump.slice(0, 200)}`);
             }
           }
 
-          // Send data to all connected websockets
+          // Send data to all connected websockets as UTF-8 string
           const deadSockets = new Set<WebSocket>();
           session.sockets.forEach((socket) => {
             try {
               if (socket.readyState === 1) {
-                socket.send(data);
+                socket.send(strData);
               } else if (socket.readyState > 1) {
                 deadSockets.add(socket);
               }

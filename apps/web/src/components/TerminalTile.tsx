@@ -68,6 +68,107 @@ export function TerminalTile({
     fitAddonRef.current = fitAddon;
     term.open(containerRef.current);
 
+    // Register terminal query handlers to prevent TUI apps from hanging
+    const sendResponse = (response: string) => {
+      const socket = socketRef.current;
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(response);
+      }
+    };
+
+    // DSR (Device Status Report) - CSI n
+    term.parser.registerCsiHandler({ final: 'n' }, (params) => {
+      const param = params.length > 0 ? params.params[0] : 0;
+
+      if (param === 6) {
+        // CPR - Cursor Position Report
+        const buffer = term.buffer.active;
+        const row = buffer.cursorY + buffer.baseY + 1;
+        const col = buffer.cursorX + 1;
+        console.log(`[CPR] Responding with row=${row}, col=${col}`);
+        sendResponse(`\x1b[${row};${col}R`);
+        return true;
+      } else if (param === 5) {
+        // Device Status Report - terminal OK
+        console.log('[DSR] Terminal OK');
+        sendResponse('\x1b[0n');
+        return true;
+      }
+      return false;
+    });
+
+    // DA1 (Primary Device Attributes) - CSI c
+    term.parser.registerCsiHandler({ final: 'c' }, (params) => {
+      // Respond as VT100 with some common extensions
+      console.log('[DA1] Responding to Primary Device Attributes query');
+      sendResponse('\x1b[?1;2c');
+      return true;
+    });
+
+    // DA2 (Secondary Device Attributes) - CSI > c
+    term.parser.registerCsiHandler({ prefix: '>', final: 'c' }, (params) => {
+      // Respond as VT220
+      console.log('[DA2] Responding to Secondary Device Attributes query');
+      sendResponse('\x1b[>1;10;0c');
+      return true;
+    });
+
+    // DECRQM (Request Mode) - CSI ? Ps $ p
+    term.parser.registerCsiHandler({ prefix: '?', final: 'p', intermediates: '$' }, (params) => {
+      const mode = params.params[0] || 0;
+      console.log(`[DECRQM] Mode query for ${mode}`);
+      // Respond with "not recognized" (0) for most modes
+      // Common modes: 1049 (alt screen), 2004 (bracketed paste), 1004 (focus events)
+      sendResponse(`\x1b[?${mode};0$y`);
+      return true;
+    });
+
+    // OSC handlers for color queries
+    // Helper to convert 8-bit color to 16-bit hex format
+    const colorTo16BitHex = (value: number): string => {
+      // Convert 8-bit (0-255) to 16-bit (0-65535) by multiplying by 257
+      const val16 = value * 257;
+      return val16.toString(16).padStart(4, '0');
+    };
+
+    // OSC 10 - Foreground color query
+    term.parser.registerOscHandler(10, (data) => {
+      if (data === '?') {
+        console.log('[OSC 10] Foreground color query');
+        const fgColor = TERMINAL_FOREGROUND_COLOR || '#ffffff';
+        const r = parseInt(fgColor.slice(1, 3), 16);
+        const g = parseInt(fgColor.slice(3, 5), 16);
+        const b = parseInt(fgColor.slice(5, 7), 16);
+        sendResponse(`\x1b]10;rgb:${colorTo16BitHex(r)}/${colorTo16BitHex(g)}/${colorTo16BitHex(b)}\x07`);
+        return true;
+      }
+      return false;
+    });
+
+    // OSC 11 - Background color query (CRITICAL for dark/light mode detection)
+    term.parser.registerOscHandler(11, (data) => {
+      if (data === '?') {
+        console.log('[OSC 11] Background color query');
+        const bgColor = TERMINAL_BACKGROUND_COLOR || '#000000';
+        const r = parseInt(bgColor.slice(1, 3), 16);
+        const g = parseInt(bgColor.slice(3, 5), 16);
+        const b = parseInt(bgColor.slice(5, 7), 16);
+        sendResponse(`\x1b]11;rgb:${colorTo16BitHex(r)}/${colorTo16BitHex(g)}/${colorTo16BitHex(b)}\x07`);
+        return true;
+      }
+      return false;
+    });
+
+    // OSC 12 - Cursor color query
+    term.parser.registerOscHandler(12, (data) => {
+      if (data === '?') {
+        console.log('[OSC 12] Cursor color query');
+        sendResponse(`\x1b]12;rgb:ffff/ffff/ffff\x07`);
+        return true;
+      }
+      return false;
+    });
+
     // Load WebGL addon for better rendering performance (may fail on some systems)
     try {
       const webglAddon = new WebglAddon();
@@ -106,6 +207,7 @@ export function TerminalTile({
     });
     socket.addEventListener('message', (event) => {
       // All messages are strings (UTF-8 encoded)
+      // DSR/CPR is now handled by the CSI handler registered above
       if (typeof event.data === 'string') {
         term.write(event.data);
       }
