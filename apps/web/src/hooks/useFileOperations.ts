@@ -50,11 +50,7 @@ export const useFileOperations = ({
   );
 
   const handleRefreshTree = useCallback(() => {
-    if (!editorWorkspaceId) {
-      console.log('[FileTree] No workspace ID');
-      return;
-    }
-    console.log('[FileTree] Starting refresh for:', editorWorkspaceId);
+    if (!editorWorkspaceId) return;
     updateWorkspaceState(editorWorkspaceId, (state) => ({
       ...state,
       treeLoading: true,
@@ -62,7 +58,6 @@ export const useFileOperations = ({
     }));
     withTimeout(listFiles(editorWorkspaceId, ''))
       .then((entries) => {
-        console.log('[FileTree] Got entries:', entries.length);
         updateWorkspaceState(editorWorkspaceId, (state) => ({
           ...state,
           tree: toTreeNodes(entries),
@@ -70,7 +65,6 @@ export const useFileOperations = ({
         }));
       })
       .catch((error: unknown) => {
-        console.error('[FileTree] Error:', error);
         updateWorkspaceState(editorWorkspaceId, (state) => ({
           ...state,
           treeLoading: false,

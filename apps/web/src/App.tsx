@@ -189,7 +189,6 @@ export default function App() {
 
   // Refresh file tree when opening workspace editor
   useEffect(() => {
-    console.log('[App] useEffect triggered:', { workspaceMode, editorWorkspaceId, treeLoadedRef: treeLoadedRef.current });
     if (workspaceMode !== 'editor' || !editorWorkspaceId) {
       treeLoadedRef.current = null;
       return;
@@ -197,7 +196,6 @@ export default function App() {
 
     // Only load if we haven't loaded for this workspace yet
     if (treeLoadedRef.current !== editorWorkspaceId) {
-      console.log('[App] Loading tree for workspace:', editorWorkspaceId);
       treeLoadedRef.current = editorWorkspaceId;
       handleRefreshTree();
       refreshGitStatus();
@@ -307,36 +305,36 @@ export default function App() {
         </div>
       </div>
       <div className="workspace-editor-grid">
+        <div className="activity-bar">
+          <button
+            type="button"
+            className={`activity-bar-item ${sidebarPanel === 'files' ? 'active' : ''}`}
+            onClick={() => setSidebarPanel('files')}
+            title="エクスプローラー"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            className={`activity-bar-item ${sidebarPanel === 'git' ? 'active' : ''}`}
+            onClick={() => {
+              setSidebarPanel('git');
+              refreshGitStatus();
+            }}
+            title="ソースコントロール"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 3v12M18 9a3 3 0 110 6 3 3 0 010-6zM6 21a3 3 0 110-6 3 3 0 010 6z" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              <path d="M18 12c0 3-3 4-6 4s-6-1-6-4" fill="none" stroke="currentColor" strokeWidth="1.5" />
+            </svg>
+            {gitChangeCount > 0 && (
+              <span className="activity-bar-badge">{gitChangeCount}</span>
+            )}
+          </button>
+        </div>
         <div className="sidebar-panel">
-          <div className="sidebar-tabs">
-            <button
-              type="button"
-              className={`sidebar-tab ${sidebarPanel === 'files' ? 'active' : ''}`}
-              onClick={() => setSidebarPanel('files')}
-            >
-              <svg className="sidebar-tab-icon" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              <span className="sidebar-tab-label">ファイル</span>
-            </button>
-            <button
-              type="button"
-              className={`sidebar-tab ${sidebarPanel === 'git' ? 'active' : ''}`}
-              onClick={() => {
-                setSidebarPanel('git');
-                refreshGitStatus();
-              }}
-            >
-              <svg className="sidebar-tab-icon" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M6 3v12M18 9a3 3 0 110 6 3 3 0 010-6zM6 21a3 3 0 110-6 3 3 0 010 6z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                <path d="M18 12c0 3-3 4-6 4s-6-1-6-4" fill="none" stroke="currentColor" strokeWidth="2" />
-              </svg>
-              <span className="sidebar-tab-label">Git</span>
-              {gitChangeCount > 0 && (
-                <span className="sidebar-tab-badge">{gitChangeCount}</span>
-              )}
-            </button>
-          </div>
           <div className="sidebar-content">
             {sidebarPanel === 'files' ? (
               <FileTree

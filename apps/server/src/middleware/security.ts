@@ -12,8 +12,8 @@ export const securityHeaders: MiddlewareHandler = async (c, next) => {
   c.header('X-Content-Type-Options', 'nosniff');
   c.header('X-XSS-Protection', '1; mode=block');
   c.header('Referrer-Policy', 'strict-origin-when-cross-origin');
-  // Removed 'unsafe-eval' for better XSS protection
-  c.header('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' ws: wss:;");
+  // Allow Monaco Editor from CDN and blob: for workers
+  c.header('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net blob:; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net data:; img-src 'self' data: blob:; connect-src 'self' ws: wss:; worker-src 'self' blob:;");
   await next();
 };
 

@@ -265,7 +265,7 @@ textarea {
 
 .workspace-editor-grid {
   display: grid;
-  grid-template-columns: 260px minmax(0, 1fr);
+  grid-template-columns: 48px 220px minmax(0, 1fr);
   min-height: 0;
 }
 
@@ -280,6 +280,71 @@ textarea {
 }
 
 /* ========================================
+   Activity Bar (Left Icon Bar)
+   ======================================== */
+
+.activity-bar {
+  display: flex;
+  flex-direction: column;
+  background: var(--activitybar);
+  border-right: 1px solid var(--border);
+}
+
+.activity-bar-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: transparent;
+  border: none;
+  color: var(--activitybar-fg);
+  opacity: 0.6;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.activity-bar-item:hover {
+  opacity: 1;
+}
+
+.activity-bar-item.active {
+  opacity: 1;
+}
+
+.activity-bar-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--accent);
+}
+
+.activity-bar-item svg {
+  width: 24px;
+  height: 24px;
+}
+
+.activity-bar-badge {
+  position: absolute;
+  top: 8px;
+  right: 6px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 16px;
+  text-align: center;
+  background: var(--accent);
+  color: white;
+  border-radius: 8px;
+}
+
+/* ========================================
    Sidebar Panel (Explorer/Git)
    ======================================== */
 
@@ -289,64 +354,6 @@ textarea {
   min-height: 0;
   background: var(--sidebar);
   border-right: 1px solid var(--border);
-}
-
-.sidebar-tabs {
-  display: flex;
-  background: var(--bg-soft);
-  flex-shrink: 0;
-  height: 35px;
-  border-bottom: 1px solid var(--border);
-}
-
-.sidebar-tab {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 0 16px;
-  height: 35px;
-  background: transparent;
-  border: none;
-  border-right: 1px solid var(--border);
-  color: var(--ink-muted);
-  cursor: pointer;
-  transition: color 0.15s, background 0.15s;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.sidebar-tab-icon {
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
-}
-
-.sidebar-tab-label {
-  white-space: nowrap;
-}
-
-.sidebar-tab:hover {
-  color: var(--ink);
-  background: var(--list-hover);
-}
-
-.sidebar-tab.active {
-  color: var(--ink);
-  background: var(--sidebar);
-  border-bottom: 1px solid var(--sidebar);
-  margin-bottom: -1px;
-}
-
-.sidebar-tab.active::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: var(--accent);
 }
 
 .sidebar-tab-badge {
@@ -1814,8 +1821,12 @@ input:focus-visible {
 
 @media (max-width: 1024px) {
   .workspace-editor-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 48px 1fr;
     grid-template-rows: 200px minmax(0, 1fr);
+  }
+
+  .activity-bar {
+    grid-row: 1 / -1;
   }
 
   .sidebar-panel {
