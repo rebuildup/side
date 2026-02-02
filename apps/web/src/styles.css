@@ -2061,6 +2061,16 @@ textarea {
   min-height: 0;
 }
 
+/* Draggable Terminal */
+.draggable-terminal {
+  min-height: 0;
+  cursor: move;
+}
+
+.draggable-terminal:active {
+  cursor: grabbing;
+}
+
 /* Terminal Container for sections */
 .terminal-container {
   display: flex;

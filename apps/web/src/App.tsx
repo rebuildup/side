@@ -565,7 +565,14 @@ export default function App() {
                 <TerminalPane
                   terminals={deckState.terminals}
                   wsBase={wsBase}
+                  deckId={deckId}
                   onDeleteTerminal={(terminalId) => handleTerminalDeleteForDeck(deckId, terminalId)}
+                  onReorderTerminals={(deckId, newOrder) => {
+                    updateDeckState(deckId, (state) => ({
+                      ...state,
+                      terminals: newOrder
+                    }));
+                  }}
                   terminalGroups={terminalGroups}
                   onToggleGroupCollapsed={handleToggleGroupCollapsed}
                   onDeleteGroup={handleDeleteGroup}
