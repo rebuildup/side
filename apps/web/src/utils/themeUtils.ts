@@ -1,23 +1,13 @@
 /**
  * Theme management utilities
+ * Dark theme only - monochrome black theme
  */
 
-import { STORAGE_KEY_THEME } from '../constants';
-
-export type ThemeMode = 'light' | 'dark';
+export type ThemeMode = 'dark';
 
 /**
- * Gets the initial theme from localStorage or system preference
+ * Gets the initial theme - always dark
  */
 export function getInitialTheme(): ThemeMode {
-  if (typeof window === 'undefined') {
-    return 'light';
-  }
-  const stored = window.localStorage.getItem(STORAGE_KEY_THEME);
-  if (stored === 'light' || stored === 'dark') {
-    return stored;
-  }
-  return window.matchMedia('(prefers-color-scheme: dark)').matches
-    ? 'dark'
-    : 'light';
+  return 'dark';
 }

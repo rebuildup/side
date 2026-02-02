@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { Download, Upload, Minus, Plus, GitBranch, Folder } from 'lucide-react';
 import type { GitStatus, GitFileStatus, GitRepoInfo } from '../types';
 import { GitFileRow } from './GitFileRow';
 import type { BranchStatus, GitBranch, GitLogEntry } from '../hooks/useGitState';
@@ -239,9 +240,7 @@ export function SourceControl({
             disabled={pulling || pushing}
             title={branchStatus?.behind ? `${branchStatus.behind} commits behind` : LABEL_PULL}
           >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M12 4v12m0 0l-4-4m4 4l4-4M4 20h16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+            <Download size={16} />
             {pulling ? LABEL_PULLING : LABEL_PULL}
             {branchStatus?.behind ? ` (${branchStatus.behind})` : ''}
           </button>
@@ -252,9 +251,7 @@ export function SourceControl({
             disabled={pushing || pulling}
             title={branchStatus?.ahead ? `${branchStatus.ahead} commits ahead` : LABEL_PUSH}
           >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M12 20V8m0 0l4 4m-4-4l-4 4M4 4h16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+            <Upload size={16} />
             {pushing ? LABEL_PUSHING : LABEL_PUSH}
             {branchStatus?.ahead ? ` (${branchStatus.ahead})` : ''}
           </button>
@@ -278,9 +275,7 @@ export function SourceControl({
                   onClick={onUnstageAll}
                   title={LABEL_UNSTAGE_ALL}
                 >
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M19 13H5v-2h14v2z" />
-                  </svg>
+                  <Minus size={14} />
                 </button>
               </div>
               <div className="change-group-files">
@@ -311,9 +306,7 @@ export function SourceControl({
                   onClick={onStageAll}
                   title={LABEL_STAGE_ALL}
                 >
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-                  </svg>
+                  <Plus size={14} />
                 </button>
               </div>
               <div className="change-group-files">
@@ -390,21 +383,7 @@ export function SourceControl({
               onClick={() => !branch.current && onCheckoutBranch(branch.name)}
               disabled={branch.current}
             >
-              <svg className="branch-icon" viewBox="0 0 24 24" aria-hidden="true">
-                <path
-                  d="M6 3v12M18 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM6 21a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M18 12c0 3-3 4-6 4s-6-1-6-4"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                />
-              </svg>
+              <GitBranch size={14} className="branch-icon" />
               <span className="branch-name">{branch.name}</span>
               {branch.current && <span className="branch-current-badge">現在</span>}
             </button>
@@ -447,21 +426,7 @@ export function SourceControl({
         <div>
           <div className="panel-title">{LABEL_SOURCE_CONTROL}</div>
           <div className="panel-subtitle git-branch">
-            <svg viewBox="0 0 24 24" className="git-branch-icon" aria-hidden="true">
-              <path
-                d="M6 3v12M18 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM6 21a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-              <path
-                d="M18 12c0 3-3 4-6 4s-6-1-6-4"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              />
-            </svg>
+            <GitBranch size={14} className="git-branch-icon" />
             {status.branch}
           </div>
         </div>
@@ -473,16 +438,7 @@ export function SourceControl({
       {/* Repository selector - only show when multiple repos exist */}
       {hasMultipleRepos && (
         <div className="repo-selector">
-          <svg className="repo-icon" viewBox="0 0 24 24" aria-hidden="true">
-            <path
-              d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-6l-2-2H5a2 2 0 0 0-2 2z"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          <Folder size={14} className="repo-icon" />
           <select
             className="repo-select"
             value={selectedRepoPath || ''}

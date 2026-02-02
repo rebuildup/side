@@ -5,13 +5,11 @@ import { EDITOR_FONT_FAMILY, EDITOR_FONT_SIZE } from '../constants';
 const LABEL_DIFF_VIEWER = '差分ビューア';
 const LABEL_LOADING = '読み込み中...';
 const LABEL_CLOSE = '閉じる';
-const MONACO_THEME_DARK = 'vs-dark';
-const MONACO_THEME_LIGHT = 'vs';
+const MONACO_THEME = 'vs-dark';
 
 interface DiffViewerProps {
   diff: GitDiff | null;
   loading: boolean;
-  theme: 'light' | 'dark';
   onClose: () => void;
 }
 
@@ -50,7 +48,7 @@ function getLanguageFromPath(path: string): string {
   return languageMap[ext] || 'plaintext';
 }
 
-export function DiffViewer({ diff, loading, theme, onClose }: DiffViewerProps) {
+export function DiffViewer({ diff, loading, onClose }: DiffViewerProps) {
   const language = diff ? getLanguageFromPath(diff.path) : 'plaintext';
 
   return (
@@ -70,7 +68,7 @@ export function DiffViewer({ diff, loading, theme, onClose }: DiffViewerProps) {
         ) : diff ? (
           <DiffEditor
             height="100%"
-            theme={theme === 'dark' ? MONACO_THEME_DARK : MONACO_THEME_LIGHT}
+            theme={MONACO_THEME}
             language={language}
             original={diff.original}
             modified={diff.modified}

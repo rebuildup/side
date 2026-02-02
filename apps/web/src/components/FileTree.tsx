@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { ChevronRight, Folder, File } from 'lucide-react';
 import type { FileTreeNode, GitFileStatus } from '../types';
 
 const LABEL_LOADING = '読み込み中...';
@@ -18,47 +19,15 @@ function getGitStatusClass(
 }
 
 const ChevronIcon = () => (
-  <svg viewBox="0 0 24 24" aria-hidden="true" className="tree-chevron-icon">
-    <path
-      d="M9 6l6 6-6 6"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
+  <ChevronRight size={14} className="tree-chevron-icon" />
 );
 
 const FolderIcon = () => (
-  <svg viewBox="0 0 24 24" aria-hidden="true" className="tree-svg">
-    <path
-      d="M3.5 7.5h6l2 2h9a1 1 0 0 1 1 1V18a2 2 0 0 1-2 2H5.5a2 2 0 0 1-2-2V7.5z"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinejoin="round"
-    />
-  </svg>
+  <Folder size={16} className="tree-svg" />
 );
 
 const FileIcon = () => (
-  <svg viewBox="0 0 24 24" aria-hidden="true" className="tree-svg">
-    <path
-      d="M6 3.5h8l4 4V20a1.5 1.5 0 0 1-1.5 1.5H6A1.5 1.5 0 0 1 4.5 20V5A1.5 1.5 0 0 1 6 3.5z"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M14 3.5V8h4"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinejoin="round"
-    />
-  </svg>
+  <File size={16} className="tree-svg" />
 );
 
 interface ContextMenu {

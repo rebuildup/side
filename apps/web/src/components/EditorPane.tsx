@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback } from 'react';
+import { File as FileIcon, X, GitBranch, Loader2 } from 'lucide-react';
 import Editor, { type OnMount } from '@monaco-editor/react';
 import type { EditorFile } from '../types';
 import { EDITOR_FONT_FAMILY, EDITOR_FONT_SIZE } from '../constants';
@@ -11,12 +12,10 @@ interface EditorPaneProps {
   onChangeFile: (fileId: string, contents: string) => void;
   onSaveFile?: (fileId: string) => void;
   savingFileId: string | null;
-  theme: 'light' | 'dark';
 }
 
 const LABEL_EMPTY = 'ファイルを選択してください';
-const MONACO_THEME_DARK = 'vs-dark';
-const MONACO_THEME_LIGHT = 'vs';
+const MONACO_THEME = 'vs-dark';
 
 // File extension to icon mapping
 function getFileIcon(filename: string): { icon: string; color: string } {
@@ -76,8 +75,7 @@ export function EditorPane({
   onCloseFile,
   onChangeFile,
   onSaveFile,
-  savingFileId,
-  theme
+  savingFileId
 }: EditorPaneProps) {
   const activeFile = files.find((file) => file.id === activeFileId);
   const editorRef = useRef<ReturnType<OnMount> | null>(null);
@@ -124,10 +122,7 @@ export function EditorPane({
       <div className="editor-container editor-empty">
         <div className="editor-welcome">
           <div className="editor-welcome-icon">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              <polyline points="13 2 13 9 20 9" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+            <FileIcon size={48} />
           </div>
           <div className="editor-welcome-text">{LABEL_EMPTY}</div>
           <div className="editor-welcome-hint">
@@ -168,9 +163,7 @@ export function EditorPane({
                 )}
                 {isSaving && (
                   <span className="editor-tab-saving" aria-label="保存中">
-                    <svg viewBox="0 0 24 24" className="spin">
-                      <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="30 70" />
-                    </svg>
+                    <Loader2 size={14} className="spin" />
                   </span>
                 )}
                 <button
@@ -179,9 +172,7 @@ export function EditorPane({
                   onClick={(e) => handleCloseTab(e, file.id)}
                   aria-label="閉じる"
                 >
-                  <svg viewBox="0 0 24 24">
-                    <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                  </svg>
+                  <X size={14} />
                 </button>
               </div>
             );
@@ -201,7 +192,7 @@ export function EditorPane({
         {activeFile ? (
           <Editor
             height="100%"
-            theme={theme === 'dark' ? MONACO_THEME_DARK : MONACO_THEME_LIGHT}
+            theme={MONACO_THEME}
             language={activeFile.language}
             value={activeFile.contents}
             onChange={(value) => onChangeFile(activeFile.id, value ?? '')}
@@ -239,10 +230,7 @@ export function EditorPane({
         <div className="editor-statusbar">
           <div className="editor-statusbar-left">
             <span className="editor-status-item">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M6 3v12M18 9a3 3 0 110 6 3 3 0 010-6zM6 21a3 3 0 110-6 3 3 0 010 6z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                <path d="M18 12c0 3-3 4-6 4s-6-1-6-4" fill="none" stroke="currentColor" strokeWidth="2" />
-              </svg>
+              <GitBranch size={12} />
               main
             </span>
           </div>

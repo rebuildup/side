@@ -1,55 +1,39 @@
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;600&display=swap');
 
 /* ========================================
-   VS Code Theme Variables
+   Monochrome Black Theme Variables
    ======================================== */
 
 :root {
-  color-scheme: light;
-  /* VS Code Light Theme */
-  --bg: #f3f3f3;
-  --bg-soft: #e8e8e8;
-  --panel: #ffffff;
-  --sidebar: #f3f3f3;
-  --activitybar: #2c2c2c;
-  --activitybar-fg: #ffffff;
-  --activitybar-inactive: rgba(255, 255, 255, 0.6);
-  --border: #e5e5e5;
-  --border-active: #007acc;
-  --ink: #333333;
-  --ink-muted: #6e6e6e;
-  --muted: #717171;
-  --accent: #007acc;
-  --statusbar: #007acc;
-  --statusbar-fg: #ffffff;
-  --list-hover: rgba(0, 0, 0, 0.04);
-  --list-active: rgba(0, 120, 212, 0.1);
-  --focus-border: #0090f1;
-  --title-bar: #dddddd;
-}
-
-:root[data-theme='dark'] {
   color-scheme: dark;
-  /* VS Code Dark Theme */
-  --bg: #1e1e1e;
-  --bg-soft: #252526;
-  --panel: #1e1e1e;
-  --sidebar: #252526;
-  --activitybar: #333333;
+  /* Monochrome Black Theme */
+  --bg: #000000;
+  --bg-soft: #0a0a0a;
+  --bg-tertiary: #141414;
+  --panel: #000000;
+  --sidebar: #0a0a0a;
+  --activitybar: #0a0a0a;
   --activitybar-fg: #ffffff;
   --activitybar-inactive: rgba(255, 255, 255, 0.4);
-  --border: #3c3c3c;
-  --border-active: #007acc;
-  --ink: #cccccc;
-  --ink-muted: #858585;
-  --muted: #8b8b8b;
-  --accent: #0078d4;
-  --statusbar: #007acc;
+  --border: transparent;
+  --border-active: #ffffff;
+  --ink: #ffffff;
+  --ink-muted: #888888;
+  --muted: #666666;
+  --fg: #ffffff;
+  --fg-dim: #888888;
+  --fg-muted: #444444;
+  --accent: #ffffff;
+  --accent-dim: #666666;
+  --statusbar: #0a0a0a;
   --statusbar-fg: #ffffff;
-  --list-hover: rgba(255, 255, 255, 0.04);
-  --list-active: rgba(0, 120, 212, 0.2);
-  --focus-border: #007fd4;
-  --title-bar: #3c3c3c;
+  --list-hover: rgba(255, 255, 255, 0.08);
+  --list-active: rgba(255, 255, 255, 0.15);
+  --focus-border: #666666;
+  --title-bar: #0a0a0a;
+  --surface: #141414;
+  --hover: rgba(255, 255, 255, 0.1);
+  --text: #ffffff;
 }
 
 /* ========================================

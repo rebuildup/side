@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Folder, GitBranch } from 'lucide-react';
 import { DeckModal } from './components/DeckModal';
 import { DiffViewer } from './components/DiffViewer';
 import { EditorPane } from './components/EditorPane';
@@ -28,7 +29,6 @@ import {
   STORAGE_KEY_THEME
 } from './constants';
 import { parseUrlState } from './utils/urlUtils';
-import { getInitialTheme, type ThemeMode } from './utils/themeUtils';
 import { createEmptyWorkspaceState, createEmptyDeckState } from './utils/stateUtils';
 
 export default function App() {
@@ -37,7 +37,7 @@ export default function App() {
   const [workspaceMode, setWorkspaceMode] = useState<WorkspaceMode>(
     initialUrlState.workspaceMode
   );
-  const [theme, setTheme] = useState<ThemeMode>(getInitialTheme);
+  const theme = 'dark'; // Force dark theme
   const [defaultRoot, setDefaultRoot] = useState(DEFAULT_ROOT_FALLBACK);
   const [statusMessage, setStatusMessage] = useState('');
   const [isWorkspaceModalOpen, setIsWorkspaceModalOpen] = useState(false);
@@ -144,13 +144,13 @@ export default function App() {
 
   useEffect(() => {
     if (typeof document === 'undefined') return;
-    document.documentElement.dataset.theme = theme;
+    document.documentElement.dataset.theme = 'dark';
     try {
-      window.localStorage.setItem(STORAGE_KEY_THEME, theme);
+      window.localStorage.setItem(STORAGE_KEY_THEME, 'dark');
     } catch {
       // ignore storage errors
     }
-  }, [theme]);
+  }, []);
 
   useEffect(() => {
     const handlePopState = () => {
@@ -234,10 +234,6 @@ export default function App() {
     },
     [handleCreateDeck]
   );
-
-  const handleToggleTheme = useCallback(() => {
-    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
-  }, []);
 
   const handleSaveSettings = useCallback(async (settings: { port: number; basicAuthEnabled: boolean; basicAuthUser: string; basicAuthPassword: string }) => {
     try {
@@ -364,9 +360,7 @@ export default function App() {
             onClick={() => setSidebarPanel('files')}
             title="エクスプローラー"
           >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+            <Folder size={20} />
           </button>
           <button
             type="button"
@@ -377,10 +371,7 @@ export default function App() {
             }}
             title="ソースコントロール"
           >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M6 3v12M18 9a3 3 0 110 6 3 3 0 010-6zM6 21a3 3 0 110-6 3 3 0 010 6z" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-              <path d="M18 12c0 3-3 4-6 4s-6-1-6-4" fill="none" stroke="currentColor" strokeWidth="1.5" />
-            </svg>
+            <GitBranch size={20} />
             {gitChangeCount > 0 && (
               <span className="activity-bar-badge">{gitChangeCount}</span>
             )}
@@ -452,14 +443,12 @@ export default function App() {
           onChangeFile={handleFileChange}
           onSaveFile={handleSaveFile}
           savingFileId={savingFileId}
-          theme={theme}
         />
       </div>
       {gitState.diffPath && (
         <DiffViewer
           diff={gitState.diff}
           loading={gitState.diffLoading}
-          theme={theme}
           onClose={handleCloseDiff}
         />
       )}
@@ -572,8 +561,6 @@ export default function App() {
       <SideNav
         activeView={view}
         onSelect={setView}
-        theme={theme}
-        onToggleTheme={handleToggleTheme}
         onOpenSettings={() => setIsSettingsModalOpen(true)}
       />
       <main className="main">
