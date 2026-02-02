@@ -399,7 +399,7 @@ export default function App() {
                 onDeleteDirectory={handleDeleteDirectory}
                 gitFiles={gitState.status?.files}
               />
-            ) : (
+            ) : sidebarPanel === 'git' ? (
               <SourceControl
                 status={gitState.status}
                 loading={gitState.loading}
@@ -431,7 +431,16 @@ export default function App() {
                 onCreateBranch={handleCreateBranch}
                 onLoadLogs={handleLoadLogs}
               />
-            )}
+            ) : sidebarPanel === 'ai' ? (
+              <div className="ai-workspace-placeholder">
+                <div className="empty-state">AI Workflow</div>
+                <div className="panel-body">
+                  <p style={{ padding: '12px', color: 'var(--muted)' }}>
+                    AI workflow configuration coming soon...
+                  </p>
+                </div>
+              </div>
+            ) : null}
           </div>
         </div>
         <EditorPane
@@ -565,8 +574,8 @@ export default function App() {
   return (
     <div className="app">
       <SideNav
-        activeView={workspaceMode === 'editor' ? 'workspace' : 'workspace'}
-        onSelect={() => {}}
+        sidebarPanel={sidebarPanel}
+        onSetSidebarPanel={setSidebarPanel}
         onOpenSettings={() => setIsSettingsModalOpen(true)}
       />
       <main className="main">

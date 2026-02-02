@@ -1,51 +1,115 @@
-import { Files, Terminal, Settings } from 'lucide-react';
-
-type AppView = 'workspace' | 'terminal';
+import { useState } from 'react';
+import { Menu, Files, Settings, X, GitBranch } from 'lucide-react';
+import type { SidebarPanel } from '../types';
 
 interface SideNavProps {
-  activeView: AppView;
-  onSelect: (view: AppView) => void;
+  activeView?: 'workspace' | 'terminal';
+  onSelect?: (view: 'workspace' | 'terminal') => void;
   onOpenSettings: () => void;
+  sidebarPanel?: SidebarPanel;
+  onSetSidebarPanel?: (panel: SidebarPanel) => void;
 }
 
 export function SideNav({
-  activeView,
+  activeView = 'workspace',
   onSelect,
-  onOpenSettings
+  onOpenSettings,
+  sidebarPanel = 'files',
+  onSetSidebarPanel
 }: SideNavProps) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const toggleMenu = () => setIsMenuOpen((prev) => !prev);
+  const closeMenu = () => setIsMenuOpen(false);
+
+  const handlePanelChange = (panel: SidebarPanel) => {
+    if (onSetSidebarPanel) {
+      onSetSidebarPanel(panel);
+    }
+    if (panel === 'settings') {
+      onOpenSettings();
+    }
+    closeMenu();
+  };
+
   return (
-    <nav className="activity-bar">
-      <div className="activity-bar-top">
+    <>
+      {/* Hamburger Menu Button - Top Right */}
+      <div className="hamburger-menu-container">
         <button
           type="button"
-          className={`activity-bar-item ${activeView === 'workspace' ? 'active' : ''}`}
-          onClick={() => onSelect('workspace')}
-          aria-label="Explorer"
-          title="Explorer (Ctrl+Shift+E)"
+          className="hamburger-menu-btn"
+          onClick={toggleMenu}
+          aria-label="Menu"
+          title="Menu"
         >
-          <Files size={20} />
-        </button>
-        <button
-          type="button"
-          className={`activity-bar-item ${activeView === 'terminal' ? 'active' : ''}`}
-          onClick={() => onSelect('terminal')}
-          aria-label="Terminal"
-          title="Terminal (Ctrl+`)"
-        >
-          <Terminal size={20} />
+          <Menu size={24} />
         </button>
       </div>
-      <div className="activity-bar-bottom">
-        <button
-          type="button"
-          className="activity-bar-item"
-          onClick={onOpenSettings}
-          aria-label="Settings"
-          title="Settings"
-        >
-          <Settings size={20} />
-        </button>
-      </div>
-    </nav>
+
+      {/* Dropdown Menu */}
+      {isMenuOpen && (
+        <>
+          <div className="dropdown-backdrop" onClick={closeMenu} />
+          <div className="dropdown-menu">
+            <div className="dropdown-header">
+              <span>Menu</span>
+              <button
+                type="button"
+                className="dropdown-close"
+                onClick={closeMenu}
+                aria-label="Close menu"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="dropdown-section">
+              <div className="dropdown-section-title">Workspace</div>
+              <button
+                type="button"
+                className={`dropdown-item ${sidebarPanel === 'files' ? 'active' : ''}`}
+                onClick={() => handlePanelChange('files')}
+              >
+                <Files size={16} />
+                <span>Files</span>
+              </button>
+              <button
+                type="button"
+                className={`dropdown-item ${sidebarPanel === 'git' ? 'active' : ''}`}
+                onClick={() => handlePanelChange('git')}
+              >
+                <GitBranch size={16} />
+                <span>Source Control</span>
+              </button>
+            </div>
+
+            <div className="dropdown-section">
+              <div className="dropdown-section-title">AI</div>
+              <button
+                type="button"
+                className={`dropdown-item ${sidebarPanel === 'ai' ? 'active' : ''}`}
+                onClick={() => handlePanelChange('ai')}
+              >
+                <Settings size={16} />
+                <span>AI Workflow</span>
+              </button>
+            </div>
+
+            <div className="dropdown-section">
+              <div className="dropdown-section-title">Application</div>
+              <button
+                type="button"
+                className={`dropdown-item ${sidebarPanel === 'settings' ? 'active' : ''}`}
+                onClick={() => handlePanelChange('settings')}
+              >
+                <Settings size={16} />
+                <span>Settings</span>
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+    </>
   );
 }

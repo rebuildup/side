@@ -33,7 +33,7 @@ export type {
 export type AppView = 'workspace' | 'terminal';
 export type WorkspaceMode = 'list' | 'editor';
 export type ThemeMode = 'light' | 'dark';
-export type SidebarPanel = 'files' | 'git';
+export type SidebarPanel = 'files' | 'git' | 'ai' | 'settings';
 
 export interface UrlState {
   view: AppView;
