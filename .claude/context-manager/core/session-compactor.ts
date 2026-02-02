@@ -1,0 +1,202 @@
+/**
+ * Session Compactor for Claude Context Manager
+ *
+ * Compacts session events to reduce storage while preserving important history.
+ */
+
+import {
+  ClaudeSession,
+  CompactResult,
+  CompactOptions,
+  SessionEvent,
+} from '../types';
+
+/**
+ * Session Compactor
+ *
+ * Compacts session event history by removing less important events.
+ */
+export class SessionCompactor {
+  /**
+   * Compact a session's events
+   */
+  compact(session: ClaudeSession, options?: CompactOptions): CompactResult {
+    const opts = this.normalizeOptions(options);
+    const events = session.events;
+
+    if (events.length <= opts.keepLastN) {
+      // No compaction needed
+      return this.createResult(events, events, []);
+    }
+
+    const eventsToKeep: SessionEvent[] = [];
+    const removedEvents: SessionEvent[] = [];
+    const processedIndices = new Set<number>();
+
+    // Always preserve snapshot events if enabled
+    if (opts.preserveSnapshots) {
+      events.forEach((event, idx) => {
+        if (event.type === 'snapshot') {
+          eventsToKeep.push(event);
+          processedIndices.add(idx);
+        }
+      });
+    }
+
+    // Always preserve error events if enabled
+    if (opts.preserveErrors) {
+      events.forEach((event, idx) => {
+        if (event.type === 'error' && !processedIndices.has(idx)) {
+          eventsToKeep.push(event);
+          processedIndices.add(idx);
+        }
+      });
+    }
+
+    // Preserve compact events (they track compaction history)
+    events.forEach((event, idx) => {
+      if (event.type === 'compact' && !processedIndices.has(idx)) {
+        eventsToKeep.push(event);
+        processedIndices.add(idx);
+      }
+    });
+
+    // Preserve last N events (most recent context)
+    const recentStart = Math.max(0, events.length - opts.keepLastN);
+    for (let i = recentStart; i < events.length; i++) {
+      if (!processedIndices.has(i)) {
+        eventsToKeep.push(events[i]);
+        processedIndices.add(i);
+      }
+    }
+
+    // Collect removed events
+    events.forEach((event, idx) => {
+      if (!processedIndices.has(idx)) {
+        removedEvents.push(event);
+      }
+    });
+
+    // Sort kept events by timestamp
+    eventsToKeep.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
+
+    return this.createResult(events, eventsToKeep, removedEvents);
+  }
+
+  /**
+   * Calculate compaction statistics without applying
+   */
+  analyze(session: ClaudeSession, options?: CompactOptions): {
+    currentEvents: number;
+    eventsAfterCompaction: number;
+    eventsToRemove: number;
+    compressionRatio: number;
+    recommended: boolean;
+    reason: string;
+  } {
+    const opts = this.normalizeOptions(options);
+    const events = session.events;
+
+    if (events.length <= opts.keepLastN) {
+      return {
+        currentEvents: events.length,
+        eventsAfterCompaction: events.length,
+        eventsToRemove: 0,
+        compressionRatio: 1.0,
+        recommended: false,
+        reason: 'Event count is below threshold',
+      };
+    }
+
+    const result = this.compact(session, { ...opts, dryRun: true });
+    const recommended = result.eventsRemoved > events.length * 0.3; // Recommend if >30% reduction
+
+    return {
+      currentEvents: events.length,
+      eventsAfterCompaction: result.eventsKept,
+      eventsToRemove: result.eventsRemoved,
+      compressionRatio: result.compressionRatio,
+      recommended,
+      reason: recommended
+        ? `Compaction would remove ${result.eventsRemoved} events (${Math.round(
+            (1 - 1 / result.compressionRatio) * 100
+          )}% reduction)`
+        : 'Compaction would provide minimal benefit',
+    };
+  }
+
+  /**
+   * Get event type distribution
+   */
+  getEventDistribution(session: ClaudeSession): {
+    total: number;
+    byType: Record<string, number>;
+    oldestEvent?: string;
+    newestEvent?: string;
+  } {
+    const byType: Record<string, number> = {};
+
+    session.events.forEach(event => {
+      byType[event.type] = (byType[event.type] || 0) + 1;
+    });
+
+    const oldestEvent = session.events[0]?.timestamp;
+    const newestEvent = session.events[session.events.length - 1]?.timestamp;
+
+    return {
+      total: session.events.length,
+      byType,
+      oldestEvent,
+      newestEvent,
+    };
+  }
+
+  /**
+   * Find old events that could be compacted
+   */
+  findCompactionCandidates(
+    session: ClaudeSession,
+    ageHours: number = 24
+  ): SessionEvent[] {
+    const cutoff = new Date(Date.now() - ageHours * 60 * 60 * 1000);
+
+    return session.events.filter(event => {
+      const eventTime = new Date(event.timestamp);
+      return eventTime < cutoff && event.type !== 'snapshot' && event.type !== 'error';
+    });
+  }
+
+  /**
+   * Normalize compaction options
+   */
+  private normalizeOptions(options?: CompactOptions): Required<CompactOptions> {
+    const defaults: Required<CompactOptions> = {
+      keepLastN: 20,
+      preserveErrors: true,
+      preserveSnapshots: true,
+      dryRun: false,
+    };
+
+    return { ...defaults, ...options };
+  }
+
+  /**
+   * Create compaction result
+   */
+  private createResult(
+    originalEvents: SessionEvent[],
+    keptEvents: SessionEvent[],
+    removedEvents: SessionEvent[]
+  ): CompactResult {
+    const sizeBefore = JSON.stringify(originalEvents).length;
+    const sizeAfter = JSON.stringify(keptEvents).length;
+
+    return {
+      eventsRemoved: removedEvents.length,
+      eventsKept: keptEvents.length,
+      sizeBefore,
+      sizeAfter,
+      compressionRatio: originalEvents.length / keptEvents.length,
+    };
+  }
+}
