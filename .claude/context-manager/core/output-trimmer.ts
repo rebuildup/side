@@ -105,10 +105,12 @@ export class OutputTrimmer {
       }
     }
 
-    // Sort messages by original order
-    messagesToKeep.sort((a, b) =>
-      new Date(a.timestamp || '').getTime() - new Date(b.timestamp || '').getTime()
-    );
+    // Sort messages by timestamp (use 0 for missing/invalid timestamps)
+    messagesToKeep.sort((a, b) => {
+      const aTime = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+      const bTime = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+      return aTime - bTime;
+    });
 
     // Collect removed messages
     messages.forEach((msg, idx) => {

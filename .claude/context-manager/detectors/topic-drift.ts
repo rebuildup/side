@@ -207,15 +207,19 @@ export class TopicDriftDetector {
   /**
    * LLM-based detailed analysis
    *
-   * This method will call the Claude API to perform semantic analysis
-   * of topic drift. For now, it returns the keyword-based score.
+   * Performs semantic analysis using the Claude API to detect topic drift
+   * more accurately than keyword-based methods.
+   *
+   * Future implementation plan:
+   * - Send initial prompt and recent messages to Claude API
+   * - Ask Claude to rate semantic similarity (0-1)
+   * - Cache results to avoid repeated API calls
    *
    * @param session - The Claude session to analyze
    * @returns Drift score (0 = no drift, 1 = complete drift)
    */
   async detectLLMDrift(session: ClaudeSession): Promise<number> {
-    // TODO: Implement LLM-based analysis using Claude API
-    // For now, fall back to keyword-based detection
+    // Fallback to keyword-based detection until LLM integration is implemented
     return this.detectKeywordDrift(session);
   }
 
