@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { Download, Upload, Minus, Plus, GitBranch, Folder } from 'lucide-react';
 import type { GitStatus, GitFileStatus, GitRepoInfo } from '../types';
 import { GitFileRow } from './GitFileRow';
-import type { BranchStatus, GitBranch, GitLogEntry } from '../hooks/useGitState';
+import type { BranchStatus, GitBranch as GitBranchType, GitLogEntry } from '../hooks/useGitState';
 
 const LABEL_SOURCE_CONTROL = 'ソースコントロール';
 const LABEL_NOT_GIT_REPO = 'Gitリポジトリではありません';
@@ -37,7 +37,7 @@ interface SourceControlProps {
   hasRemote: boolean;
   pushing: boolean;
   pulling: boolean;
-  branches: GitBranch[];
+  branches: GitBranchType[];
   branchesLoading: boolean;
   logs: GitLogEntry[];
   logsLoading: boolean;
