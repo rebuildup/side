@@ -13,6 +13,7 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import * as fs from 'fs';
 import * as path from 'path';
+import type { SnapshotRef } from '../types';
 
 const execAsync = promisify(exec);
 
@@ -23,16 +24,6 @@ function validateSessionId(sessionId: string): void {
   if (!/^[a-zA-Z0-9_-]+$/.test(sessionId)) {
     throw new Error(`Invalid sessionId: ${sessionId}`);
   }
-}
-
-/**
- * Reference to a git snapshot for this session
- */
-export interface SnapshotRef {
-  commitHash: string;
-  timestamp: string;
-  healthScore: number;
-  description: string;
 }
 
 /**

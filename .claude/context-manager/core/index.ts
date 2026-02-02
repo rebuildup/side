@@ -11,14 +11,11 @@ export { SessionCompactor } from './session-compactor';
 export { SnapshotManager } from './snapshot-manager';
 export { OutputTrimmer } from './output-trimmer';
 
-// Re-export types from analyzer
+// Re-export types from session-analyzer
 export type {
   AnalysisResult,
   HealthScoreBreakdown,
-  Message,
-  Session,
-  SessionStore as AnalyzerSessionStore,
-} from './analyzer';
+} from './session-analyzer';
 
 // Re-export types from types module
 export type {

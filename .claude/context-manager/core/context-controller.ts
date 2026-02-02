@@ -195,6 +195,13 @@ export class ContextController {
 
     const eventsRemoved = eventsBefore - uniqueEvents.length;
 
+    // Generate summary for compacted events
+    const eventsToCompact = session.events.filter(e =>
+      !uniqueEvents.some(kept => kept.timestamp === e.timestamp)
+    );
+
+    const summary = this.generateCompactSummary(eventsToCompact);
+
     if (!dryRun) {
       // Prepare compact event
       const compactEvent: typeof session.events[number] = {
@@ -217,12 +224,32 @@ export class ContextController {
       : JSON.stringify(this.store.get(session.id)).length;
 
     return {
-      eventsRemoved,
-      eventsKept: uniqueEvents.length,
-      sizeBefore,
-      sizeAfter,
-      compressionRatio: eventsBefore / uniqueEvents.length,
+      originalEvents: eventsBefore,
+      remainingEvents: uniqueEvents.length,
+      compactedEvents: eventsRemoved,
+      summary,
+      spaceSaved: sizeBefore - sizeAfter,
     };
+  }
+
+  /**
+   * Generate summary for compacted events
+   */
+  private generateCompactSummary(events: typeof session.events): string {
+    if (events.length === 0) {
+      return 'No events compacted';
+    }
+
+    const byType = events.reduce((acc, e) => {
+      acc[e.type] = (acc[e.type] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const parts = Object.entries(byType)
+      .map(([type, count]) => `${count} ${type}(s)`)
+      .join(', ');
+
+    return `Compacted ${events.length} events: ${parts}`;
   }
 
   /**
