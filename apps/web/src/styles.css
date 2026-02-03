@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;600&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;600&display=swap");
 
 /* ========================================
    Monochrome Black Theme Variables
@@ -45,6 +45,140 @@
 }
 
 /* ========================================
+   Title Bar (Custom Window Frame)
+   ======================================== */
+
+.title-bar {
+  display: grid;
+  grid-template-columns: auto 1fr auto; /* Mobile toggle + Menu + Controls */
+  align-items: center;
+  height: 32px;
+  background: var(--title-bar);
+  border-bottom: 1px solid var(--border);
+  grid-column: 1 / -1;
+  grid-row: 1;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.title-bar-left {
+  display: flex;
+  align-items: center;
+  padding: 0;
+  height: 100%;
+  justify-content: center;
+}
+
+.title-bar-title {
+  font-size: 12px;
+  color: var(--fg-dim);
+  font-weight: 500;
+}
+
+/* Mobile mode toggle button */
+.title-bar-mobile-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 8px;
+  height: 100%;
+  background: transparent;
+  border: none;
+  color: var(--fg);
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.title-bar-mobile-toggle:hover {
+  background: var(--list-hover);
+}
+
+.title-bar-mobile-toggle svg {
+  flex-shrink: 0;
+}
+
+.title-bar-mobile-toggle .mobile-mode-label {
+  display: none;
+}
+
+.title-bar--mobile .title-bar-mobile-toggle .mobile-mode-label {
+  display: inline;
+}
+
+/* Mobile mode styles */
+.title-bar--mobile .title-bar-menu {
+  display: none;
+}
+
+.title-bar--mobile .title-bar-left {
+  flex: 1;
+}
+
+.title-bar--mobile .title-bar-mobile-toggle {
+  width: 100%;
+  justify-content: center;
+}
+
+.title-bar-menu {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 100%;
+}
+
+.title-bar-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 8px;
+  height: 100%;
+  background: transparent;
+  border: none;
+  color: var(--fg);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+  /* Prevent button from capturing drag events */
+  pointer-events: auto;
+}
+
+.title-bar-menu-item:hover {
+  background: var(--list-hover);
+}
+
+.title-bar-menu-item svg {
+  flex-shrink: 0;
+}
+
+.title-bar-controls {
+  display: flex;
+  height: 100%;
+  margin-left: auto;
+}
+
+.title-bar-button {
+  width: 46px;
+  height: 100%;
+  background: transparent;
+  border: none;
+  color: var(--fg);
+  font-size: 10px;
+  cursor: pointer;
+  transition: background 0.15s;
+  /* Prevent button from capturing drag events */
+  pointer-events: auto;
+}
+
+.title-bar-button:hover {
+  background: var(--list-hover);
+}
+
+.title-bar-button.title-bar-close:hover {
+  background: #e81123;
+}
+
+/* ========================================
    Base Styles
    ======================================== */
 
@@ -55,7 +189,7 @@
 body {
   margin: 0;
   min-height: 100vh;
-  font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: "Noto Sans JP", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 13px;
   background: var(--bg);
   color: var(--ink);
@@ -80,9 +214,10 @@ textarea {
 
 .app {
   display: grid;
-  grid-template-columns: 48px minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr) 24px; /* Main content + status bar */
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 32px minmax(0, 1fr) 24px; /* Title bar + Main + Status bar */
   height: 100vh;
+  gap: 0;
 }
 
 /* Unified Layout */
@@ -91,6 +226,7 @@ textarea {
   flex-direction: column;
   min-height: 0;
   flex: 1;
+  grid-column: 1 / -1;
 }
 
 .unified-terminal-section {
@@ -98,6 +234,7 @@ textarea {
   min-height: 250px;
   display: flex;
   flex-direction: column;
+  grid-column: 1 / -1;
   border-top: 1px solid var(--border-dim);
 }
 
@@ -107,156 +244,23 @@ textarea {
 }
 
 /* ========================================
-   Hamburger Menu (Top Right)
+   Main Content Area
    ======================================== */
-
-.hamburger-menu-container {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 100;
-}
-
-.hamburger-menu-btn {
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  border-radius: 4px;
-  color: var(--activitybar-fg);
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.hamburger-menu-btn:hover {
-  background: var(--list-hover);
-}
-
-.hamburger-menu-btn svg {
-  width: 24px;
-  height: 24px;
-}
-
-/* Dropdown Menu */
-.dropdown-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 99;
-}
-
-.dropdown-menu {
-  position: absolute;
-  top: 48px;
-  right: 8px;
-  min-width: 220px;
-  background: var(--panel);
-  border: 1px solid var(--border-dim);
-  border-radius: 8px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-  z-index: 100;
-  overflow: hidden;
-}
-
-.dropdown-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border-dim);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--ink);
-}
-
-.dropdown-close {
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  border-radius: 4px;
-  color: var(--ink-muted);
-  cursor: pointer;
-  transition: background 0.1s;
-}
-
-.dropdown-close:hover {
-  background: var(--list-hover);
-  color: var(--ink);
-}
-
-.dropdown-close svg {
-  width: 16px;
-  height: 16px;
-}
-
-.dropdown-section {
-  padding: 8px 0;
-}
-
-.dropdown-section:not(:last-child) {
-  border-bottom: 1px solid var(--border-dim);
-}
-
-.dropdown-section-title {
-  padding: 8px 16px;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--ink-muted);
-}
-
-.dropdown-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 10px 16px;
-  background: transparent;
-  border: none;
-  color: var(--ink);
-  font-size: 13px;
-  text-align: left;
-  cursor: pointer;
-  transition: background 0.1s;
-}
-
-.dropdown-item:hover {
-  background: var(--list-hover);
-}
-
-.dropdown-item.active {
-  background: var(--list-active);
-}
-
-.dropdown-item svg {
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
-  color: var(--ink-muted);
-}
-
-.dropdown-item.active svg {
-  color: var(--accent);
-}
 
 /* ========================================
    Activity Bar (Left Icon Bar)
    ======================================== */
 
 .activity-bar {
-  grid-column: 1;
-  grid-row: 1 / 3;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 48px;
   background: var(--activitybar);
   display: flex;
   flex-direction: column;
-  width: 48px;
+  z-index: 100;
 }
 
 .activity-bar-top {
@@ -293,7 +297,7 @@ textarea {
 }
 
 .activity-bar-item.active::before {
-  content: '';
+  content: "";
   position: absolute;
   left: 0;
   top: 0;
@@ -312,12 +316,12 @@ textarea {
    ======================================== */
 
 .main {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
   min-height: 0;
   overflow: hidden;
-  grid-column: 2;
-  grid-row: 1;
+  grid-column: 1;
+  grid-row: 2;
 }
 
 /* ========================================
@@ -326,6 +330,8 @@ textarea {
 
 .global-status-bar {
   position: fixed;
+  grid-column: 1 / -1;
+  grid-row: 1 / -1;
   bottom: 0;
   left: 0;
   right: 0;
@@ -395,6 +401,7 @@ textarea {
   display: flex;
   flex-direction: column;
   padding: 20px;
+  padding-left: 0 !important;
 }
 
 .workspace-view.has-editor {
@@ -438,7 +445,7 @@ textarea {
   flex: 1;
   font-size: 12px;
   color: var(--muted);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: "JetBrains Mono", monospace;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -464,69 +471,8 @@ textarea {
 }
 
 /* ========================================
-   Activity Bar (Left Icon Bar)
+   Main Content Area
    ======================================== */
-
-.activity-bar {
-  display: flex;
-  flex-direction: column;
-  background: var(--activitybar);
-  border-right: 1px solid var(--border);
-}
-
-.activity-bar-item {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  background: transparent;
-  border: none;
-  color: var(--activitybar-fg);
-  opacity: 0.6;
-  cursor: pointer;
-  transition: opacity 0.15s;
-}
-
-.activity-bar-item:hover {
-  opacity: 1;
-}
-
-.activity-bar-item.active {
-  opacity: 1;
-}
-
-.activity-bar-item.active::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: var(--accent);
-}
-
-.activity-bar-item svg {
-  width: 24px;
-  height: 24px;
-}
-
-.activity-bar-badge {
-  position: absolute;
-  top: 8px;
-  right: 6px;
-  min-width: 16px;
-  height: 16px;
-  padding: 0 4px;
-  font-size: 10px;
-  font-weight: 600;
-  line-height: 16px;
-  text-align: center;
-  background: var(--accent);
-  color: white;
-  border-radius: 8px;
-}
 
 /* ========================================
    Sidebar Panel (Explorer/Git)
@@ -628,7 +574,10 @@ textarea {
   cursor: pointer;
   font-size: 12px;
   font-weight: 500;
-  transition: background 0.1s, color 0.1s, border-color 0.1s;
+  transition:
+    background 0.1s,
+    color 0.1s,
+    border-color 0.1s;
 }
 
 .ai-workflow-tab:hover {
@@ -718,7 +667,7 @@ textarea {
 
 .primary-button {
   background: var(--accent);
-  color: white;
+  color: #000000;
   border: none;
   padding: 6px 14px;
   font-size: 13px;
@@ -774,7 +723,7 @@ textarea {
   border-radius: 2px;
   padding: 6px 8px;
   font-size: 13px;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: "JetBrains Mono", monospace;
   color: var(--ink);
 }
 
@@ -999,7 +948,9 @@ textarea {
   font-weight: 500;
   border-radius: 2px;
   cursor: pointer;
-  transition: background 0.1s, border-color 0.1s;
+  transition:
+    background 0.1s,
+    border-color 0.1s;
 }
 
 .secondary-button:hover {
@@ -1016,7 +967,9 @@ textarea {
   font-weight: 500;
   border-radius: 2px;
   cursor: pointer;
-  transition: background 0.1s, border-color 0.1s;
+  transition:
+    background 0.1s,
+    border-color 0.1s;
 }
 
 .danger-button:hover:not(:disabled) {
@@ -1044,7 +997,7 @@ textarea {
   align-items: center;
   padding: 4px 8px;
   font-size: 12px;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: "JetBrains Mono", monospace;
 }
 
 .ws-stat-row:not(:last-child) {
@@ -1092,7 +1045,7 @@ textarea {
   border: none;
   text-align: left;
   cursor: pointer;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   transition: background 0.1s;
   min-height: 22px;
 }
@@ -1156,7 +1109,7 @@ textarea {
   margin-left: auto;
   font-size: 11px;
   color: var(--muted);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: "JetBrains Mono", monospace;
 }
 
 .tree-state {
@@ -1185,7 +1138,7 @@ textarea {
   min-width: 0;
   padding: 2px 6px;
   font-size: 13px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   border: 1px solid var(--accent);
   border-radius: 2px;
   background: var(--panel);
@@ -1326,7 +1279,9 @@ textarea {
   color: var(--ink-muted);
   font-size: 13px;
   cursor: pointer;
-  transition: background 0.1s, color 0.1s;
+  transition:
+    background 0.1s,
+    color 0.1s;
   position: relative;
 }
 
@@ -1345,7 +1300,7 @@ textarea {
 .editor-tab-icon {
   font-size: 10px;
   font-weight: 600;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: "JetBrains Mono", monospace;
   flex-shrink: 0;
 }
 
@@ -1386,7 +1341,9 @@ textarea {
   color: var(--ink-muted);
   cursor: pointer;
   opacity: 0;
-  transition: opacity 0.1s, background 0.1s;
+  transition:
+    opacity 0.1s,
+    background 0.1s;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -1437,7 +1394,7 @@ textarea {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: "JetBrains Mono", monospace;
 }
 
 /* Editor Content */
@@ -1488,8 +1445,12 @@ textarea {
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .spin {
@@ -1533,7 +1494,7 @@ textarea {
 .workspace-path {
   font-size: 12px;
   color: var(--muted);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: "JetBrains Mono", monospace;
 }
 
 .workspace-panel .panel-body {
@@ -1577,7 +1538,7 @@ textarea {
 }
 
 .deck-root {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: "JetBrains Mono", monospace;
   font-size: 12px;
   color: var(--muted);
 }
@@ -1870,7 +1831,7 @@ textarea {
   min-width: 14px;
   text-align: center;
   font-size: 11px;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: "JetBrains Mono", monospace;
   font-weight: 600;
   color: var(--muted);
 }
@@ -1949,7 +1910,7 @@ textarea {
   min-width: 18px;
   text-align: center;
   font-size: 13px;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: "JetBrains Mono", monospace;
   font-weight: 600;
   color: var(--text);
 }
@@ -1973,36 +1934,84 @@ textarea {
 }
 
 /* Column span classes */
-.col-span-1 { grid-column: span 1; }
-.col-span-2 { grid-column: span 2; }
-.col-span-3 { grid-column: span 3; }
-.col-span-4 { grid-column: span 4; }
-.col-span-5 { grid-column: span 5; }
-.col-span-6 { grid-column: span 6; }
+.col-span-1 {
+  grid-column: span 1;
+}
+.col-span-2 {
+  grid-column: span 2;
+}
+.col-span-3 {
+  grid-column: span 3;
+}
+.col-span-4 {
+  grid-column: span 4;
+}
+.col-span-5 {
+  grid-column: span 5;
+}
+.col-span-6 {
+  grid-column: span 6;
+}
 
 /* Column start classes */
-.col-start-1 { grid-column-start: 1; }
-.col-start-2 { grid-column-start: 2; }
-.col-start-3 { grid-column-start: 3; }
-.col-start-4 { grid-column-start: 4; }
-.col-start-5 { grid-column-start: 5; }
-.col-start-6 { grid-column-start: 6; }
+.col-start-1 {
+  grid-column-start: 1;
+}
+.col-start-2 {
+  grid-column-start: 2;
+}
+.col-start-3 {
+  grid-column-start: 3;
+}
+.col-start-4 {
+  grid-column-start: 4;
+}
+.col-start-5 {
+  grid-column-start: 5;
+}
+.col-start-6 {
+  grid-column-start: 6;
+}
 
 /* Row span classes */
-.row-span-1 { grid-row: span 1; }
-.row-span-2 { grid-row: span 2; }
-.row-span-3 { grid-row: span 3; }
-.row-span-4 { grid-row: span 4; }
-.row-span-5 { grid-row: span 5; }
-.row-span-6 { grid-row: span 6; }
+.row-span-1 {
+  grid-row: span 1;
+}
+.row-span-2 {
+  grid-row: span 2;
+}
+.row-span-3 {
+  grid-row: span 3;
+}
+.row-span-4 {
+  grid-row: span 4;
+}
+.row-span-5 {
+  grid-row: span 5;
+}
+.row-span-6 {
+  grid-row: span 6;
+}
 
 /* Row start classes */
-.row-start-1 { grid-row-start: 1; }
-.row-start-2 { grid-row-start: 2; }
-.row-start-3 { grid-row-start: 3; }
-.row-start-4 { grid-row-start: 4; }
-.row-start-5 { grid-row-start: 5; }
-.row-start-6 { grid-row-start: 6; }
+.row-start-1 {
+  grid-row-start: 1;
+}
+.row-start-2 {
+  grid-row-start: 2;
+}
+.row-start-3 {
+  grid-row-start: 3;
+}
+.row-start-4 {
+  grid-row-start: 4;
+}
+.row-start-5 {
+  grid-row-start: 5;
+}
+.row-start-6 {
+  grid-row-start: 6;
+}
 
 /* Terminal grid using 6-column system */
 .terminal-grid {
@@ -2049,7 +2058,6 @@ textarea {
   overflow: hidden;
 }
 
-
 .terminal-tile-header {
   display: flex;
   align-items: center;
@@ -2083,7 +2091,7 @@ textarea {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: "JetBrains Mono", monospace;
 }
 
 .terminal-tile-tags {
@@ -2098,7 +2106,7 @@ textarea {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: "JetBrains Mono", monospace;
 }
 
 .terminal-close-btn {
@@ -2112,7 +2120,9 @@ textarea {
   background: transparent;
   color: #858585;
   cursor: pointer;
-  transition: background 0.1s, color 0.1s;
+  transition:
+    background 0.1s,
+    color 0.1s;
   flex-shrink: 0;
 }
 
@@ -2215,7 +2225,9 @@ textarea {
   border-radius: 3px;
   color: var(--ink-dim);
   cursor: pointer;
-  transition: background 0.1s, color 0.1s;
+  transition:
+    background 0.1s,
+    color 0.1s;
 }
 
 .terminal-group-action-btn:hover {
@@ -2271,8 +2283,12 @@ textarea {
 }
 
 @keyframes slideIn {
-  from { transform: translateX(-100%); }
-  to { transform: translateX(0); }
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
 }
 
 .deck-handle {
@@ -2374,7 +2390,7 @@ textarea {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: "JetBrains Mono", monospace;
   font-size: 12px;
 }
 
@@ -2485,7 +2501,9 @@ textarea {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.1s, color 0.1s;
+  transition:
+    background 0.1s,
+    color 0.1s;
 }
 
 .change-group-action:hover {
@@ -2539,7 +2557,7 @@ textarea {
   justify-content: center;
   font-size: 11px;
   font-weight: 600;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: "JetBrains Mono", monospace;
   flex-shrink: 0;
 }
 
@@ -2574,7 +2592,9 @@ textarea {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.1s, color 0.1s;
+  transition:
+    background 0.1s,
+    color 0.1s;
 }
 
 .git-action-btn:hover {
@@ -2654,7 +2674,9 @@ textarea {
   color: var(--ink-muted);
   font-size: 12px;
   cursor: pointer;
-  transition: color 0.1s, background 0.1s;
+  transition:
+    color 0.1s,
+    background 0.1s;
   position: relative;
 }
 
@@ -2668,7 +2690,7 @@ textarea {
 }
 
 .git-tab.active::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: 0;
   left: 0;
@@ -2716,7 +2738,7 @@ textarea {
   border-radius: 2px;
   background: var(--panel);
   color: var(--ink);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: "JetBrains Mono", monospace;
 }
 
 .new-branch-input:focus {
@@ -2768,7 +2790,7 @@ textarea {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: "JetBrains Mono", monospace;
 }
 
 .branch-current-badge {
@@ -2810,7 +2832,7 @@ textarea {
 }
 
 .log-hash {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: "JetBrains Mono", monospace;
   font-size: 12px;
   color: var(--accent);
   font-weight: 600;
@@ -2865,7 +2887,7 @@ textarea {
 .diff-viewer-path {
   font-size: 12px;
   color: var(--muted);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: "JetBrains Mono", monospace;
 }
 
 .diff-viewer-body {
@@ -2890,6 +2912,8 @@ textarea {
 
 .status-float {
   position: fixed;
+  grid-column: 1 / -1;
+  grid-row: 1 / -1;
   right: 20px;
   bottom: 40px;
   padding: 8px 14px;
@@ -3145,8 +3169,8 @@ input:focus-visible {
 
   /* On small screens, stack terminals vertically */
   .terminal-grid {
-    grid-template-columns: 1fr !important;
-    grid-template-rows: none !important;
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
     grid-auto-rows: minmax(200px, 1fr);
     overflow: auto;
   }
@@ -3162,6 +3186,8 @@ input:focus-visible {
 
 .context-status-overlay {
   position: fixed;
+  grid-column: 1 / -1;
+  grid-row: 1 / -1;
   top: 0;
   left: 0;
   right: 0;
@@ -3187,7 +3213,7 @@ input:focus-visible {
 
 /* Status bar clickable item */
 .statusbar-clickable {
-  cursor: pointer !important;
+  cursor: pointer;
   transition: opacity 0.2s ease;
   user-select: none;
 }
@@ -3227,13 +3253,23 @@ input:focus-visible {
 .context-health-fill {
   height: 100%;
   border-radius: 4px;
-  transition: width 0.3s ease, background-color 0.3s ease;
+  transition:
+    width 0.3s ease,
+    background-color 0.3s ease;
 }
 
-.context-health-fill.excellent { background: #4caf50; }
-.context-health-fill.good { background: #8bc34a; }
-.context-health-fill.warning { background: #ff9800; }
-.context-health-fill.critical { background: #f44336; }
+.context-health-fill.excellent {
+  background: #4caf50;
+}
+.context-health-fill.good {
+  background: #8bc34a;
+}
+.context-health-fill.warning {
+  background: #ff9800;
+}
+.context-health-fill.critical {
+  background: #f44336;
+}
 
 .context-metrics {
   display: grid;
@@ -3291,4 +3327,464 @@ input:focus-visible {
   background: rgba(244, 67, 54, 0.1);
   color: #f44336;
   border-color: rgba(244, 67, 54, 0.3);
+}
+
+/* ========================================
+   Server Startup Screen
+   ======================================== */
+
+.server-startup-screen {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: var(--bg);
+  z-index: 2000;
+}
+
+.startup-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  text-align: center;
+}
+
+.startup-logo {
+  font-size: 48px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -2px;
+}
+
+.startup-version {
+  font-size: 14px;
+  color: var(--ink-muted);
+  font-family: "JetBrains Mono", monospace;
+}
+
+.startup-content .status-text {
+  font-size: 16px;
+  color: var(--ink);
+  min-height: 24px;
+}
+
+.startup-content .progress-bar {
+  width: 200px;
+  height: 4px;
+  background: var(--bg-soft);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.startup-content .progress-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+
+.startup-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.startup-error .error-message {
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.startup-success {
+  color: var(--ink-muted);
+  font-size: 14px;
+}
+
+/* ========================================
+   Server Status Indicator
+   ======================================== */
+
+.server-status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.server-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+.server-status-dot.starting {
+  background: #ff9800;
+}
+
+.server-status-dot.running {
+  background: #4caf50;
+  animation: none;
+}
+
+.server-status-dot.stopped,
+.server-status-dot.error {
+  background: #f44336;
+  animation: none;
+}
+
+.server-port {
+  color: var(--muted);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* ========================================
+   Server Modal
+   ======================================== */
+
+.server-modal {
+  width: 520px;
+}
+
+.server-status-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: var(--bg-soft);
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+
+.server-status-text {
+  flex: 1;
+  font-size: 13px;
+  color: var(--ink);
+}
+
+.server-logs {
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+}
+
+.server-logs-empty {
+  color: var(--muted);
+  text-align: center;
+  padding: 20px 8px;
+}
+
+.server-log-entry {
+  padding: 2px 0;
+  color: var(--ink-muted);
+}
+
+/* ========================================
+   Welcome Screen
+   ======================================== */
+
+.welcome-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60px 40px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.welcome-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.welcome-header h1 {
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+
+.welcome-header p {
+  font-size: 16px;
+  color: var(--muted);
+}
+
+.welcome-steps {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.step-card {
+  padding: 20px;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  transition: border-color 0.2s;
+}
+
+.step-card.disabled {
+  opacity: 0.6;
+}
+
+.step-card.completed {
+  border-color: var(--accent);
+}
+
+.step-card-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.step-number {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent);
+  color: #000;
+  border-radius: 50%;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.step-number.completed {
+  background: var(--bg);
+  color: var(--accent);
+}
+
+.step-card-info {
+  flex: 1;
+}
+
+.step-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+
+.step-card-description {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.step-card-icon {
+  flex-shrink: 0;
+  color: var(--ink-muted);
+}
+
+.step-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.step-card-hint {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.step-card-completed {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--accent);
+}
+
+.welcome-footer {
+  margin-top: 32px;
+}
+
+.welcome-success {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: rgba(76, 175, 80, 0.1);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  border-radius: 6px;
+  color: var(--ink);
+}
+
+/* ========================================
+   Deck Empty State
+   ======================================== */
+
+.deck-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 40px 20px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.deck-empty-state kbd {
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 2px 6px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+}
+
+.deck-empty-state .hint {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ========================================
+   Terminal Creating State
+   ======================================== */
+
+.terminal-creating-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px 20px;
+  color: var(--muted);
+}
+
+.terminal-creating-state .spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--accent);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.terminal-creating-state span {
+  font-size: 13px;
+}
+
+/* ========================================
+   Tunnel Control
+   ======================================== */
+
+.tunnel-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px;
+  margin-left: 8px;
+  border-left: 1px solid var(--border);
+}
+
+.tunnel-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.tunnel-label {
+  color: var(--ink);
+}
+
+.tunnel-url {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 200px;
+}
+
+.copy-url-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  border-radius: 3px;
+  transition: background 0.15s;
+}
+
+.copy-url-btn:hover {
+  background: var(--bg-soft);
+  color: var(--ink);
+}
+
+.url-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--accent);
+  font-size: 11px;
+}
+
+.tunnel-actions {
+  display: flex;
+  align-items: center;
+}
+
+.tunnel-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  border-radius: 3px;
+  transition: all 0.15s;
+}
+
+.tunnel-btn:hover {
+  background: var(--bg-soft);
+  color: var(--ink);
+}
+
+.tunnel-btn.start:hover {
+  color: #22c55e;
+}
+
+.tunnel-btn.stop:hover {
+  color: #ef4444;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }

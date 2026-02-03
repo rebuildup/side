@@ -1,64 +1,74 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Folder, GitBranch } from 'lucide-react';
-import { DeckModal } from './components/DeckModal';
-import { DiffViewer } from './components/DiffViewer';
-import { EditorPane } from './components/EditorPane';
-import { FileTree } from './components/FileTree';
-import { SettingsModal } from './components/SettingsModal';
-import { SideNav } from './components/SideNav';
-import { SourceControl } from './components/SourceControl';
-import { StatusMessage } from './components/StatusMessage';
-import { TerminalPane } from './components/TerminalPane';
-import { WorkspaceList } from './components/WorkspaceList';
-import { WorkspaceModal } from './components/WorkspaceModal';
-import { GlobalStatusBar } from './components/GlobalStatusBar';
-import { ContextStatus } from './components/ContextStatus';
-import { AIWorkflowPanel } from './components/AIWorkflowPanel';
-import { getConfig, getWsBase } from './api';
-import { useWorkspaceState } from './hooks/useWorkspaceState';
-import { useDeckState } from './hooks/useDeckState';
-import { useWorkspaces } from './hooks/useWorkspaces';
-import { useDecks } from './hooks/useDecks';
-import { useFileOperations } from './hooks/useFileOperations';
-import { useGitState } from './hooks/useGitState';
-import type { AppView, WorkspaceMode, SidebarPanel } from './types';
-import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
+import { Folder, GitBranch } from "lucide-react";
+import type { KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { getConfig, getWsBase } from "./api";
+import { AIWorkflowPanel } from "./components/AIWorkflowPanel";
+import { ContextStatus } from "./components/ContextStatus";
+import { DeckModal } from "./components/DeckModal";
+import { DiffViewer } from "./components/DiffViewer";
+import { EditorPane } from "./components/EditorPane";
+import { FileTree } from "./components/FileTree";
+import { GlobalStatusBar } from "./components/GlobalStatusBar";
+import { ServerModal } from "./components/ServerModal";
+import { ServerStartupScreen } from "./components/ServerStartupScreen";
+import { ServerStatus } from "./components/ServerStatus";
+import { SettingsModal } from "./components/SettingsModal";
+import { SourceControl } from "./components/SourceControl";
+import { StatusMessage } from "./components/StatusMessage";
+import { TerminalPane } from "./components/TerminalPane";
+import { TitleBar } from "./components/TitleBar";
+import { TunnelControl } from "./components/TunnelControl";
+import { WelcomeScreen } from "./components/WelcomeScreen";
+import { WorkspaceList } from "./components/WorkspaceList";
+import { WorkspaceModal } from "./components/WorkspaceModal";
 import {
   DEFAULT_ROOT_FALLBACK,
-  SAVED_MESSAGE_TIMEOUT,
   MESSAGE_SAVED,
-  MESSAGE_WORKSPACE_REQUIRED,
   MESSAGE_SELECT_WORKSPACE,
-  MESSAGE_SELECT_DECK,
-  STORAGE_KEY_THEME
-} from './constants';
-import { parseUrlState } from './utils/urlUtils';
-import { createEmptyWorkspaceState, createEmptyDeckState } from './utils/stateUtils';
+  MESSAGE_WORKSPACE_REQUIRED,
+  SAVED_MESSAGE_TIMEOUT,
+  STORAGE_KEY_THEME,
+} from "./constants";
+import { useDeckState } from "./hooks/useDeckState";
+import { useDecks } from "./hooks/useDecks";
+import { useFileOperations } from "./hooks/useFileOperations";
+import { useGitState } from "./hooks/useGitState";
+import { useServerStatus } from "./hooks/useServerStatus";
+import { useWorkspaceState } from "./hooks/useWorkspaceState";
+import { useWorkspaces } from "./hooks/useWorkspaces";
+import type { SidebarPanel, WorkspaceMode } from "./types";
+import { createEmptyDeckState, createEmptyWorkspaceState } from "./utils/stateUtils";
+import { parseUrlState } from "./utils/urlUtils";
 
 export default function App() {
   const initialUrlState = parseUrlState();
-  const [workspaceMode, setWorkspaceMode] = useState<WorkspaceMode>(
-    initialUrlState.workspaceMode
-  );
-  const theme = 'dark'; // Force dark theme
+
+  // Server startup screen state
+  const [serverReady, setServerReady] = useState(true); // Start as ready for browser preview
+
+  // Server status
+  const serverStatus = useServerStatus();
+
+  const [workspaceMode, setWorkspaceMode] = useState<WorkspaceMode>(initialUrlState.workspaceMode);
+  const _theme = "dark"; // Force dark theme
   const [defaultRoot, setDefaultRoot] = useState(DEFAULT_ROOT_FALLBACK);
-  const [statusMessage, setStatusMessage] = useState('');
+  const [statusMessage, setStatusMessage] = useState("");
   const [isWorkspaceModalOpen, setIsWorkspaceModalOpen] = useState(false);
   const [isDeckModalOpen, setIsDeckModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
-  const [sidebarPanel, setSidebarPanel] = useState<SidebarPanel>('files');
+  const [isServerModalOpen, setIsServerModalOpen] = useState(false);
+  const [sidebarPanel, setSidebarPanel] = useState<SidebarPanel>("files");
 
   const { workspaceStates, setWorkspaceStates, updateWorkspaceState, initializeWorkspaceStates } =
     useWorkspaceState();
-  const { deckStates, setDeckStates, updateDeckState, initializeDeckStates } =
-    useDeckState();
+  const { deckStates, setDeckStates, updateDeckState, initializeDeckStates } = useDeckState();
 
   const { workspaces, editorWorkspaceId, setEditorWorkspaceId, handleCreateWorkspace } =
     useWorkspaces({
       setStatusMessage,
       defaultRoot,
       initializeWorkspaceStates,
-      setWorkspaceStates
+      setWorkspaceStates,
     });
 
   const {
@@ -72,16 +82,15 @@ export default function App() {
     handleToggleGroupCollapsed,
     handleDeleteGroup,
     handleUpdateGroup,
-    creatingTerminalDeckIds
+    creatingTerminalDeckIds,
   } = useDecks({
     setStatusMessage,
     initializeDeckStates,
     updateDeckState,
     deckStates,
     setDeckStates,
-    initialDeckIds: initialUrlState.deckIds
+    initialDeckIds: initialUrlState.deckIds,
   });
-
 
   const defaultWorkspaceState = useMemo(() => createEmptyWorkspaceState(), []);
   const defaultDeckState = useMemo(() => createEmptyDeckState(), []);
@@ -102,12 +111,12 @@ export default function App() {
     handleCreateFile,
     handleCreateDirectory,
     handleDeleteFile,
-    handleDeleteDirectory
+    handleDeleteDirectory,
   } = useFileOperations({
     editorWorkspaceId,
     activeWorkspaceState,
     updateWorkspaceState,
-    setStatusMessage
+    setStatusMessage,
   });
 
   const {
@@ -127,7 +136,7 @@ export default function App() {
     handleLoadBranches,
     handleCheckoutBranch,
     handleCreateBranch,
-    handleLoadLogs
+    handleLoadLogs,
   } = useGitState(editorWorkspaceId, setStatusMessage);
 
   const wsBase = getWsBase();
@@ -135,10 +144,10 @@ export default function App() {
     () => new Map(workspaces.map((workspace) => [workspace.id, workspace])),
     [workspaces]
   );
-  const deckListItems = decks.map((deck) => ({
+  const _deckListItems = decks.map((deck) => ({
     id: deck.id,
     name: deck.name,
-    path: workspaceById.get(deck.workspaceId)?.path || deck.root
+    path: workspaceById.get(deck.workspaceId)?.path || deck.root,
   }));
 
   // Calculate active terminals count for status bar
@@ -161,7 +170,7 @@ export default function App() {
     setContextHealthScore((prevHealthScore) => {
       // Show notification when health score drops
       if (status.healthScore < 50 && prevHealthScore >= 50) {
-        setStatusMessage('Context health is low. Consider compacting.');
+        setStatusMessage("Context health is low. Consider compacting.");
       }
       return status.healthScore;
     });
@@ -183,10 +192,10 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (typeof document === 'undefined') return;
-    document.documentElement.dataset.theme = 'dark';
+    if (typeof document === "undefined") return;
+    document.documentElement.dataset.theme = "dark";
     try {
-      window.localStorage.setItem(STORAGE_KEY_THEME, 'dark');
+      window.localStorage.setItem(STORAGE_KEY_THEME, "dark");
     } catch {
       // ignore storage errors
     }
@@ -199,34 +208,32 @@ export default function App() {
       setActiveDeckIds(next.deckIds);
       setWorkspaceMode(next.workspaceMode);
     };
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
   }, [setEditorWorkspaceId, setActiveDeckIds]);
 
   useEffect(() => {
     const params = new URLSearchParams();
     if (editorWorkspaceId) {
-      params.set('workspace', editorWorkspaceId);
+      params.set("workspace", editorWorkspaceId);
     }
     if (activeDeckIds.length > 0) {
-      params.set('decks', activeDeckIds.join(','));
+      params.set("decks", activeDeckIds.join(","));
     }
     const query = params.toString();
-    const nextUrl = query
-      ? `${window.location.pathname}?${query}`
-      : window.location.pathname;
-    window.history.replaceState(null, '', nextUrl);
+    const nextUrl = query ? `${window.location.pathname}?${query}` : window.location.pathname;
+    window.history.replaceState(null, "", nextUrl);
   }, [editorWorkspaceId, activeDeckIds]);
 
   useEffect(() => {
     if (statusMessage !== MESSAGE_SAVED) return;
-    const timer = setTimeout(() => setStatusMessage(''), SAVED_MESSAGE_TIMEOUT);
+    const timer = setTimeout(() => setStatusMessage(""), SAVED_MESSAGE_TIMEOUT);
     return () => clearTimeout(timer);
   }, [statusMessage]);
 
   useEffect(() => {
-    if (workspaceMode === 'editor' && !editorWorkspaceId) {
-      setWorkspaceMode('list');
+    if (workspaceMode === "editor" && !editorWorkspaceId) {
+      setWorkspaceMode("list");
     }
   }, [workspaceMode, editorWorkspaceId]);
 
@@ -235,7 +242,7 @@ export default function App() {
 
   // Refresh file tree when opening workspace editor
   useEffect(() => {
-    if (workspaceMode !== 'editor' || !editorWorkspaceId) {
+    if (workspaceMode !== "editor" || !editorWorkspaceId) {
       treeLoadedRef.current = null;
       return;
     }
@@ -270,42 +277,50 @@ export default function App() {
     [handleCreateDeck]
   );
 
-  const handleSaveSettings = useCallback(async (settings: { port: number; basicAuthEnabled: boolean; basicAuthUser: string; basicAuthPassword: string }) => {
-    try {
-      const response = await fetch('/api/settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(settings)
-      });
+  const handleSaveSettings = useCallback(
+    async (settings: {
+      port: number;
+      basicAuthEnabled: boolean;
+      basicAuthUser: string;
+      basicAuthPassword: string;
+    }) => {
+      try {
+        const response = await fetch("/api/settings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(settings),
+        });
 
-      if (!response.ok) {
-        const error = await response.text();
-        throw new Error(error || 'Failed to save settings');
+        if (!response.ok) {
+          const error = await response.text();
+          throw new Error(error || "Failed to save settings");
+        }
+
+        const _result = await response.json();
+        setStatusMessage("設定を保存しました。ブラウザをリロードしてください。");
+
+        // Reload after 2 seconds to apply settings
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      } catch (error: unknown) {
+        console.error("Failed to save settings:", error);
+        throw error;
       }
-
-      const result = await response.json();
-      setStatusMessage('設定を保存しました。ブラウザをリロードしてください。');
-
-      // Reload after 2 seconds to apply settings
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
-    } catch (error: unknown) {
-      console.error('Failed to save settings:', error);
-      throw error;
-    }
-  }, []);
+    },
+    []
+  );
 
   const handleSelectWorkspace = useCallback(
     (workspaceId: string) => {
       setEditorWorkspaceId(workspaceId);
-      setWorkspaceMode('editor');
+      setWorkspaceMode("editor");
     },
     [setEditorWorkspaceId]
   );
 
   const handleCloseWorkspaceEditor = useCallback(() => {
-    setWorkspaceMode('list');
+    setWorkspaceMode("list");
   }, []);
 
   const handleOpenWorkspaceModal = useCallback(() => {
@@ -322,20 +337,29 @@ export default function App() {
     [handleCreateWorkspace]
   );
 
-  const handleNewTerminalForDeck = useCallback((deckId: string) => {
-    const deckState = deckStates[deckId] || defaultDeckState;
-    handleCreateTerminal(deckId, deckState.terminals.length);
-  }, [deckStates, defaultDeckState, handleCreateTerminal]);
+  const handleNewTerminalForDeck = useCallback(
+    (deckId: string) => {
+      const deckState = deckStates[deckId] || defaultDeckState;
+      handleCreateTerminal(deckId, deckState.terminals.length);
+    },
+    [deckStates, defaultDeckState, handleCreateTerminal]
+  );
 
-  const handleNewClaudeTerminalForDeck = useCallback((deckId: string) => {
-    const deckState = deckStates[deckId] || defaultDeckState;
-    handleCreateTerminal(deckId, deckState.terminals.length, 'claude', 'Claude Code');
-  }, [deckStates, defaultDeckState, handleCreateTerminal]);
+  const handleNewClaudeTerminalForDeck = useCallback(
+    (deckId: string) => {
+      const deckState = deckStates[deckId] || defaultDeckState;
+      handleCreateTerminal(deckId, deckState.terminals.length, "claude", "Claude Code");
+    },
+    [deckStates, defaultDeckState, handleCreateTerminal]
+  );
 
-  const handleNewCodexTerminalForDeck = useCallback((deckId: string) => {
-    const deckState = deckStates[deckId] || defaultDeckState;
-    handleCreateTerminal(deckId, deckState.terminals.length, 'codex', 'Codex');
-  }, [deckStates, defaultDeckState, handleCreateTerminal]);
+  const handleNewCodexTerminalForDeck = useCallback(
+    (deckId: string) => {
+      const deckState = deckStates[deckId] || defaultDeckState;
+      handleCreateTerminal(deckId, deckState.terminals.length, "codex", "Codex");
+    },
+    [deckStates, defaultDeckState, handleCreateTerminal]
+  );
 
   const handleTerminalDeleteForDeck = useCallback(
     (deckId: string, terminalId: string) => {
@@ -344,201 +368,205 @@ export default function App() {
     [handleDeleteTerminal]
   );
 
-  const handleToggleDeck = useCallback((deckId: string, shiftKey = false) => {
-    setActiveDeckIds((prev) => {
-      if (prev.includes(deckId)) {
-        // Remove deck (but keep at least one)
-        if (prev.length > 1) {
-          return prev.filter((id) => id !== deckId);
+  const handleToggleDeck = useCallback(
+    (deckId: string, shiftKey = false) => {
+      setActiveDeckIds((prev) => {
+        if (prev.includes(deckId)) {
+          // Remove deck (but keep at least one)
+          if (prev.length > 1) {
+            return prev.filter((id) => id !== deckId);
+          }
+          return prev;
+        } else if (shiftKey) {
+          // Shift+click: Add deck for split view (max 3)
+          if (prev.length < 3) {
+            return [...prev, deckId];
+          }
+          // Replace first one if at max
+          return [...prev.slice(1), deckId];
+        } else {
+          // Normal click: Replace with single deck (no split)
+          return [deckId];
         }
-        return prev;
-      } else if (shiftKey) {
-        // Shift+click: Add deck for split view (max 3)
-        if (prev.length < 3) {
-          return [...prev, deckId];
-        }
-        // Replace first one if at max
-        return [...prev.slice(1), deckId];
-      } else {
-        // Normal click: Replace with single deck (no split)
-        return [deckId];
-      }
-    });
-  }, [setActiveDeckIds]);
+      });
+    },
+    [setActiveDeckIds]
+  );
 
   // Keyboard navigation for deck tabs
-  const handleDeckTabKeyDown = useCallback((e: ReactKeyboardEvent, deckId: string, index: number) => {
-    // Only handle arrow keys when not modified with ctrl/cmd/alt
-    if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const handleDeckTabKeyDown = useCallback(
+    (e: ReactKeyboardEvent, _deckId: string, index: number) => {
+      // Only handle arrow keys when not modified with ctrl/cmd/alt
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
 
-    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-      e.preventDefault();
-      const direction = e.key === 'ArrowLeft' ? -1 : 1;
-      const newIndex = index + direction;
+      if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+        e.preventDefault();
+        const direction = e.key === "ArrowLeft" ? -1 : 1;
+        const newIndex = index + direction;
 
-      // Find the deck at the new index
-      if (newIndex >= 0 && newIndex < decks.length) {
-        const targetDeckId = decks[newIndex].id;
-        // Focus the new tab but don't change selection (just move focus)
-        const targetTab = e.currentTarget.parentElement?.children[newIndex + 1] as HTMLElement;
-        targetTab?.focus();
+        // Find the deck at the new index
+        if (newIndex >= 0 && newIndex < decks.length) {
+          const _targetDeckId = decks[newIndex].id;
+          // Focus the new tab but don't change selection (just move focus)
+          const targetTab = e.currentTarget.parentElement?.children[newIndex + 1] as HTMLElement;
+          targetTab?.focus();
+        }
+      } else if (e.key === "Home") {
+        e.preventDefault();
+        // Move to first tab
+        const firstTab = e.currentTarget.parentElement?.children[1] as HTMLElement;
+        firstTab?.focus();
+      } else if (e.key === "End") {
+        e.preventDefault();
+        // Move to last tab
+        const lastTab = e.currentTarget.parentElement?.children[decks.length] as HTMLElement;
+        lastTab?.focus();
       }
-    } else if (e.key === 'Home') {
-      e.preventDefault();
-      // Move to first tab
-      const firstTab = e.currentTarget.parentElement?.children[1] as HTMLElement;
-      firstTab?.focus();
-    } else if (e.key === 'End') {
-      e.preventDefault();
-      // Move to last tab
-      const lastTab = e.currentTarget.parentElement?.children[decks.length] as HTMLElement;
-      lastTab?.focus();
-    }
-  }, [decks]);
-
+    },
+    [decks]
+  );
 
   const gitChangeCount = gitState.status?.files.length ?? 0;
 
-  const workspaceEditor = workspaceMode === 'editor' && Boolean(editorWorkspaceId) ? (
-    <div className="workspace-editor-overlay">
-      <div className="workspace-editor-header">
-        <button
-          type="button"
-          className="ghost-button"
-          onClick={handleCloseWorkspaceEditor}
-        >
-          {'\u4e00\u89a7\u306b\u623b\u308b'}
-        </button>
-        <div className="workspace-meta">
-          {activeWorkspace ? (
-            <span className="workspace-path">{activeWorkspace.path}</span>
-          ) : null}
-        </div>
-      </div>
-      <div className="workspace-editor-grid">
-        <div className="activity-bar">
-          <button
-            type="button"
-            className={`activity-bar-item ${sidebarPanel === 'files' ? 'active' : ''}`}
-            onClick={() => setSidebarPanel('files')}
-            title="エクスプローラー"
-          >
-            <Folder size={20} />
+  // Check if welcome screen should be shown
+  const showWelcomeScreen = workspaces.length === 0 && decks.length === 0;
+
+  const workspaceEditor =
+    workspaceMode === "editor" && Boolean(editorWorkspaceId) ? (
+      <div className="workspace-editor-overlay">
+        <div className="workspace-editor-header">
+          <button type="button" className="ghost-button" onClick={handleCloseWorkspaceEditor}>
+            {"\u4e00\u89a7\u306b\u623b\u308b"}
           </button>
-          <button
-            type="button"
-            className={`activity-bar-item ${sidebarPanel === 'git' ? 'active' : ''}`}
-            onClick={() => {
-              setSidebarPanel('git');
-              refreshGitStatus();
-            }}
-            title="ソースコントロール"
-          >
-            <GitBranch size={20} />
-            {gitChangeCount > 0 && (
-              <span className="activity-bar-badge">{gitChangeCount}</span>
-            )}
-          </button>
-        </div>
-        <div className="sidebar-panel">
-          <div className="sidebar-content">
-            {sidebarPanel === 'files' ? (
-              <FileTree
-                root={activeWorkspace?.path || defaultRoot || ''}
-                entries={activeWorkspaceState.tree}
-                loading={activeWorkspaceState.treeLoading}
-                error={activeWorkspaceState.treeError}
-                onToggleDir={handleToggleDir}
-                onOpenFile={handleOpenFile}
-                onRefresh={handleRefreshTree}
-                onCreateFile={handleCreateFile}
-                onCreateDirectory={handleCreateDirectory}
-                onDeleteFile={handleDeleteFile}
-                onDeleteDirectory={handleDeleteDirectory}
-                gitFiles={gitState.status?.files}
-              />
-            ) : sidebarPanel === 'git' ? (
-              <SourceControl
-                status={gitState.status}
-                loading={gitState.loading}
-                error={gitState.error}
-                workspaceId={editorWorkspaceId}
-                branchStatus={gitState.branchStatus}
-                hasRemote={gitState.hasRemote}
-                pushing={gitState.pushing}
-                pulling={gitState.pulling}
-                branches={gitState.branches}
-                branchesLoading={gitState.branchesLoading}
-                logs={gitState.logs}
-                logsLoading={gitState.logsLoading}
-                repos={gitState.repos}
-                selectedRepoPath={gitState.selectedRepoPath}
-                onSelectRepo={handleSelectRepo}
-                onRefresh={refreshGitStatus}
-                onStageFile={handleStageFile}
-                onUnstageFile={handleUnstageFile}
-                onStageAll={handleStageAll}
-                onUnstageAll={handleUnstageAll}
-                onCommit={handleCommit}
-                onDiscardFile={handleDiscardFile}
-                onShowDiff={handleShowDiff}
-                onPush={handlePush}
-                onPull={handlePull}
-                onLoadBranches={handleLoadBranches}
-                onCheckoutBranch={handleCheckoutBranch}
-                onCreateBranch={handleCreateBranch}
-                onLoadLogs={handleLoadLogs}
-              />
-            ) : sidebarPanel === 'ai' ? (
-              <AIWorkflowPanel workspaceId={editorWorkspaceId} />
+          <div className="workspace-meta">
+            {activeWorkspace ? (
+              <span className="workspace-path">{activeWorkspace.path}</span>
             ) : null}
           </div>
         </div>
-        <EditorPane
-          files={activeWorkspaceState.files}
-          activeFileId={activeWorkspaceState.activeFileId}
-          onSelectFile={(fileId) => {
-            if (!editorWorkspaceId) return;
-            updateWorkspaceState(editorWorkspaceId, (state) => ({
-              ...state,
-              activeFileId: fileId
-            }));
-          }}
-          onCloseFile={handleCloseFile}
-          onChangeFile={handleFileChange}
-          onSaveFile={handleSaveFile}
-          savingFileId={savingFileId}
-        />
-      </div>
-      {gitState.diffPath && (
-        <DiffViewer
-          diff={gitState.diff}
-          loading={gitState.diffLoading}
-          onClose={handleCloseDiff}
-        />
-      )}
-    </div>
-  ) : null;
-
-  const workspaceView = (
-    <div className={`workspace-view ${workspaceMode === 'editor' ? 'has-editor' : ''}`}>
-      {workspaceMode === 'list' ? (
-        <>
-          <div className="workspace-start">
+        <div className="workspace-editor-grid">
+          <div className="activity-bar">
             <button
               type="button"
-              className="primary-button"
-              onClick={handleOpenWorkspaceModal}
+              className={`activity-bar-item ${sidebarPanel === "files" ? "active" : ""}`}
+              onClick={() => setSidebarPanel("files")}
+              title="エクスプローラー"
             >
-              {'\u30ef\u30fc\u30af\u30b9\u30da\u30fc\u30b9\u8ffd\u52a0'}
+              <Folder size={20} />
             </button>
-            <WorkspaceList
-              workspaces={workspaces}
-              selectedWorkspaceId={editorWorkspaceId}
-              onSelect={handleSelectWorkspace}
-            />
+            <button
+              type="button"
+              className={`activity-bar-item ${sidebarPanel === "git" ? "active" : ""}`}
+              onClick={() => {
+                setSidebarPanel("git");
+                refreshGitStatus();
+              }}
+              title="ソースコントロール"
+            >
+              <GitBranch size={20} />
+              {gitChangeCount > 0 && <span className="activity-bar-badge">{gitChangeCount}</span>}
+            </button>
           </div>
-        </>
+          <div className="sidebar-panel">
+            <div className="sidebar-content">
+              {sidebarPanel === "files" ? (
+                <FileTree
+                  root={activeWorkspace?.path || defaultRoot || ""}
+                  entries={activeWorkspaceState.tree}
+                  loading={activeWorkspaceState.treeLoading}
+                  error={activeWorkspaceState.treeError}
+                  onToggleDir={handleToggleDir}
+                  onOpenFile={handleOpenFile}
+                  onRefresh={handleRefreshTree}
+                  onCreateFile={handleCreateFile}
+                  onCreateDirectory={handleCreateDirectory}
+                  onDeleteFile={handleDeleteFile}
+                  onDeleteDirectory={handleDeleteDirectory}
+                  gitFiles={gitState.status?.files}
+                />
+              ) : sidebarPanel === "git" ? (
+                <SourceControl
+                  status={gitState.status}
+                  loading={gitState.loading}
+                  error={gitState.error}
+                  workspaceId={editorWorkspaceId}
+                  branchStatus={gitState.branchStatus}
+                  hasRemote={gitState.hasRemote}
+                  pushing={gitState.pushing}
+                  pulling={gitState.pulling}
+                  branches={gitState.branches}
+                  branchesLoading={gitState.branchesLoading}
+                  logs={gitState.logs}
+                  logsLoading={gitState.logsLoading}
+                  repos={gitState.repos}
+                  selectedRepoPath={gitState.selectedRepoPath}
+                  onSelectRepo={handleSelectRepo}
+                  onRefresh={refreshGitStatus}
+                  onStageFile={handleStageFile}
+                  onUnstageFile={handleUnstageFile}
+                  onStageAll={handleStageAll}
+                  onUnstageAll={handleUnstageAll}
+                  onCommit={handleCommit}
+                  onDiscardFile={handleDiscardFile}
+                  onShowDiff={handleShowDiff}
+                  onPush={handlePush}
+                  onPull={handlePull}
+                  onLoadBranches={handleLoadBranches}
+                  onCheckoutBranch={handleCheckoutBranch}
+                  onCreateBranch={handleCreateBranch}
+                  onLoadLogs={handleLoadLogs}
+                />
+              ) : sidebarPanel === "ai" ? (
+                <AIWorkflowPanel workspaceId={editorWorkspaceId} />
+              ) : null}
+            </div>
+          </div>
+          <EditorPane
+            files={activeWorkspaceState.files}
+            activeFileId={activeWorkspaceState.activeFileId}
+            onSelectFile={(fileId) => {
+              if (!editorWorkspaceId) return;
+              updateWorkspaceState(editorWorkspaceId, (state) => ({
+                ...state,
+                activeFileId: fileId,
+              }));
+            }}
+            onCloseFile={handleCloseFile}
+            onChangeFile={handleFileChange}
+            onSaveFile={handleSaveFile}
+            savingFileId={savingFileId}
+          />
+        </div>
+        {gitState.diffPath && (
+          <DiffViewer
+            diff={gitState.diff}
+            loading={gitState.diffLoading}
+            onClose={handleCloseDiff}
+          />
+        )}
+      </div>
+    ) : null;
+
+  const workspaceView = (
+    <div className={`workspace-view ${workspaceMode === "editor" ? "has-editor" : ""}`}>
+      {showWelcomeScreen ? (
+        <WelcomeScreen
+          onOpenWorkspaceModal={handleOpenWorkspaceModal}
+          onOpenDeckModal={handleOpenDeckModal}
+          hasWorkspace={workspaces.length > 0}
+          hasDeck={decks.length > 0}
+        />
+      ) : workspaceMode === "list" ? (
+        <div className="workspace-start">
+          <button type="button" className="primary-button" onClick={handleOpenWorkspaceModal}>
+            {"\u30ef\u30fc\u30af\u30b9\u30da\u30fc\u30b9\u8ffd\u52a0"}
+          </button>
+          <WorkspaceList
+            workspaces={workspaces}
+            selectedWorkspaceId={editorWorkspaceId}
+            onSelect={handleSelectWorkspace}
+          />
+        </div>
       ) : null}
       {workspaceEditor}
     </div>
@@ -554,7 +582,7 @@ export default function App() {
               <button
                 key={deck.id}
                 type="button"
-                className={`deck-tab ${activeDeckIds.includes(deck.id) ? 'active' : ''}`}
+                className={`deck-tab ${activeDeckIds.includes(deck.id) ? "active" : ""}`}
                 onClick={(e) => handleToggleDeck(deck.id, e.shiftKey)}
                 onKeyDown={(e) => handleDeckTabKeyDown(e, deck.id, index)}
                 title={`${workspaceById.get(deck.workspaceId)?.path || deck.root}\nShift+クリックで分割表示`}
@@ -577,11 +605,12 @@ export default function App() {
           </div>
         </div>
       </div>
-      <div className="terminal-split-container" style={{ gridTemplateColumns: `repeat(${activeDeckIds.length}, 1fr)` }}>
+      <div
+        className="terminal-split-container"
+        style={{ gridTemplateColumns: `repeat(${activeDeckIds.length}, 1fr)` }}
+      >
         {activeDeckIds.length === 0 ? (
-          <div className="panel empty-panel">
-            {'デッキを作成してください。'}
-          </div>
+          <div className="panel empty-panel">{"デッキを作成してください。"}</div>
         ) : (
           activeDeckIds.map((deckId) => {
             const deck = decks.find((d) => d.id === deckId);
@@ -626,7 +655,7 @@ export default function App() {
                   onReorderTerminals={(deckId, newOrder) => {
                     updateDeckState(deckId, (state) => ({
                       ...state,
-                      terminals: newOrder
+                      terminals: newOrder,
                     }));
                   }}
                   terminalGroups={terminalGroups}
@@ -634,7 +663,7 @@ export default function App() {
                   onDeleteGroup={handleDeleteGroup}
                   onRenameGroup={(groupId) => {
                     // TODO: Implement rename dialog
-                    const newName = prompt('Enter new group name:');
+                    const newName = prompt("Enter new group name:");
                     if (newName) {
                       handleUpdateGroup(groupId, { name: newName });
                     }
@@ -650,12 +679,16 @@ export default function App() {
     </div>
   );
 
+  // Show startup screen first
+  if (!serverReady) {
+    return <ServerStartupScreen onComplete={() => setServerReady(true)} />;
+  }
+
   return (
     <div className="app">
-      <SideNav
-        sidebarPanel={sidebarPanel}
-        onSetSidebarPanel={setSidebarPanel}
+      <TitleBar
         onOpenSettings={() => setIsSettingsModalOpen(true)}
+        onOpenServerModal={() => setIsServerModalOpen(true)}
         onToggleContextStatus={() => setShowContextStatus((prev) => !prev)}
       />
       <main className="main">
@@ -666,6 +699,8 @@ export default function App() {
       </main>
       <StatusMessage message={statusMessage} />
       <GlobalStatusBar
+        serverStatus={<ServerStatus status={serverStatus.status} port={serverStatus.port} />}
+        tunnelControl={<TunnelControl />}
         activeTerminalsCount={activeTerminalsCount}
         contextHealthScore={contextHealthScore}
         onToggleContextStatus={() => setShowContextStatus((prev) => !prev)}
@@ -693,6 +728,12 @@ export default function App() {
         isOpen={isSettingsModalOpen}
         onClose={() => setIsSettingsModalOpen(false)}
         onSave={handleSaveSettings}
+      />
+      <ServerModal
+        isOpen={isServerModalOpen}
+        status={serverStatus.status}
+        port={serverStatus.port}
+        onClose={() => setIsServerModalOpen(false)}
       />
     </div>
   );

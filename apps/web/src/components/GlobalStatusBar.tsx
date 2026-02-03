@@ -1,6 +1,8 @@
-import { useMemo } from 'react';
+import { type ReactNode, useMemo } from "react";
 
 interface GlobalStatusBarProps {
+  serverStatus?: ReactNode;
+  tunnelControl?: ReactNode;
   activeTerminalsCount?: number;
   contextHealthScore?: number;
   onToggleContextStatus?: () => void;
@@ -18,14 +20,16 @@ interface PerformanceWithMemory extends Performance {
 }
 
 export function GlobalStatusBar({
+  serverStatus,
+  tunnelControl,
   activeTerminalsCount = 0,
   contextHealthScore = 100,
-  onToggleContextStatus
+  onToggleContextStatus,
 }: GlobalStatusBarProps) {
   // Get memory usage if available
   const memoryUsage = useMemo(() => {
     const perf = performance as PerformanceWithMemory;
-    if (typeof performance !== 'undefined' && perf.memory) {
+    if (typeof performance !== "undefined" && perf.memory) {
       const mem = perf.memory;
       const used = Math.round(mem.usedJSHeapSize / 1024 / 1024);
       const total = Math.round(mem.jsHeapSizeLimit / 1024 / 1024);
@@ -36,10 +40,10 @@ export function GlobalStatusBar({
 
   // Get health color
   const getHealthColor = (score: number) => {
-    if (score >= 80) return '#22c55e';
-    if (score >= 50) return '#eab308';
-    if (score >= 30) return '#f97316';
-    return '#ef4444';
+    if (score >= 80) return "#22c55e";
+    if (score >= 50) return "#eab308";
+    if (score >= 30) return "#f97316";
+    return "#ef4444";
   };
 
   const healthColor = getHealthColor(contextHealthScore);
@@ -47,21 +51,28 @@ export function GlobalStatusBar({
   return (
     <div className="global-status-bar">
       <div className="global-statusbar-left">
-        <span className="statusbar-item">
-          <span className="status-indicator status-online"></span>
-          Server: Connected
-        </span>
+        {serverStatus || (
+          <span className="statusbar-item">
+            <span className="status-indicator status-online"></span>
+            Server: Connected
+          </span>
+        )}
+        {tunnelControl}
         {onToggleContextStatus && (
           <button
             className="statusbar-item statusbar-clickable"
             onClick={onToggleContextStatus}
             title="View context manager status"
-            style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+            style={{
+              border: "none",
+              background: "none",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "4px",
+            }}
           >
-            <span
-              className="status-indicator"
-              style={{ backgroundColor: healthColor }}
-            ></span>
+            <span className="status-indicator" style={{ backgroundColor: healthColor }}></span>
             Context: {contextHealthScore}%
           </button>
         )}
@@ -69,9 +80,7 @@ export function GlobalStatusBar({
       <div className="global-statusbar-right">
         <span className="statusbar-item">WebSocket: Active</span>
         <span className="statusbar-item">Terminals: {activeTerminalsCount}</span>
-        {memoryUsage && (
-          <span className="statusbar-item">Memory: {memoryUsage}</span>
-        )}
+        {memoryUsage && <span className="statusbar-item">Memory: {memoryUsage}</span>}
       </div>
     </div>
   );
