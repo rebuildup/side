@@ -32,20 +32,20 @@ pub async fn stop_server(state: State<'_, ServerState>) -> Result<String, String
 #[tauri::command]
 pub async fn get_server_status(state: State<'_, ServerState>) -> Result<ServerStatus, String> {
     let server_state = state.0.lock().unwrap();
-    Ok(ServerStatus {
-        running: server_state.is_some(),
-        port: 8080,
-    })
+    let running = server_state.is_some();
+    let port = server_state.as_ref().map(|h| h.port).unwrap_or(8080);
+    Ok(ServerStatus { running, port })
 }
 
 #[tauri::command]
 pub async fn get_server_logs() -> Result<Vec<String>, String> {
-    // Return logs from log file
-    Ok(vec!["Log line 1".to_string(), "Log line 2".to_string()])
+    // TODO: Implement actual log file reading
+    // Read from server log file and return lines
+    Ok(vec!["Server logging not yet implemented".to_string()])
 }
 
 #[derive(serde::Serialize)]
 pub struct ServerStatus {
-    running: bool,
-    port: u16,
+    pub running: bool,
+    pub port: u16,
 }

@@ -3,6 +3,7 @@ use std::path::PathBuf;
 
 pub struct ServerHandle {
     child: Child,
+    pub port: u16,
 }
 
 pub async fn start(port: u16) -> Result<ServerHandle, String> {
@@ -14,11 +15,13 @@ pub async fn start(port: u16) -> Result<ServerHandle, String> {
         .spawn()
         .map_err(|e| format!("Failed to start server: {}", e))?;
 
-    Ok(ServerHandle { child })
+    Ok(ServerHandle { child, port })
 }
 
 pub async fn stop(handle: ServerHandle) -> Result<(), String> {
-    let _ = handle.child.kill().await;
+    handle.child.kill()
+        .await
+        .map_err(|e| format!("Failed to stop server: {}", e))?;
     Ok(())
 }
 
