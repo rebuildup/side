@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '../navigation/AppNavigator';
 import { getClient } from '../api/client';
 import { TerminalCard } from '../components/TerminalCard';
 
-export const HomeScreen: React.FC = () => {
+type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
+
+export const HomeScreen: React.FC<Props> = ({ navigation }) => {
   const [terminals, setTerminals] = useState<Array<{ id: string; title: string; status: string }>>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -16,6 +20,9 @@ export const HomeScreen: React.FC = () => {
     try {
       const client = getClient();
       // Fetch terminals from server
+      // Note: API endpoint to be implemented in server
+      const terminals = await client.get<Array<{ id: string; title: string; status: string }>>('/terminals');
+      setTerminals(terminals);
       setLoading(false);
     } catch (err) {
       setError('Failed to load terminals');
@@ -52,7 +59,7 @@ export const HomeScreen: React.FC = () => {
               id={terminal.id}
               title={terminal.title}
               status={terminal.status as 'running' | 'stopped'}
-              onPress={() => {}}
+              onPress={() => navigation.navigate('Terminal', { terminalId: terminal.id, title: terminal.title })}
             />
           ))
         )}

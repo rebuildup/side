@@ -15,11 +15,14 @@ export const VibesScreen: React.FC<VibesScreenProps> = ({ terminalId }) => {
 
     try {
       const client = getClient();
-      // Send vibe coding prompt to terminal
-      // API endpoint to be implemented
+      // TODO: Implement vibe coding API endpoint in server
+      // const response = await client.post<{ message: string }>('/vibes', { terminalId, prompt });
+      // setMessages((prev) => [...prev, { role: 'assistant', content: response.message }]);
+
+      // Placeholder for now
       setMessages((prev) => [...prev, {
         role: 'assistant',
-        content: 'Vibe coding sent to terminal!'
+        content: 'Vibe coding feature is under development. The server endpoint will be implemented in a future update.'
       }]);
     } catch (error) {
       Alert.alert('Error', 'Failed to send vibe coding prompt');

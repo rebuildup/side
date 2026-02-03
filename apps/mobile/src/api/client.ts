@@ -1,6 +1,8 @@
 // API client for Deck IDE mobile app
 // Handles REST API calls and WebSocket connections
 
+const DEFAULT_SERVER_URL = 'http://localhost:8080';
+
 export class DeckIDEClient {
   private baseUrl: string;
   private wsUrl: string;
@@ -65,7 +67,8 @@ export function getClient(serverUrl?: string): DeckIDEClient {
     clientInstance = new DeckIDEClient(serverUrl);
   }
   if (!clientInstance) {
-    throw new Error('Client not initialized. Provide serverUrl on first call.');
+    // Use default for development
+    clientInstance = new DeckIDEClient(DEFAULT_SERVER_URL);
   }
   return clientInstance;
 }
