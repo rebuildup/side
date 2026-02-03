@@ -32,6 +32,7 @@ import { createFileRouter } from './routes/files.js';
 import { createTerminalRouter } from './routes/terminals.js';
 import { createGitRouter } from './routes/git.js';
 import { createSettingsRouter } from './routes/settings.js';
+import { createContextManagerRouter } from './routes/context-manager.js';
 import { setupWebSocketServer, getConnectionLimit, setConnectionLimit, getConnectionStats, clearAllConnections } from './websocket.js';
 
 // Request ID and logging middleware
@@ -112,6 +113,7 @@ export function createServer() {
   const { router: terminalRouter, restoreTerminals } = createTerminalRouter(db, decks, terminals);
   app.route('/api/terminals', terminalRouter);
   app.route('/api/git', createGitRouter(workspaces));
+  app.route('/api/context-manager', createContextManagerRouter());
 
   // Restore persisted terminals
   const persistedTerminals = loadPersistedTerminals(db, decks);

@@ -12,6 +12,7 @@ import { TerminalPane } from './components/TerminalPane';
 import { WorkspaceList } from './components/WorkspaceList';
 import { WorkspaceModal } from './components/WorkspaceModal';
 import { GlobalStatusBar } from './components/GlobalStatusBar';
+import { ContextStatus } from './components/ContextStatus';
 import { AIWorkflowPanel } from './components/AIWorkflowPanel';
 import { getConfig, getWsBase } from './api';
 import { useWorkspaceState } from './hooks/useWorkspaceState';
@@ -149,6 +150,18 @@ export default function App() {
     });
     return count;
   }, [activeDeckIds, deckStates]);
+
+  // Context manager status state
+  const [showContextStatus, setShowContextStatus] = useState(false);
+  const [contextHealthScore, setContextHealthScore] = useState<number>(100);
+
+  const handleContextStatusChange = useCallback((status: { healthScore: number }) => {
+    setContextHealthScore(status.healthScore);
+    // Show notification when health score drops
+    if (status.healthScore < 50 && contextHealthScore >= 50) {
+      setStatusMessage('Context health is low. Consider compacting.');
+    }
+  }, [contextHealthScore]);
 
   useEffect(() => {
     let alive = true;
@@ -603,6 +616,7 @@ export default function App() {
         sidebarPanel={sidebarPanel}
         onSetSidebarPanel={setSidebarPanel}
         onOpenSettings={() => setIsSettingsModalOpen(true)}
+        onToggleContextStatus={() => setShowContextStatus((prev) => !prev)}
       />
       <main className="main">
         <div className="unified-layout">
@@ -611,7 +625,18 @@ export default function App() {
         </div>
       </main>
       <StatusMessage message={statusMessage} />
-      <GlobalStatusBar activeTerminalsCount={activeTerminalsCount} />
+      <GlobalStatusBar
+        activeTerminalsCount={activeTerminalsCount}
+        contextHealthScore={contextHealthScore}
+        onToggleContextStatus={() => setShowContextStatus((prev) => !prev)}
+      />
+      {showContextStatus && (
+        <div className="context-status-overlay" onClick={() => setShowContextStatus(false)}>
+          <div className="context-status-panel" onClick={(e) => e.stopPropagation()}>
+            <ContextStatus onStatusChange={handleContextStatusChange} />
+          </div>
+        </div>
+      )}
       <WorkspaceModal
         isOpen={isWorkspaceModalOpen}
         defaultRoot={defaultRoot}

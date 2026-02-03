@@ -2991,3 +2991,47 @@ input:focus-visible {
     display: none;
   }
 }
+
+/* ========================================
+   Context Status Overlay & Panel
+   ======================================== */
+
+.context-status-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+}
+
+.context-status-panel {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-dim);
+  border-radius: 8px;
+  padding: 0;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+/* Status bar clickable item */
+.statusbar-clickable {
+  cursor: pointer !important;
+  transition: opacity 0.2s ease;
+  user-select: none;
+}
+
+.statusbar-clickable:hover {
+  opacity: 0.7;
+}
+
+.statusbar-clickable:active {
+  opacity: 0.5;
+}

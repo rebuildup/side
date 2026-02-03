@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Menu, Files, Settings, X, GitBranch } from 'lucide-react';
+import { Menu, Files, Settings, X, GitBranch, Activity } from 'lucide-react';
 import type { SidebarPanel } from '../types';
 
 interface SideNavProps {
@@ -8,6 +8,7 @@ interface SideNavProps {
   onOpenSettings: () => void;
   sidebarPanel?: SidebarPanel;
   onSetSidebarPanel?: (panel: SidebarPanel) => void;
+  onToggleContextStatus?: () => void;
 }
 
 export function SideNav({
@@ -15,7 +16,8 @@ export function SideNav({
   onSelect,
   onOpenSettings,
   sidebarPanel = 'files',
-  onSetSidebarPanel
+  onSetSidebarPanel,
+  onToggleContextStatus
 }: SideNavProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -29,6 +31,11 @@ export function SideNav({
     if (panel === 'settings') {
       onOpenSettings();
     }
+    closeMenu();
+  };
+
+  const handleContextStatusClick = () => {
+    onToggleContextStatus?.();
     closeMenu();
   };
 
@@ -93,6 +100,14 @@ export function SideNav({
               >
                 <Settings size={16} />
                 <span>AI Workflow</span>
+              </button>
+              <button
+                type="button"
+                className="dropdown-item"
+                onClick={handleContextStatusClick}
+              >
+                <Activity size={16} />
+                <span>Context Status</span>
               </button>
             </div>
 

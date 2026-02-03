@@ -2,9 +2,15 @@ import { useMemo } from 'react';
 
 interface GlobalStatusBarProps {
   activeTerminalsCount?: number;
+  contextHealthScore?: number;
+  onToggleContextStatus?: () => void;
 }
 
-export function GlobalStatusBar({ activeTerminalsCount = 0 }: GlobalStatusBarProps) {
+export function GlobalStatusBar({
+  activeTerminalsCount = 0,
+  contextHealthScore = 100,
+  onToggleContextStatus
+}: GlobalStatusBarProps) {
   // Get memory usage if available
   const memoryUsage = useMemo(() => {
     if (typeof performance !== 'undefined' && 'memory' in performance) {
@@ -18,6 +24,16 @@ export function GlobalStatusBar({ activeTerminalsCount = 0 }: GlobalStatusBarPro
     return null;
   }, []);
 
+  // Get health color
+  const getHealthColor = (score: number) => {
+    if (score >= 80) return '#22c55e';
+    if (score >= 50) return '#eab308';
+    if (score >= 30) return '#f97316';
+    return '#ef4444';
+  };
+
+  const healthColor = getHealthColor(contextHealthScore);
+
   return (
     <div className="global-status-bar">
       <div className="global-statusbar-left">
@@ -25,6 +41,20 @@ export function GlobalStatusBar({ activeTerminalsCount = 0 }: GlobalStatusBarPro
           <span className="status-indicator status-online"></span>
           Server: Connected
         </span>
+        {onToggleContextStatus && (
+          <button
+            className="statusbar-item statusbar-clickable"
+            onClick={onToggleContextStatus}
+            title="View context manager status"
+            style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+          >
+            <span
+              className="status-indicator"
+              style={{ backgroundColor: healthColor }}
+            ></span>
+            Context: {contextHealthScore}%
+          </button>
+        )}
       </div>
       <div className="global-statusbar-right">
         <span className="statusbar-item">WebSocket: Active</span>

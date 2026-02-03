@@ -31,6 +31,15 @@ export type {
   MultiRepoGitStatus
 } from '@deck-ide/shared/types';
 
+// Context Manager API types
+export type {
+  ContextManagerStatus,
+  CreateSessionRequest,
+  CompactResponse,
+  SnapshotResponse,
+  SnapshotListResponse,
+} from './types/context-manager';
+
 export type AppView = 'workspace' | 'terminal';
 export type WorkspaceMode = 'list' | 'editor';
 export type ThemeMode = 'light' | 'dark';

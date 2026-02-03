@@ -8,8 +8,11 @@
     "outDir": "dist",
     "strict": false,
     "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
     "esModuleInterop": true,
-    "types": ["node"]
+    "types": ["node"],
+    "noEmit": false
   },
-  "include": ["src/**/*.ts"]
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "../../../.claude/**", "../../.claude/**", ".claude/**"]
 }
