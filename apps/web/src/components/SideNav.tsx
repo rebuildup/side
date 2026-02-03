@@ -1,130 +1,89 @@
-import { useState } from 'react';
-import { Menu, Files, Settings, X, GitBranch, Activity } from 'lucide-react';
-import type { SidebarPanel } from '../types';
+import { Activity, Files, GitBranch, Settings, Server } from "lucide-react";
+import type { SidebarPanel } from "../types";
 
 interface SideNavProps {
-  activeView?: 'workspace' | 'terminal';
-  onSelect?: (view: 'workspace' | 'terminal') => void;
+  activeView?: "workspace" | "terminal";
+  onSelect?: (view: "workspace" | "terminal") => void;
   onOpenSettings: () => void;
+  onOpenServerModal?: () => void;
   sidebarPanel?: SidebarPanel;
   onSetSidebarPanel?: (panel: SidebarPanel) => void;
   onToggleContextStatus?: () => void;
+  className?: string;
 }
 
 export function SideNav({
-  activeView = 'workspace',
+  activeView = "workspace",
   onSelect,
   onOpenSettings,
-  sidebarPanel = 'files',
+  onOpenServerModal,
+  sidebarPanel = "files",
   onSetSidebarPanel,
-  onToggleContextStatus
+  onToggleContextStatus,
+  className = "",
 }: SideNavProps) {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  const toggleMenu = () => setIsMenuOpen((prev) => !prev);
-  const closeMenu = () => setIsMenuOpen(false);
-
   const handlePanelChange = (panel: SidebarPanel) => {
     if (onSetSidebarPanel) {
       onSetSidebarPanel(panel);
     }
-    if (panel === 'settings') {
+    if (panel === "settings") {
       onOpenSettings();
     }
-    closeMenu();
   };
 
   const handleContextStatusClick = () => {
     onToggleContextStatus?.();
-    closeMenu();
+  };
+
+  const handleServerModalClick = () => {
+    onOpenServerModal?.();
   };
 
   return (
-    <>
-      {/* Hamburger Menu Button - Top Right */}
-      <div className="hamburger-menu-container">
+    <div className={className}>
+      <div className="activity-bar">
         <button
           type="button"
-          className="hamburger-menu-btn"
-          onClick={toggleMenu}
-          aria-label="Menu"
-          title="Menu"
+          className={`activity-item ${sidebarPanel === "files" ? "active" : ""}`}
+          onClick={() => handlePanelChange("files")}
+          title="Files"
         >
-          <Menu size={24} />
+          <Files size={20} />
+        </button>
+        <button
+          type="button"
+          className={`activity-item ${sidebarPanel === "git" ? "active" : ""}`}
+          onClick={() => handlePanelChange("git")}
+          title="Source Control"
+        >
+          <GitBranch size={20} />
+        </button>
+        <button
+          type="button"
+          className={`activity-item ${sidebarPanel === "ai" ? "active" : ""}`}
+          onClick={() => handlePanelChange("ai")}
+          title="AI Workflow"
+        >
+          <Activity size={20} />
+        </button>
+        <div className="activity-spacer" />
+        <button
+          type="button"
+          className="activity-item"
+          onClick={handleServerModalClick}
+          title="Server"
+        >
+          <Server size={20} />
+        </button>
+        <button
+          type="button"
+          className={`activity-item ${sidebarPanel === "settings" ? "active" : ""}`}
+          onClick={() => handlePanelChange("settings")}
+          title="Settings"
+        >
+          <Settings size={20} />
         </button>
       </div>
-
-      {/* Dropdown Menu */}
-      {isMenuOpen && (
-        <>
-          <div className="dropdown-backdrop" onClick={closeMenu} />
-          <div className="dropdown-menu">
-            <div className="dropdown-header">
-              <span>Menu</span>
-              <button
-                type="button"
-                className="dropdown-close"
-                onClick={closeMenu}
-                aria-label="Close menu"
-              >
-                <X size={16} />
-              </button>
-            </div>
-
-            <div className="dropdown-section">
-              <div className="dropdown-section-title">Workspace</div>
-              <button
-                type="button"
-                className={`dropdown-item ${sidebarPanel === 'files' ? 'active' : ''}`}
-                onClick={() => handlePanelChange('files')}
-              >
-                <Files size={16} />
-                <span>Files</span>
-              </button>
-              <button
-                type="button"
-                className={`dropdown-item ${sidebarPanel === 'git' ? 'active' : ''}`}
-                onClick={() => handlePanelChange('git')}
-              >
-                <GitBranch size={16} />
-                <span>Source Control</span>
-              </button>
-            </div>
-
-            <div className="dropdown-section">
-              <div className="dropdown-section-title">AI</div>
-              <button
-                type="button"
-                className={`dropdown-item ${sidebarPanel === 'ai' ? 'active' : ''}`}
-                onClick={() => handlePanelChange('ai')}
-              >
-                <Settings size={16} />
-                <span>AI Workflow</span>
-              </button>
-              <button
-                type="button"
-                className="dropdown-item"
-                onClick={handleContextStatusClick}
-              >
-                <Activity size={16} />
-                <span>Context Status</span>
-              </button>
-            </div>
-
-            <div className="dropdown-section">
-              <div className="dropdown-section-title">Application</div>
-              <button
-                type="button"
-                className={`dropdown-item ${sidebarPanel === 'settings' ? 'active' : ''}`}
-                onClick={() => handlePanelChange('settings')}
-              >
-                <Settings size={16} />
-                <span>Settings</span>
-              </button>
-            </div>
-          </div>
-        </>
-      )}
-    </>
+    </div>
   );
 }

@@ -1,0 +1,12 @@
+Deck IDE server listening on http://localhost:8787
+UI: http://localhost:8787
+API: http://localhost:8787/api
+Health: http://localhost:8787/health
+
+Security Status:
+  - Basic Auth: DISABLED (WARNING: API is publicly accessible!)
+  - Max File Size: 10MB
+  - Max Request Body: 1024KB
+  - Trust Proxy: disabled
+  - CORS Origin: *
+  - Environment: development

@@ -1,6 +1,6 @@
 // Core domain types shared across the entire application
 
-export type FileEntryType = 'file' | 'dir';
+export type FileEntryType = "file" | "dir";
 
 // Workspace represents a project root directory
 export interface Workspace {
@@ -54,7 +54,7 @@ export interface TerminalSession {
   tags?: string[];
   parentId?: string; // For hierarchical grouping
   shell?: string;
-  type?: 'default' | 'claude' | 'codex';
+  type?: "default" | "claude" | "codex";
 }
 
 // Terminal group for organizing terminals
@@ -147,12 +147,12 @@ export interface GetPreviewRequest {
 // Git types
 
 export type GitFileStatusCode =
-  | 'modified'
-  | 'staged'
-  | 'untracked'
-  | 'deleted'
-  | 'renamed'
-  | 'conflicted';
+  | "modified"
+  | "staged"
+  | "untracked"
+  | "deleted"
+  | "renamed"
+  | "conflicted";
 
 export interface GitFileStatus {
   path: string;
@@ -175,17 +175,48 @@ export interface GitDiff {
 // Multi-repo support types
 
 export interface GitRepoInfo {
-  path: string;        // Relative path from workspace root (empty string for root repo)
-  name: string;        // Display name (folder name or 'root')
+  path: string; // Relative path from workspace root (empty string for root repo)
+  name: string; // Display name (folder name or 'root')
   branch: string;
-  fileCount: number;   // Number of changed files
+  fileCount: number; // Number of changed files
 }
 
 export interface GitFileStatusWithRepo extends GitFileStatus {
-  repoPath: string;    // Which repo this file belongs to
+  repoPath: string; // Which repo this file belongs to
 }
 
 export interface MultiRepoGitStatus {
   repos: GitRepoInfo[];
   files: GitFileStatusWithRepo[];
+}
+
+// Agent types
+export type AgentId = "claude" | "codex" | "copilot" | "cursor" | "kimi";
+
+export interface AgentConfig {
+  apiKey?: string;
+  apiEndpoint?: string;
+  model?: string;
+  temperature?: number;
+  maxTokens?: number;
+  mcpServers?: MCPConfig[];
+  skills?: SkillConfig[];
+  [key: string]: unknown;
+}
+
+export interface MCPConfig {
+  id: string;
+  name: string;
+  command: string;
+  args?: string[];
+  env?: Record<string, string>;
+  enabled?: boolean;
+}
+
+export interface SkillConfig {
+  id: string;
+  name: string;
+  description?: string;
+  enabled?: boolean;
+  config?: Record<string, unknown>;
 }

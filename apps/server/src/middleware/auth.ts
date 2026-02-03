@@ -1,10 +1,11 @@
-import { basicAuth } from 'hono/basic-auth';
-import crypto from 'node:crypto';
-import { BASIC_AUTH_USER, BASIC_AUTH_PASSWORD } from '../config.js';
+import crypto from "node:crypto";
+import { basicAuth } from "hono/basic-auth";
+import { BASIC_AUTH_PASSWORD, BASIC_AUTH_USER } from "../config.js";
 
-export const basicAuthMiddleware = BASIC_AUTH_USER && BASIC_AUTH_PASSWORD
-  ? basicAuth({ username: BASIC_AUTH_USER, password: BASIC_AUTH_PASSWORD })
-  : undefined;
+export const basicAuthMiddleware =
+  BASIC_AUTH_USER && BASIC_AUTH_PASSWORD
+    ? basicAuth({ username: BASIC_AUTH_USER, password: BASIC_AUTH_PASSWORD })
+    : undefined;
 
 // WebSocket token management
 const WS_TOKEN_TTL_MS = 30 * 1000; // 30 seconds
@@ -28,10 +29,10 @@ setInterval(() => {
  * Generate a one-time WebSocket token bound to an IP address
  */
 export function generateWsToken(ipAddress: string): string {
-  const token = crypto.randomBytes(32).toString('hex');
+  const token = crypto.randomBytes(32).toString("hex");
   wsTokens.set(token, {
     expiry: Date.now() + WS_TOKEN_TTL_MS,
-    ipAddress
+    ipAddress,
   });
   return token;
 }
@@ -62,35 +63,36 @@ export function isBasicAuthEnabled(): boolean {
   return Boolean(BASIC_AUTH_USER && BASIC_AUTH_PASSWORD);
 }
 
-export function verifyWebSocketAuth(req: import('http').IncomingMessage): boolean {
+export function verifyWebSocketAuth(req: import("http").IncomingMessage): boolean {
   if (!BASIC_AUTH_USER || !BASIC_AUTH_PASSWORD) {
     return true;
   }
 
   // Extract IP address from various headers (supporting proxies)
-  const forwardedFor = req.headers['x-forwarded-for'];
-  const realIp = req.headers['x-real-ip'];
-  const cfConnectingIp = req.headers['cf-connecting-ip'];
-  const clientIp = (Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor)?.split(',')[0]?.trim()
-    || (Array.isArray(realIp) ? realIp[0] : realIp)
-    || (Array.isArray(cfConnectingIp) ? cfConnectingIp[0] : cfConnectingIp)
-    || 'unknown';
+  const forwardedFor = req.headers["x-forwarded-for"];
+  const realIp = req.headers["x-real-ip"];
+  const cfConnectingIp = req.headers["cf-connecting-ip"];
+  const clientIp =
+    (Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor)?.split(",")[0]?.trim() ||
+    (Array.isArray(realIp) ? realIp[0] : realIp) ||
+    (Array.isArray(cfConnectingIp) ? cfConnectingIp[0] : cfConnectingIp) ||
+    "unknown";
 
   // Check for token in query string first (with IP binding)
-  const url = new URL(req.url || '', 'http://localhost');
-  const token = url.searchParams.get('token');
+  const url = new URL(req.url || "", "http://localhost");
+  const token = url.searchParams.get("token");
   if (token && validateWsToken(token, clientIp)) {
     return true;
   }
 
   // Fall back to Basic Auth header with timing-safe comparison
   const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Basic ')) {
+  if (!authHeader || !authHeader.startsWith("Basic ")) {
     return false;
   }
-  const base64Credentials = authHeader.slice('Basic '.length);
-  const credentials = Buffer.from(base64Credentials, 'base64').toString('utf8');
-  const colonIndex = credentials.indexOf(':');
+  const base64Credentials = authHeader.slice("Basic ".length);
+  const credentials = Buffer.from(base64Credentials, "base64").toString("utf8");
+  const colonIndex = credentials.indexOf(":");
   if (colonIndex === -1) {
     return false;
   }
@@ -98,14 +100,17 @@ export function verifyWebSocketAuth(req: import('http').IncomingMessage): boolea
   const password = credentials.substring(colonIndex + 1);
 
   // Use timing-safe comparison for passwords to prevent timing attacks
-  if (username.length !== BASIC_AUTH_USER.length || password.length !== BASIC_AUTH_PASSWORD.length) {
+  if (
+    username.length !== BASIC_AUTH_USER.length ||
+    password.length !== BASIC_AUTH_PASSWORD.length
+  ) {
     return false;
   }
 
-  const usernameBuffer = Buffer.from(username, 'utf8');
-  const expectedUsernameBuffer = Buffer.from(BASIC_AUTH_USER, 'utf8');
-  const passwordBuffer = Buffer.from(password, 'utf8');
-  const expectedPasswordBuffer = Buffer.from(BASIC_AUTH_PASSWORD, 'utf8');
+  const usernameBuffer = Buffer.from(username, "utf8");
+  const expectedUsernameBuffer = Buffer.from(BASIC_AUTH_USER, "utf8");
+  const passwordBuffer = Buffer.from(password, "utf8");
+  const expectedPasswordBuffer = Buffer.from(BASIC_AUTH_PASSWORD, "utf8");
 
   if (!crypto.timingSafeEqual(usernameBuffer, expectedUsernameBuffer)) {
     return false;

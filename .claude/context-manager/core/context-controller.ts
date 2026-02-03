@@ -4,18 +4,17 @@
  * Orchestrates session management, monitoring, and control actions.
  */
 
-import {
+import { createHash } from "node:crypto";
+import type { SessionStore } from "../storage/session-store";
+import type {
   ClaudeSession,
-  ControllerStatus,
-  HealthAnalysis,
-  CompactResult,
-  SnapshotRef,
   CompactOptions,
-} from '../types';
-import { SessionStore } from '../storage/session-store';
-import { SessionMonitor } from './session-monitor';
-import { SessionAnalyzer } from './session-analyzer';
-import { createHash } from 'crypto';
+  CompactResult,
+  ControllerStatus,
+  SnapshotRef,
+} from "../types";
+import type { SessionAnalyzer } from "./session-analyzer";
+import type { SessionMonitor } from "./session-monitor";
 
 /**
  * Context Controller
@@ -28,11 +27,7 @@ export class ContextController {
   private analyzer: SessionAnalyzer;
   private currentSessionId: string | null = null;
 
-  constructor(
-    store: SessionStore,
-    monitor: SessionMonitor,
-    analyzer: SessionAnalyzer
-  ) {
+  constructor(store: SessionStore, monitor: SessionMonitor, analyzer: SessionAnalyzer) {
     this.store = store;
     this.monitor = monitor;
     this.analyzer = analyzer;
@@ -80,7 +75,7 @@ export class ContextController {
       this.store.update(sessionId, {
         metadata: {
           ...session.metadata,
-          phase: 'ended',
+          phase: "ended",
         },
       });
     }
@@ -92,7 +87,7 @@ export class ContextController {
   /**
    * Track a message
    */
-  trackMessage(role: 'user' | 'assistant', content: string): void {
+  trackMessage(role: "user" | "assistant", content: string): void {
     this.monitor.trackMessage(role, content);
 
     // Persist updated session
@@ -149,7 +144,7 @@ export class ContextController {
   async compact(options?: CompactOptions): Promise<CompactResult> {
     const session = this.getCurrentSession();
     if (!session) {
-      throw new Error('No active session to compact');
+      throw new Error("No active session to compact");
     }
 
     const {
@@ -167,16 +162,12 @@ export class ContextController {
 
     // Always keep snapshot events if preserving
     if (preserveSnapshots) {
-      eventsToKeep.push(
-        ...session.events.filter(e => e.type === 'snapshot')
-      );
+      eventsToKeep.push(...session.events.filter((e) => e.type === "snapshot"));
     }
 
     // Always keep error events if preserving
     if (preserveErrors) {
-      eventsToKeep.push(
-        ...session.events.filter(e => e.type === 'error')
-      );
+      eventsToKeep.push(...session.events.filter((e) => e.type === "error"));
     }
 
     // Keep last N events
@@ -184,29 +175,25 @@ export class ContextController {
     eventsToKeep.push(...recentEvents);
 
     // Deduplicate by timestamp
-    const uniqueEvents = Array.from(
-      new Map(eventsToKeep.map(e => [e.timestamp, e])).values()
-    );
+    const uniqueEvents = Array.from(new Map(eventsToKeep.map((e) => [e.timestamp, e])).values());
 
     // Sort by timestamp
-    uniqueEvents.sort((a, b) =>
-      a.timestamp.localeCompare(b.timestamp)
-    );
+    uniqueEvents.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
 
     const eventsRemoved = eventsBefore - uniqueEvents.length;
 
     // Generate summary for compacted events
-    const eventsToCompact = session.events.filter(e =>
-      !uniqueEvents.some(kept => kept.timestamp === e.timestamp)
+    const eventsToCompact = session.events.filter(
+      (e) => !uniqueEvents.some((kept) => kept.timestamp === e.timestamp)
     );
 
     const summary = this.generateCompactSummary(eventsToCompact);
 
     if (!dryRun) {
       // Prepare compact event
-      const compactEvent: typeof session.events[number] = {
+      const compactEvent: (typeof session.events)[number] = {
         timestamp: new Date().toISOString(),
-        type: 'compact',
+        type: "compact",
         data: {
           eventsRemoved,
           eventsKept: uniqueEvents.length,
@@ -219,9 +206,7 @@ export class ContextController {
       });
     }
 
-    const sizeAfter = dryRun
-      ? sizeBefore
-      : JSON.stringify(this.store.get(session.id)).length;
+    const sizeAfter = dryRun ? sizeBefore : JSON.stringify(this.store.get(session.id)).length;
 
     return {
       originalEvents: eventsBefore,
@@ -237,17 +222,20 @@ export class ContextController {
    */
   private generateCompactSummary(events: typeof session.events): string {
     if (events.length === 0) {
-      return 'No events compacted';
+      return "No events compacted";
     }
 
-    const byType = events.reduce((acc, e) => {
-      acc[e.type] = (acc[e.type] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    const byType = events.reduce(
+      (acc, e) => {
+        acc[e.type] = (acc[e.type] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>
+    );
 
     const parts = Object.entries(byType)
       .map(([type, count]) => `${count} ${type}(s)`)
-      .join(', ');
+      .join(", ");
 
     return `Compacted ${events.length} events: ${parts}`;
   }
@@ -258,7 +246,7 @@ export class ContextController {
   async createSnapshot(description?: string): Promise<SnapshotRef> {
     const session = this.getCurrentSession();
     if (!session) {
-      throw new Error('No active session to snapshot');
+      throw new Error("No active session to snapshot");
     }
 
     const snapshotRef: SnapshotRef = {
@@ -273,9 +261,9 @@ export class ContextController {
     this.store.update(session.id, { snapshots });
 
     // Record snapshot event
-    const snapshotEvent: typeof session.events[number] = {
+    const snapshotEvent: (typeof session.events)[number] = {
       timestamp: snapshotRef.timestamp,
-      type: 'snapshot',
+      type: "snapshot",
       data: {
         commitHash: snapshotRef.commitHash,
         description: snapshotRef.description,
@@ -295,10 +283,10 @@ export class ContextController {
   async restoreSnapshot(commitHash: string): Promise<void> {
     const session = this.getCurrentSession();
     if (!session) {
-      throw new Error('No active session');
+      throw new Error("No active session");
     }
 
-    const snapshot = session.snapshots.find(s => s.commitHash === commitHash);
+    const snapshot = session.snapshots.find((s) => s.commitHash === commitHash);
     if (!snapshot) {
       throw new Error(`Snapshot ${commitHash} not found`);
     }
@@ -308,16 +296,16 @@ export class ContextController {
       metadata: {
         ...session.metadata,
         healthScore: snapshot.healthScore,
-        phase: 'restored',
+        phase: "restored",
       },
     });
 
     // Record restore event
-    const restoreEvent: typeof session.events[number] = {
+    const restoreEvent: (typeof session.events)[number] = {
       timestamp: new Date().toISOString(),
-      type: 'snapshot',
+      type: "snapshot",
       data: {
-        action: 'restore',
+        action: "restore",
         commitHash,
         fromHealthScore: session.metadata.healthScore,
         toHealthScore: snapshot.healthScore,
@@ -343,9 +331,9 @@ export class ContextController {
    * Generate a crypto-based commit hash for snapshots
    */
   private generateCommitHash(): string {
-    const hash = createHash('sha256')
+    const hash = createHash("sha256")
       .update(`${Date.now()}-${Math.random()}-${process.pid}`)
-      .digest('hex');
+      .digest("hex");
     return hash.substring(0, 12);
   }
 

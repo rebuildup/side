@@ -1,49 +1,49 @@
 // Re-export shared types from @side-ide/shared
 export type {
-  FileEntryType,
-  Workspace,
-  Deck,
-  FileSystemEntry,
-  FileTreeNode,
-  EditorFile,
-  TerminalSession,
-  TerminalGroup,
-  WorkspaceState,
-  DeckState,
-  ApiError,
   ApiConfig,
+  ApiError,
   ApiFileResponse,
   ApiFileSaveResponse,
   ApiTerminalCreateResponse,
-  CreateWorkspaceRequest,
   CreateDeckRequest,
   CreateTerminalRequest,
-  SaveFileRequest,
+  CreateWorkspaceRequest,
+  Deck,
+  DeckState,
+  EditorFile,
+  FileEntryType,
+  FileSystemEntry,
+  FileTreeNode,
   GetFileRequest,
   GetFilesRequest,
   GetPreviewRequest,
-  GitFileStatusCode,
-  GitFileStatus,
-  GitStatus,
   GitDiff,
-  GitRepoInfo,
+  GitFileStatus,
+  GitFileStatusCode,
   GitFileStatusWithRepo,
-  MultiRepoGitStatus
-} from '@deck-ide/shared/types';
+  GitRepoInfo,
+  GitStatus,
+  MultiRepoGitStatus,
+  SaveFileRequest,
+  TerminalGroup,
+  TerminalSession,
+  Workspace,
+  WorkspaceState,
+} from "@side-ide/shared/types";
 
 // Context Manager API types
 export type {
+  CompactResponse,
   ContextManagerStatus,
   CreateSessionRequest,
-  CompactResponse,
-  SnapshotResponse,
   SnapshotListResponse,
-} from './types/context-manager';
+  SnapshotResponse,
+} from "./types/context-manager";
 
-export type AppView = 'workspace' | 'terminal';
-export type WorkspaceMode = 'list' | 'editor';
-export type ThemeMode = 'light' | 'dark';
-export type SidebarPanel = 'files' | 'git' | 'ai' | 'settings';
+export type AppView = "workspace" | "terminal";
+export type WorkspaceMode = "list" | "editor";
+export type ThemeMode = "light" | "dark";
+export type SidebarPanel = "files" | "git" | "ai" | "settings";
 
 export interface UrlState {
   view: AppView;
@@ -56,4 +56,41 @@ export interface DeckListItem {
   id: string;
   name: string;
   path: string;
+}
+
+// Agent types
+export type AgentId = "claude" | "codex" | "copilot" | "cursor" | "kimi";
+
+export interface Agent {
+  id: AgentId;
+  name: string;
+  icon: string;
+  description: string;
+  enabled: boolean;
+}
+
+export interface AgentConfig {
+  apiKey?: string;
+  apiEndpoint?: string;
+  model?: string;
+  temperature?: number;
+  maxTokens?: number;
+  [key: string]: unknown;
+}
+
+export interface MCPServer {
+  id: string;
+  name: string;
+  command: string;
+  args?: string[];
+  env?: Record<string, string>;
+  status?: "active" | "inactive" | "error";
+}
+
+export interface Skill {
+  id: string;
+  name: string;
+  description?: string;
+  enabled?: boolean;
+  status?: "active" | "inactive" | "error";
 }

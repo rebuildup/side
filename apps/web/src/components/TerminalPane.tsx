@@ -1,8 +1,7 @@
-import { useMemo, useState, useCallback } from 'react';
-import type { TerminalSession, TerminalGroup } from '../types';
-import { TerminalTile } from './TerminalTile';
-import { DraggableTerminal } from './DraggableTerminal';
-import { TerminalGroupHeader } from './TerminalGroupHeader';
+import { useCallback, useMemo, useState } from "react";
+import type { TerminalGroup, TerminalSession } from "../types";
+import { DraggableTerminal } from "./DraggableTerminal";
+import { TerminalGroupHeader } from "./TerminalGroupHeader";
 
 interface TerminalPaneProps {
   terminals: TerminalSession[];
@@ -71,13 +70,13 @@ export function TerminalPane({
   onToggleGroupCollapsed,
   onDeleteGroup,
   onRenameGroup,
-  isCreatingTerminal = false
+  isCreatingTerminal = false,
 }: TerminalPaneProps) {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   // Create a flat list of terminals with their original indices for drag tracking
-  const terminalsWithIndices = useMemo(
+  const _terminalsWithIndices = useMemo(
     () => terminals.map((terminal, index) => ({ terminal, index })),
     [terminals]
   );
@@ -89,16 +88,15 @@ export function TerminalPane({
 
   // Sort groups: expanded first, then by name
   const sortedGroups = useMemo(
-    () => [...grouped.entries()].sort(([, a], [, b]) => {
-      const groupA = a[0];
-      const groupB = b[0];
-      // First sort by collapsed state (expanded first)
-      if (groupA.collapsed !== groupB.collapsed) {
-        return groupA.collapsed ? 1 : -1;
-      }
-      // Then by name
-      return groupA.name.localeCompare(groupB.name);
-    }),
+    () =>
+      [...grouped.entries()].sort(([groupA], [groupB]) => {
+        // First sort by collapsed state (expanded first)
+        if (groupA.collapsed !== groupB.collapsed) {
+          return groupA.collapsed ? 1 : -1;
+        }
+        // Then by name
+        return groupA.name.localeCompare(groupB.name);
+      }),
     [grouped]
   );
 
@@ -121,10 +119,7 @@ export function TerminalPane({
     setDragOverIndex(null);
   }, [deckId, draggedIndex, dragOverIndex, terminals, onReorderTerminals]);
 
-  function renderTerminalGrid(
-    terminals: TerminalSession[],
-    startIndex: number
-  ) {
+  function renderTerminalGrid(terminals: TerminalSession[], startIndex: number) {
     const { cols, rows } = getOptimalGrid(terminals.length);
 
     return (
@@ -166,9 +161,7 @@ export function TerminalPane({
         <div className="terminal-container">
           {/* Ungrouped terminals */}
           {ungrouped.length > 0 && (
-            <div className="terminal-section">
-              {renderTerminalGrid(ungrouped, 0)}
-            </div>
+            <div className="terminal-section">{renderTerminalGrid(ungrouped, 0)}</div>
           )}
 
           {/* Grouped terminals */}
@@ -187,10 +180,11 @@ export function TerminalPane({
                   onDeleteGroup={() => onDeleteGroup?.(group.id)}
                   onRenameGroup={() => onRenameGroup?.(group.id)}
                 />
-                {!group.collapsed && renderTerminalGrid(
-                  groupTerminals,
-                  terminals.findIndex(t => t.id === groupTerminals[0].id)
-                )}
+                {!group.collapsed &&
+                  renderTerminalGrid(
+                    groupTerminals,
+                    terminals.findIndex((t) => t.id === groupTerminals[0].id)
+                  )}
               </div>
             ) : null
           )}

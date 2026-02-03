@@ -1,10 +1,10 @@
 // Node.js-specific utility functions
 // This file should only be imported in Node.js environments (server)
 
-import path from 'node:path';
+import path from "node:path";
 
 // Re-export all browser-compatible utilities
-export * from './utils.js';
+export * from "./utils.js";
 
 /**
  * Normalize a workspace path to an absolute path (Node.js version)
@@ -23,8 +23,8 @@ export function normalizeWorkspacePath(inputPath: string, defaultPath: string): 
  * @returns Normalized key for indexing
  */
 export function getWorkspaceKey(workspacePath: string): string {
-  const normalized = workspacePath.replace(/[\\/]+$/, '');
-  return process.platform === 'win32' ? normalized.toLowerCase() : normalized;
+  const normalized = workspacePath.replace(/[\\/]+$/, "");
+  return process.platform === "win32" ? normalized.toLowerCase() : normalized;
 }
 
 /**
@@ -34,7 +34,7 @@ export function getWorkspaceKey(workspacePath: string): string {
  * @returns Workspace name
  */
 export function getWorkspaceName(workspacePath: string, fallbackIndex: number): string {
-  const trimmed = workspacePath.replace(/[\\/]+$/, '');
+  const trimmed = workspacePath.replace(/[\\/]+$/, "");
   const base = path.basename(trimmed);
   return base || `Project ${fallbackIndex}`;
 }

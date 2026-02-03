@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 interface Settings {
   port: number;
@@ -18,36 +18,36 @@ interface SettingsModalProps {
   onSave: (settings: Settings) => Promise<void>;
 }
 
-const LABEL_SETTINGS = '設定';
-const LABEL_SERVER = 'サーバー設定';
-const LABEL_PORT = 'ポート番号';
-const LABEL_AUTH = 'Basic認証';
-const LABEL_AUTH_ENABLE = 'Basic認証を有効にする';
-const LABEL_USERNAME = 'ユーザー名';
-const LABEL_PASSWORD = 'パスワード';
-const LABEL_PASSWORD_NOTE = '※ 12文字以上推奨';
-const LABEL_CANCEL = 'キャンセル';
-const LABEL_SAVE = '保存';
-const LABEL_RESTART_NOTE = '※ 設定を保存すると、サーバーが再起動されます';
-const LABEL_WEBSOCKET = 'WebSocket設定';
-const LABEL_WS_LIMIT = '接続数上限 (IP毎)';
-const LABEL_WS_CONNECTIONS = '現在の接続数';
-const LABEL_WS_CLEAR = '全接続をクリア';
-const LABEL_WS_APPLY = '適用';
+const LABEL_SETTINGS = "設定";
+const LABEL_SERVER = "サーバー設定";
+const LABEL_PORT = "ポート番号";
+const LABEL_AUTH = "Basic認証";
+const LABEL_AUTH_ENABLE = "Basic認証を有効にする";
+const LABEL_USERNAME = "ユーザー名";
+const LABEL_PASSWORD = "パスワード";
+const LABEL_PASSWORD_NOTE = "※ 12文字以上推奨";
+const LABEL_CANCEL = "キャンセル";
+const LABEL_SAVE = "保存";
+const LABEL_RESTART_NOTE = "※ 設定を保存すると、サーバーが再起動されます";
+const LABEL_WEBSOCKET = "WebSocket設定";
+const LABEL_WS_LIMIT = "接続数上限 (IP毎)";
+const LABEL_WS_CONNECTIONS = "現在の接続数";
+const LABEL_WS_CLEAR = "全接続をクリア";
+const LABEL_WS_APPLY = "適用";
 
 export function SettingsModal({ isOpen, onClose, onSave }: SettingsModalProps) {
   const [port, setPort] = useState(8787);
   const [basicAuthEnabled, setBasicAuthEnabled] = useState(false);
-  const [basicAuthUser, setBasicAuthUser] = useState('');
-  const [basicAuthPassword, setBasicAuthPassword] = useState('');
+  const [basicAuthUser, setBasicAuthUser] = useState("");
+  const [basicAuthPassword, setBasicAuthPassword] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
   // Track initial values to detect unsaved changes
   const [initialValues, setInitialValues] = useState<Settings>({
     port: 8787,
     basicAuthEnabled: false,
-    basicAuthUser: '',
-    basicAuthPassword: ''
+    basicAuthUser: "",
+    basicAuthPassword: "",
   });
 
   // WebSocket settings
@@ -56,22 +56,22 @@ export function SettingsModal({ isOpen, onClose, onSave }: SettingsModalProps) {
   const [isClearing, setIsClearing] = useState(false);
 
   const loadWsStats = () => {
-    fetch('/api/ws/stats')
-      .then(res => res.json())
+    fetch("/api/ws/stats")
+      .then((res) => res.json())
       .then((data: WsStats) => {
         setWsStats(data);
         setWsLimit(data.limit);
       })
-      .catch(err => {
-        console.error('Failed to load WS stats:', err);
+      .catch((err) => {
+        console.error("Failed to load WS stats:", err);
       });
   };
 
   useEffect(() => {
     if (isOpen) {
       // Load current settings from server
-      fetch('/api/settings')
-        .then(res => res.json())
+      fetch("/api/settings")
+        .then((res) => res.json())
         .then((data: Settings) => {
           setPort(data.port);
           setBasicAuthEnabled(data.basicAuthEnabled);
@@ -80,14 +80,17 @@ export function SettingsModal({ isOpen, onClose, onSave }: SettingsModalProps) {
           // Store initial values to detect unsaved changes
           setInitialValues(data);
         })
-        .catch(err => {
-          console.error('Failed to load settings:', err);
+        .catch((err) => {
+          console.error("Failed to load settings:", err);
         });
 
       // Load WebSocket stats
       loadWsStats();
     }
-  }, [isOpen]);
+  }, [
+    isOpen, // Load WebSocket stats
+    loadWsStats,
+  ]);
 
   // Check if there are unsaved changes
   const hasUnsavedChanges = useMemo(() => {
@@ -102,7 +105,7 @@ export function SettingsModal({ isOpen, onClose, onSave }: SettingsModalProps) {
   // Handle close with confirmation for unsaved changes
   const handleClose = useCallback(() => {
     if (hasUnsavedChanges) {
-      if (window.confirm('保存していない変更があります。閉じてもよろしいですか？')) {
+      if (window.confirm("保存していない変更があります。閉じてもよろしいですか？")) {
         onClose();
       }
     } else {
@@ -112,26 +115,26 @@ export function SettingsModal({ isOpen, onClose, onSave }: SettingsModalProps) {
 
   const handleWsLimitApply = async () => {
     try {
-      await fetch('/api/ws/limit', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ limit: wsLimit })
+      await fetch("/api/ws/limit", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ limit: wsLimit }),
       });
       loadWsStats();
     } catch (err) {
-      console.error('Failed to set WS limit:', err);
+      console.error("Failed to set WS limit:", err);
     }
   };
 
   const handleWsClear = async () => {
     setIsClearing(true);
     try {
-      const res = await fetch('/api/ws/clear', { method: 'POST' });
+      const res = await fetch("/api/ws/clear", { method: "POST" });
       const data = await res.json();
       console.log(`Cleared ${data.cleared} connections`);
       loadWsStats();
     } catch (err) {
-      console.error('Failed to clear WS connections:', err);
+      console.error("Failed to clear WS connections:", err);
     } finally {
       setIsClearing(false);
     }
@@ -145,14 +148,14 @@ export function SettingsModal({ isOpen, onClose, onSave }: SettingsModalProps) {
         port,
         basicAuthEnabled,
         basicAuthUser,
-        basicAuthPassword
+        basicAuthPassword,
       });
       // Update initial values after successful save
       setInitialValues({ port, basicAuthEnabled, basicAuthUser, basicAuthPassword });
       onClose();
     } catch (err) {
-      console.error('Failed to save settings:', err);
-      alert('設定の保存に失敗しました');
+      console.error("Failed to save settings:", err);
+      alert("設定の保存に失敗しました");
     } finally {
       setIsSaving(false);
     }
@@ -261,11 +264,7 @@ export function SettingsModal({ isOpen, onClose, onSave }: SettingsModalProps) {
                     min={1}
                     max={10000}
                   />
-                  <button
-                    type="button"
-                    className="secondary-button"
-                    onClick={handleWsLimitApply}
-                  >
+                  <button type="button" className="secondary-button" onClick={handleWsLimitApply}>
                     {LABEL_WS_APPLY}
                   </button>
                 </div>
@@ -294,7 +293,7 @@ export function SettingsModal({ isOpen, onClose, onSave }: SettingsModalProps) {
                   onClick={handleWsClear}
                   disabled={isClearing}
                 >
-                  {isClearing ? 'クリア中...' : LABEL_WS_CLEAR}
+                  {isClearing ? "クリア中..." : LABEL_WS_CLEAR}
                 </button>
               </div>
             </section>
@@ -311,12 +310,8 @@ export function SettingsModal({ isOpen, onClose, onSave }: SettingsModalProps) {
             >
               {LABEL_CANCEL}
             </button>
-            <button
-              type="submit"
-              className="primary-button"
-              disabled={isSaving}
-            >
-              {isSaving ? '保存中...' : LABEL_SAVE}
+            <button type="submit" className="primary-button" disabled={isSaving}>
+              {isSaving ? "保存中..." : LABEL_SAVE}
             </button>
           </div>
         </form>

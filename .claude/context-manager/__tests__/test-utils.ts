@@ -4,16 +4,16 @@
  * Provides mock implementations and utilities for testing.
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
-import * as os from 'os';
-import type { ClaudeSession } from '../types';
+import * as fs from "node:fs";
+import * as os from "node:os";
+import * as path from "node:path";
+import type { ClaudeSession } from "../types";
 
 /**
  * Create a temporary directory for test isolation
  */
 export function createTempDir(): string {
-  const tempPrefix = path.join(os.tmpdir(), 'ctx-mgr-test-');
+  const tempPrefix = path.join(os.tmpdir(), "ctx-mgr-test-");
   return fs.mkdtempSync(tempPrefix);
 }
 
@@ -33,7 +33,7 @@ export function cleanupTempDir(tempDir: string): void {
 export class MemorySessionStore {
   private readonly sessions: Map<string, ClaudeSession> = new Map();
 
-  constructor(private readonly sessionsDir: string) {}
+  constructor(readonly _sessionsDir: string) {}
 
   /**
    * Create a new session with initial prompt
@@ -46,7 +46,7 @@ export class MemorySessionStore {
       updatedAt: now,
       metadata: {
         initialPrompt,
-        phase: 'initialization',
+        phase: "initialization",
         healthScore: 1.0,
       },
       metrics: {
@@ -63,7 +63,7 @@ export class MemorySessionStore {
       events: [
         {
           timestamp: now,
-          type: 'message',
+          type: "message",
           data: { prompt: initialPrompt },
         },
       ],
@@ -145,7 +145,7 @@ export interface TestContext {
  */
 export function setupTest(): TestContext {
   const tempDir = createTempDir();
-  const store = new MemorySessionStore(path.join(tempDir, 'sessions'));
+  const store = new MemorySessionStore(path.join(tempDir, "sessions"));
   const sessionId = `test-session-${Date.now()}-${Math.random().toString(36).substring(7)}`;
 
   return { tempDir, store, sessionId };
@@ -173,7 +173,9 @@ export function assert(condition: boolean, message: string): void {
  */
 export function assertEqual<T>(actual: T, expected: T, message: string): void {
   if (actual !== expected) {
-    throw new Error(`Assertion failed: ${message}\n  Expected: ${JSON.stringify(expected)}\n  Actual: ${JSON.stringify(actual)}`);
+    throw new Error(
+      `Assertion failed: ${message}\n  Expected: ${JSON.stringify(expected)}\n  Actual: ${JSON.stringify(actual)}`
+    );
   }
 }
 
@@ -182,7 +184,9 @@ export function assertEqual<T>(actual: T, expected: T, message: string): void {
  */
 export function assertInRange(actual: number, min: number, max: number, message: string): void {
   if (actual < min || actual > max) {
-    throw new Error(`Assertion failed: ${message}\n  Expected range: [${min}, ${max}]\n  Actual: ${actual}`);
+    throw new Error(
+      `Assertion failed: ${message}\n  Expected range: [${min}, ${max}]\n  Actual: ${actual}`
+    );
   }
 }
 
@@ -194,7 +198,9 @@ export function assertDeepEqual<T>(actual: T, expected: T, message: string): voi
   const expectedStr = JSON.stringify(expected);
 
   if (actualStr !== expectedStr) {
-    throw new Error(`Assertion failed: ${message}\n  Expected: ${expectedStr}\n  Actual: ${actualStr}`);
+    throw new Error(
+      `Assertion failed: ${message}\n  Expected: ${expectedStr}\n  Actual: ${actualStr}`
+    );
   }
 }
 
@@ -216,12 +222,14 @@ export async function assertThrows(
   }
 
   if (!threw) {
-    throw new Error('Expected function to throw an error, but it did not');
+    throw new Error("Expected function to throw an error, but it did not");
   }
 
   if (expectedMessage && actualError) {
     if (!actualError.message.includes(expectedMessage)) {
-      throw new Error(`Expected error message to include "${expectedMessage}", but got "${actualError.message}"`);
+      throw new Error(
+        `Expected error message to include "${expectedMessage}", but got "${actualError.message}"`
+      );
     }
   }
 }
@@ -230,7 +238,7 @@ export async function assertThrows(
  * Wait for a specified duration
  */
 export function wait(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
@@ -311,12 +319,12 @@ export class TestSuite {
    * Print test results summary
    */
   printSummary(): void {
-    console.log('\n' + '='.repeat(60));
-    console.log('Test Results Summary');
-    console.log('='.repeat(60));
+    console.log(`\n${"=".repeat(60)}`);
+    console.log("Test Results Summary");
+    console.log("=".repeat(60));
 
-    const passed = this.results.filter(r => r.passed).length;
-    const failed = this.results.filter(r => !r.passed).length;
+    const passed = this.results.filter((r) => r.passed).length;
+    const failed = this.results.filter((r) => !r.passed).length;
     const totalDuration = this.results.reduce((sum, r) => sum + r.duration, 0);
 
     console.log(`Total tests: ${this.results.length}`);
@@ -326,23 +334,23 @@ export class TestSuite {
     console.log(`Success rate: ${((passed / this.results.length) * 100).toFixed(1)}%`);
 
     if (failed > 0) {
-      console.log('\nFailed tests:');
+      console.log("\nFailed tests:");
       this.results
-        .filter(r => !r.passed)
-        .forEach(r => {
+        .filter((r) => !r.passed)
+        .forEach((r) => {
           console.log(`  - ${r.name}`);
           console.log(`    ${r.error}`);
         });
     }
 
-    console.log('='.repeat(60));
+    console.log("=".repeat(60));
   }
 
   /**
    * Get exit code based on results
    */
   getExitCode(): number {
-    return this.results.some(r => !r.passed) ? 1 : 0;
+    return this.results.some((r) => !r.passed) ? 1 : 0;
   }
 
   /**

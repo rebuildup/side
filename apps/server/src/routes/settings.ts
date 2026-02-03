@@ -1,15 +1,15 @@
-import { Hono } from 'hono';
-import fs from 'node:fs/promises';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { createHttpError, handleError } from '../utils/error.js';
-import { PORT, BASIC_AUTH_USER, BASIC_AUTH_PASSWORD } from '../config.js';
+import fs from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { Hono } from "hono";
+import { BASIC_AUTH_PASSWORD, BASIC_AUTH_USER, PORT } from "../config.js";
+import { createHttpError, handleError } from "../utils/error.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Settings file path
-const SETTINGS_FILE = path.join(__dirname, '..', '..', 'settings.json');
+const SETTINGS_FILE = path.join(__dirname, "..", "..", "settings.json");
 
 interface Settings {
   port: number;
@@ -21,29 +21,29 @@ interface Settings {
 // Load settings from file or return defaults
 async function loadSettings(): Promise<Settings> {
   try {
-    const data = await fs.readFile(SETTINGS_FILE, 'utf-8');
+    const data = await fs.readFile(SETTINGS_FILE, "utf-8");
     return JSON.parse(data) as Settings;
   } catch {
     // Return defaults from environment or hardcoded defaults
     return {
       port: PORT,
       basicAuthEnabled: Boolean(BASIC_AUTH_USER && BASIC_AUTH_PASSWORD),
-      basicAuthUser: BASIC_AUTH_USER || '',
-      basicAuthPassword: BASIC_AUTH_PASSWORD || ''
+      basicAuthUser: BASIC_AUTH_USER || "",
+      basicAuthPassword: BASIC_AUTH_PASSWORD || "",
     };
   }
 }
 
 // Save settings to file
 async function saveSettings(settings: Settings): Promise<void> {
-  await fs.writeFile(SETTINGS_FILE, JSON.stringify(settings, null, 2), 'utf-8');
+  await fs.writeFile(SETTINGS_FILE, JSON.stringify(settings, null, 2), "utf-8");
 }
 
 export function createSettingsRouter() {
   const router = new Hono();
 
   // GET /api/settings - Get current settings
-  router.get('/', async (c) => {
+  router.get("/", async (c) => {
     try {
       const settings = await loadSettings();
 
@@ -53,7 +53,7 @@ export function createSettingsRouter() {
         port: settings.port,
         basicAuthEnabled: settings.basicAuthEnabled,
         basicAuthUser: settings.basicAuthUser,
-        basicAuthPassword: settings.basicAuthPassword ? '••••••••••••' : ''
+        basicAuthPassword: settings.basicAuthPassword ? "••••••••••••" : "",
       });
     } catch (error) {
       return handleError(c, error);
@@ -61,21 +61,24 @@ export function createSettingsRouter() {
   });
 
   // POST /api/settings - Update settings
-  router.post('/', async (c) => {
+  router.post("/", async (c) => {
     try {
-      const body = await c.req.json() as Settings;
+      const body = (await c.req.json()) as Settings;
 
       // Validate settings
       if (!body.port || body.port < 1024 || body.port > 65535) {
-        throw createHttpError('Port must be between 1024 and 65535', 400);
+        throw createHttpError("Port must be between 1024 and 65535", 400);
       }
 
       if (body.basicAuthEnabled) {
         if (!body.basicAuthUser || !body.basicAuthPassword) {
-          throw createHttpError('Username and password are required when Basic Auth is enabled', 400);
+          throw createHttpError(
+            "Username and password are required when Basic Auth is enabled",
+            400
+          );
         }
-        if (body.basicAuthPassword.length < 12 && body.basicAuthPassword !== '••••••••••••') {
-          throw createHttpError('Password must be at least 12 characters', 400);
+        if (body.basicAuthPassword.length < 12 && body.basicAuthPassword !== "••••••••••••") {
+          throw createHttpError("Password must be at least 12 characters", 400);
         }
       }
 
@@ -86,9 +89,10 @@ export function createSettingsRouter() {
         basicAuthEnabled: body.basicAuthEnabled,
         basicAuthUser: body.basicAuthUser,
         // If password is placeholder, keep current password
-        basicAuthPassword: body.basicAuthPassword === '••••••••••••'
-          ? currentSettings.basicAuthPassword
-          : body.basicAuthPassword
+        basicAuthPassword:
+          body.basicAuthPassword === "••••••••••••"
+            ? currentSettings.basicAuthPassword
+            : body.basicAuthPassword,
       };
 
       // Save settings
@@ -107,8 +111,8 @@ export function createSettingsRouter() {
       // Return success - client should restart server
       return c.json({
         success: true,
-        message: 'Settings saved. Server restart required.',
-        requiresRestart: true
+        message: "Settings saved. Server restart required.",
+        requiresRestart: true,
       });
     } catch (error) {
       return handleError(c, error);

@@ -12,9 +12,9 @@
  * - GOOD: Above this, snapshot for preservation
  */
 export const HEALTH_THRESHOLDS = {
-  CRITICAL: 30,  // Critical health threshold
-  WARNING: 50,   // Warning health threshold
-  GOOD: 80,      // Good health threshold
+  CRITICAL: 30, // Critical health threshold
+  WARNING: 50, // Warning health threshold
+  GOOD: 80, // Good health threshold
 } as const;
 
 /**
@@ -29,8 +29,8 @@ export const DRIFT_THRESHOLD = 0.7;
  * - TOKEN_WARNING_THRESHOLD: Triggers trim recommendation
  */
 export const TOKEN_THRESHOLDS = {
-  PENALTY_DIVISOR: 10000,    // Divisor for token penalty calculation
-  WARNING_THRESHOLD: 50000,  // Token count that triggers trim warning
+  PENALTY_DIVISOR: 10000, // Divisor for token penalty calculation
+  WARNING_THRESHOLD: 50000, // Token count that triggers trim warning
 } as const;
 
 /**
@@ -39,8 +39,8 @@ export const TOKEN_THRESHOLDS = {
  * - COMPACT_KEEP_RECENT: Number of recent events to preserve
  */
 export const COMPACTION_THRESHOLDS = {
-  THRESHOLD: 100,     // Minimum events for compaction
-  KEEP_RECENT: 20,    // Recent events to keep after compaction
+  THRESHOLD: 100, // Minimum events for compaction
+  KEEP_RECENT: 20, // Recent events to keep after compaction
 } as const;
 
 /**
@@ -49,7 +49,7 @@ export const COMPACTION_THRESHOLDS = {
  * - TRIM_FILE_THRESHOLD: Threshold for trimming file-based content (100KB)
  */
 export const TRIM_THRESHOLDS = {
-  THRESHOLD: 10000,      // Characters threshold for trimming
+  THRESHOLD: 10000, // Characters threshold for trimming
   FILE_THRESHOLD: 100000, // Characters (100KB) for file trimming
 } as const;
 
@@ -58,7 +58,7 @@ export const TRIM_THRESHOLDS = {
  * - WINDOW_SIZE: Number of recent messages to analyze for phase detection
  */
 export const PHASE_DETECTION = {
-  WINDOW_SIZE: 5,  // Sliding window size for phase detection
+  WINDOW_SIZE: 5, // Sliding window size for phase detection
 } as const;
 
 /**
@@ -66,7 +66,7 @@ export const PHASE_DETECTION = {
  * - AUTO_HEALTH_THRESHOLD: Health score above which auto-snapshot is considered
  */
 export const SNAPSHOT_THRESHOLDS = {
-  AUTO_HEALTH_THRESHOLD: 80,  // Health score for auto-snapshot
+  AUTO_HEALTH_THRESHOLD: 80, // Health score for auto-snapshot
 } as const;
 
 /**

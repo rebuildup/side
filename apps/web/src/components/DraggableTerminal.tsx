@@ -1,6 +1,6 @@
-import { useRef, useEffect } from 'react';
-import type { TerminalSession } from '../types';
-import { TerminalTile } from './TerminalTile';
+import { useRef } from "react";
+import type { TerminalSession } from "../types";
+import { TerminalTile } from "./TerminalTile";
 
 interface DraggableTerminalProps {
   session: TerminalSession;
@@ -23,18 +23,18 @@ export function DraggableTerminal({
   onDragOver,
   onDragEnd,
   isDragging,
-  isDragOver
+  isDragOver,
 }: DraggableTerminalProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   const handleDragStart = (e: React.DragEvent) => {
-    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.effectAllowed = "move";
     onDragStart(index);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
+    e.dataTransfer.dropEffect = "move";
     onDragOver(index);
   };
 
@@ -52,15 +52,11 @@ export function DraggableTerminal({
       className="draggable-terminal"
       style={{
         opacity: isDragging ? 0.5 : 1,
-        transform: isDragOver ? 'scale(1.02)' : undefined,
-        transition: 'transform 0.1s, opacity 0.1s'
+        transform: isDragOver ? "scale(1.02)" : undefined,
+        transition: "transform 0.1s, opacity 0.1s",
       }}
     >
-      <TerminalTile
-        session={session}
-        wsUrl={wsUrl}
-        onDelete={onDelete}
-      />
+      <TerminalTile session={session} wsUrl={wsUrl} onDelete={onDelete} />
     </div>
   );
 }

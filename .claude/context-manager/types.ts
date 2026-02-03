@@ -37,7 +37,7 @@ export interface ClaudeSession {
  * Message structure for conversation tracking
  */
 export interface ClaudeMessage {
-  role: 'user' | 'assistant' | 'system';
+  role: "user" | "assistant" | "system";
   content: string;
   timestamp?: string;
 }
@@ -53,7 +53,7 @@ export type Message = ClaudeMessage;
  */
 export interface SessionEvent {
   timestamp: string;
-  type: 'message' | 'tool' | 'error' | 'snapshot' | 'compact';
+  type: "message" | "tool" | "error" | "snapshot" | "compact";
   data: unknown;
 }
 
@@ -86,7 +86,7 @@ export interface CompactResult {
 /**
  * Controller action types
  */
-export type ControllerActionType = 'compact' | 'snapshot' | 'trim' | 'alert';
+export type ControllerActionType = "compact" | "snapshot" | "trim" | "alert";
 
 /**
  * Controller action result
@@ -114,10 +114,10 @@ export interface ControllerStatus {
  * Configuration options for ContextManager
  */
 export interface ContextManagerOptions {
-  sessionsDir?: string;           // Default: .claude/sessions
-  autoCompactThreshold?: number;  // Default: 100 events
-  healthCheckInterval?: number;   // Default: 60000ms (1 min)
-  driftThreshold?: number;        // Default: 0.7
+  sessionsDir?: string; // Default: .claude/sessions
+  autoCompactThreshold?: number; // Default: 100 events
+  healthCheckInterval?: number; // Default: 60000ms (1 min)
+  driftThreshold?: number; // Default: 0.7
 }
 
 /**
@@ -192,7 +192,7 @@ export interface SessionStats {
  */
 export interface DriftDetectionResult {
   driftScore: number;
-  method: 'keyword' | 'llm';
+  method: "keyword" | "llm";
   needsDeepAnalysis: boolean;
 }
 
@@ -200,24 +200,24 @@ export interface DriftDetectionResult {
  * Message tracking options
  */
 export interface TrackMessageOptions {
-  updateMetrics?: boolean;         // Update message count (default: true)
-  analyzeDrift?: boolean;          // Run drift analysis (default: true)
-  saveImmediately?: boolean;       // Save to disk immediately (default: true)
+  updateMetrics?: boolean; // Update message count (default: true)
+  analyzeDrift?: boolean; // Run drift analysis (default: true)
+  saveImmediately?: boolean; // Save to disk immediately (default: true)
 }
 
 /**
  * Tool tracking options
  */
 export interface TrackToolOptions {
-  recordEvent?: boolean;           // Record as session event (default: true)
-  saveImmediately?: boolean;       // Save to disk immediately (default: true)
+  recordEvent?: boolean; // Record as session event (default: true)
+  saveImmediately?: boolean; // Save to disk immediately (default: true)
 }
 
 /**
  * Error tracking options
  */
 export interface TrackErrorOptions {
-  recoverable?: boolean;           // Whether error is recoverable (default: false)
+  recoverable?: boolean; // Whether error is recoverable (default: false)
   context?: Record<string, unknown>; // Additional context
-  saveImmediately?: boolean;       // Save to disk immediately (default: true)
+  saveImmediately?: boolean; // Save to disk immediately (default: true)
 }

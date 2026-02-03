@@ -5,8 +5,8 @@
  * by analyzing message patterns using a sliding window approach.
  */
 
-import type { ClaudeSession, SessionEvent } from '../types';
-import { PHASE_DETECTION } from '../config';
+import { PHASE_DETECTION } from "../config";
+import type { ClaudeSession, SessionEvent } from "../types";
 
 /**
  * Phase transition event in the session
@@ -22,23 +22,20 @@ export interface PhaseTransition {
  * All recognized phases in the development lifecycle
  */
 export type DevelopmentPhase =
-  | 'initialization'
-  | 'research'
-  | 'planning'
-  | 'implementation'
-  | 'testing'
-  | 'debugging'
-  | 'review'
-  | 'documentation';
+  | "initialization"
+  | "research"
+  | "planning"
+  | "implementation"
+  | "testing"
+  | "debugging"
+  | "review"
+  | "documentation";
 
 /**
  * Pattern definitions for each phase
  */
 const PHASE_PATTERNS: Record<DevelopmentPhase, RegExp[]> = {
-  initialization: [
-    /\b(start|begin|new|session|init|initialize)\b/i,
-    /\b(let's|lets|starting)\b/i,
-  ],
+  initialization: [/\b(start|begin|new|session|init|initialize)\b/i, /\b(let's|lets|starting)\b/i],
   research: [
     /\b(what|how|why|explain|understand|describe|overview|context)\b/i,
     /\b(research|investigate|explore|find out|learn about)\b/i,
@@ -90,15 +87,15 @@ const SMOOTHING_FACTOR = 0.7;
  * Extract text content from a session event
  */
 function extractEventText(event: SessionEvent): string {
-  if (event.type === 'message') {
+  if (event.type === "message") {
     const data = event.data as { prompt?: string; response?: string };
-    return data.prompt || data.response || '';
+    return data.prompt || data.response || "";
   }
-  if (event.type === 'error') {
+  if (event.type === "error") {
     const data = event.data as { message?: string; error?: string };
-    return data.message || data.error || '';
+    return data.message || data.error || "";
   }
-  return '';
+  return "";
 }
 
 /**
@@ -161,7 +158,7 @@ export class PhaseDetector {
    */
   detectPhase(session: ClaudeSession): string {
     if (session.events.length === 0) {
-      return 'initialization';
+      return "initialization";
     }
 
     // Get recent events within the sliding window
@@ -171,7 +168,7 @@ export class PhaseDetector {
     const phaseScores = this.calculatePhaseScores(recentEvents);
 
     // Find the phase with the highest score
-    let bestPhase = 'initialization';
+    let bestPhase = "initialization";
     let bestScore = MIN_CONFIDENCE;
 
     for (const [phase, score] of Object.entries(phaseScores)) {
@@ -196,7 +193,7 @@ export class PhaseDetector {
    */
   getPhaseConfidence(session: ClaudeSession, phase: string): number {
     if (session.events.length === 0) {
-      return phase === 'initialization' ? 1.0 : 0.0;
+      return phase === "initialization" ? 1.0 : 0.0;
     }
 
     const recentEvents = this.getRecentEvents(session);
@@ -223,8 +220,8 @@ export class PhaseDetector {
     }
 
     // Track phase history through the session
-    const phaseHistory: string[] = [];
-    let currentPhase = 'initialization';
+    const _phaseHistory: string[] = [];
+    let currentPhase = "initialization";
 
     // Analyze events in chunks to detect phase changes
     for (let i = 0; i < events.length; i++) {
@@ -278,10 +275,7 @@ export class PhaseDetector {
     }
 
     // Extract text from all events in the window
-    const combinedText = events
-      .map(extractEventText)
-      .filter(Boolean)
-      .join(' ');
+    const combinedText = events.map(extractEventText).filter(Boolean).join(" ");
 
     if (!combinedText) {
       return scores;
@@ -313,19 +307,16 @@ export class PhaseDetector {
    */
   private detectPhaseFromEvents(events: SessionEvent[]): string {
     if (events.length === 0) {
-      return 'initialization';
+      return "initialization";
     }
 
-    const combinedText = events
-      .map(extractEventText)
-      .filter(Boolean)
-      .join(' ');
+    const combinedText = events.map(extractEventText).filter(Boolean).join(" ");
 
     if (!combinedText) {
-      return 'initialization';
+      return "initialization";
     }
 
-    let bestPhase = 'initialization';
+    let bestPhase = "initialization";
     let bestScore = 0;
 
     for (const [phase, patterns] of Object.entries(PHASE_PATTERNS)) {

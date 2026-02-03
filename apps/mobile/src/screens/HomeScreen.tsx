@@ -1,31 +1,35 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../navigation/AppNavigator';
-import { getClient } from '../api/client';
-import { TerminalCard } from '../components/TerminalCard';
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import type React from "react";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
+import { getClient } from "../api/client";
+import { TerminalCard } from "../components/TerminalCard";
+import type { RootStackParamList } from "../navigation/AppNavigator";
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
+type Props = NativeStackScreenProps<RootStackParamList, "Home">;
 
 export const HomeScreen: React.FC<Props> = ({ navigation }) => {
-  const [terminals, setTerminals] = useState<Array<{ id: string; title: string; status: string }>>([]);
+  const [terminals, setTerminals] = useState<Array<{ id: string; title: string; status: string }>>(
+    []
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadTerminals();
-  }, []);
+  }, [loadTerminals]);
 
   const loadTerminals = async () => {
     try {
       const client = getClient();
       // Fetch terminals from server
       // Note: API endpoint to be implemented in server
-      const terminals = await client.get<Array<{ id: string; title: string; status: string }>>('/terminals');
+      const terminals =
+        await client.get<Array<{ id: string; title: string; status: string }>>("/terminals");
       setTerminals(terminals);
       setLoading(false);
-    } catch (err) {
-      setError('Failed to load terminals');
+    } catch (_err) {
+      setError("Failed to load terminals");
       setLoading(false);
     }
   };
@@ -58,8 +62,10 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
               key={terminal.id}
               id={terminal.id}
               title={terminal.title}
-              status={terminal.status as 'running' | 'stopped'}
-              onPress={() => navigation.navigate('Terminal', { terminalId: terminal.id, title: terminal.title })}
+              status={terminal.status as "running" | "stopped"}
+              onPress={() =>
+                navigation.navigate("Terminal", { terminalId: terminal.id, title: terminal.title })
+              }
             />
           ))
         )}
@@ -71,29 +77,29 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a1a1a'
+    backgroundColor: "#1a1a1a",
   },
   centerContainer: {
     flex: 1,
-    backgroundColor: '#1a1a1a',
-    justifyContent: 'center',
-    alignItems: 'center'
+    backgroundColor: "#1a1a1a",
+    justifyContent: "center",
+    alignItems: "center",
   },
   title: {
-    color: '#ffffff',
+    color: "#ffffff",
     fontSize: 24,
-    fontWeight: 'bold',
-    padding: 16
+    fontWeight: "bold",
+    padding: 16,
   },
   terminalList: {
-    flex: 1
+    flex: 1,
   },
   emptyText: {
-    color: '#9ca3af',
-    textAlign: 'center',
-    marginTop: 32
+    color: "#9ca3af",
+    textAlign: "center",
+    marginTop: 32,
   },
   errorText: {
-    color: '#ef4444'
-  }
+    color: "#ef4444",
+  },
 });

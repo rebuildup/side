@@ -10,3 +10,9 @@ apps/server/dist/
 apps/desktop/server/
 apps/desktop/web/dist/
 apps/desktop/dist/
+.claude/
+apps/desktop/src-tauri/target/
+apps/desktop/src-tauri/resources/server/
+apps/mobile/ios/build/
+apps/mobile/android/build/
+apps/web/dist/

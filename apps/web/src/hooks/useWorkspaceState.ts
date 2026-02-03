@@ -1,11 +1,9 @@
-import { useCallback, useState } from 'react';
-import type { WorkspaceState } from '../types';
-import { createEmptyWorkspaceState } from '../utils';
+import { useCallback, useState } from "react";
+import type { WorkspaceState } from "../types";
+import { createEmptyWorkspaceState } from "../utils";
 
 export const useWorkspaceState = () => {
-  const [workspaceStates, setWorkspaceStates] = useState<
-    Record<string, WorkspaceState>
-  >({});
+  const [workspaceStates, setWorkspaceStates] = useState<Record<string, WorkspaceState>>({});
 
   const updateWorkspaceState = useCallback(
     (workspaceId: string, updater: (state: WorkspaceState) => WorkspaceState) => {
@@ -33,6 +31,6 @@ export const useWorkspaceState = () => {
     workspaceStates,
     setWorkspaceStates,
     updateWorkspaceState,
-    initializeWorkspaceStates
+    initializeWorkspaceStates,
   };
 };

@@ -1,20 +1,22 @@
-import { useCallback, useEffect, useState } from 'react';
-import type { Workspace } from '../types';
-import { listWorkspaces, createWorkspace as apiCreateWorkspace } from '../api';
-import { getErrorMessage, normalizeWorkspacePath, createEmptyWorkspaceState } from '../utils';
+import { useCallback, useEffect, useState } from "react";
+import { createWorkspace as apiCreateWorkspace, listWorkspaces } from "../api";
+import type { Workspace } from "../types";
+import { createEmptyWorkspaceState, getErrorMessage, normalizeWorkspacePath } from "../utils";
 
 interface UseWorkspacesProps {
   setStatusMessage: (message: string) => void;
   defaultRoot: string;
   initializeWorkspaceStates: (workspaceIds: string[]) => void;
-  setWorkspaceStates: React.Dispatch<React.SetStateAction<Record<string, import('../types').WorkspaceState>>>;
+  setWorkspaceStates: React.Dispatch<
+    React.SetStateAction<Record<string, import("../types").WorkspaceState>>
+  >;
 }
 
 export const useWorkspaces = ({
   setStatusMessage,
   defaultRoot,
   initializeWorkspaceStates,
-  setWorkspaceStates
+  setWorkspaceStates,
 }: UseWorkspacesProps) => {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [editorWorkspaceId, setEditorWorkspaceId] = useState<string | null>(null);
@@ -51,7 +53,7 @@ export const useWorkspaces = ({
       const resolvedPath = trimmedPath || defaultRoot;
       if (!resolvedPath) {
         setStatusMessage(
-          '\u30d1\u30b9\u3092\u5165\u529b\u3057\u3066\u304f\u3060\u3055\u3044\u3002'
+          "\u30d1\u30b9\u3092\u5165\u529b\u3057\u3066\u304f\u3060\u3055\u3044\u3002"
         );
         return null;
       }
@@ -61,7 +63,7 @@ export const useWorkspaces = ({
       );
       if (exists) {
         setStatusMessage(
-          '\u540c\u3058\u30d1\u30b9\u306e\u30ef\u30fc\u30af\u30b9\u30da\u30fc\u30b9\u306f\u8ffd\u52a0\u3067\u304d\u307e\u305b\u3093\u3002'
+          "\u540c\u3058\u30d1\u30b9\u306e\u30ef\u30fc\u30af\u30b9\u30da\u30fc\u30b9\u306f\u8ffd\u52a0\u3067\u304d\u307e\u305b\u3093\u3002"
         );
         return null;
       }
@@ -71,7 +73,7 @@ export const useWorkspaces = ({
         setEditorWorkspaceId(workspace.id);
         setWorkspaceStates((prev) => ({
           ...prev,
-          [workspace.id]: createEmptyWorkspaceState()
+          [workspace.id]: createEmptyWorkspaceState(),
         }));
         return workspace;
       } catch (error: unknown) {
@@ -88,6 +90,6 @@ export const useWorkspaces = ({
     workspaces,
     editorWorkspaceId,
     setEditorWorkspaceId,
-    handleCreateWorkspace
+    handleCreateWorkspace,
   };
 };

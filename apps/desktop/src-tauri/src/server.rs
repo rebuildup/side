@@ -6,6 +6,44 @@ pub struct ServerHandle {
     pub port: u16,
 }
 
+// Path to the bundled Node.js server executable
+fn get_server_path() -> PathBuf {
+    let exe_path = std::env::current_exe()
+        .expect("Failed to get exe path");
+
+    let exe_dir = exe_path.parent().expect("Failed to get exe directory");
+
+    // In development/release builds, go up from target/debug or target/release to src-tauri
+    let mut current: PathBuf = exe_dir.to_path_buf();
+
+    // Try going up multiple levels to find src-tauri
+    for _ in 0..5 {
+        // Check if src-tauri exists at this level
+        let src_tauri = current.join("src-tauri");
+        if src_tauri.exists() {
+            let server_path = src_tauri.join("resources").join("server").join("index.js");
+            if server_path.exists() {
+                return server_path;
+            }
+        }
+
+        // Check if resources/server exists directly at this level
+        let server_path = current.join("resources").join("server").join("index.js");
+        if server_path.exists() {
+            return server_path;
+        }
+
+        // Go up one level
+        match current.parent() {
+            Some(p) => current = p.to_path_buf(),
+            None => break,
+        };
+    }
+
+    // Fallback to exe_dir/resources/server
+    exe_dir.join("resources").join("server").join("index.js")
+}
+
 pub async fn start(port: u16) -> Result<ServerHandle, String> {
     // Check if we're in development mode
     if is_development_mode() {
@@ -15,7 +53,7 @@ pub async fn start(port: u16) -> Result<ServerHandle, String> {
     }
 }
 
-pub async fn stop(handle: ServerHandle) -> Result<(), String> {
+pub async fn stop(mut handle: ServerHandle) -> Result<(), String> {
     handle.child.kill()
         .await
         .map_err(|e| format!("Failed to stop server: {}", e))?;
@@ -51,30 +89,35 @@ async fn start_dev_server(port: u16) -> Result<ServerHandle, String> {
 }
 
 async fn start_production_server(port: u16) -> Result<ServerHandle, String> {
-    let server_path = get_server_executable_path().await?;
+    let server_path = get_server_path();
 
-    let child = Command::new(&server_path)
-        .arg("--port")
-        .arg(port.to_string())
+    if !server_path.exists() {
+        return Err(format!(
+            "Server executable not found at: {}. Ensure resources are bundled correctly.",
+            server_path.display()
+        ));
+    }
+
+    // Use Node.js to run the bundled server
+    let node_path = find_node_executable()?;
+
+    // Convert paths to strings (don't canonicalize to avoid path issues)
+    let node_exe = node_path.to_string_lossy().to_string();
+    let server_script = server_path.to_string_lossy().to_string();
+
+    let child = Command::new(&node_exe)
+        .arg(&server_script)
+        .env("PORT", port.to_string())
         .spawn()
-        .map_err(|e| format!("Failed to start server: {}", e))?;
+        .map_err(|e| format!("Failed to start server: {} (node: '{}', script: '{}')", e, node_exe, server_script))?;
 
     Ok(ServerHandle { child, port })
 }
 
-async fn get_server_executable_path() -> Result<PathBuf, String> {
-    let mut exe_path = std::env::current_exe()
-        .map_err(|e| format!("Failed to get exe path: {}", e))?;
-
-    exe_path.pop(); // Remove exe name
-    exe_path.push("server");
-
-    #[cfg(windows)]
-    {
-        exe_path.set_extension("exe");
-    }
-
-    Ok(exe_path)
+fn find_node_executable() -> Result<PathBuf, String> {
+    // TEMP: Return hardcoded path for now
+    // TODO: Make this dynamic after verifying it works
+    Ok(PathBuf::from(r"C:\Program Files\nodejs\node.exe"))
 }
 
 fn find_project_root() -> Result<PathBuf, String> {

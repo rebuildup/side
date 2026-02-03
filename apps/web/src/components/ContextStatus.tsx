@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import type React from "react";
+import { useEffect, useState } from "react";
 
 // Types
 interface ContextStatus {
@@ -18,35 +19,35 @@ interface ContextStatusProps {
 // API client
 const api = {
   getStatus: async (): Promise<ContextStatus> => {
-    const response = await fetch('/api/context-manager/status');
-    if (!response.ok) throw new Error('Failed to fetch status');
+    const response = await fetch("/api/context-manager/status");
+    if (!response.ok) throw new Error("Failed to fetch status");
     return response.json();
   },
 
   compact: async (): Promise<void> => {
-    const response = await fetch('/api/context-manager/compact', { method: 'POST' });
-    if (!response.ok) throw new Error('Failed to compact');
+    const response = await fetch("/api/context-manager/compact", { method: "POST" });
+    if (!response.ok) throw new Error("Failed to compact");
   },
 
   snapshot: async (): Promise<void> => {
-    const response = await fetch('/api/context-manager/snapshot', { method: 'POST' });
-    if (!response.ok) throw new Error('Failed to create snapshot');
+    const response = await fetch("/api/context-manager/snapshot", { method: "POST" });
+    if (!response.ok) throw new Error("Failed to create snapshot");
   },
 };
 
 // Health score color coding - returns CSS class name and display info
 function getHealthInfo(score: number): { className: string; label: string; color: string } {
-  if (score >= 80) return { className: 'excellent', label: 'Excellent', color: '#4caf50' };
-  if (score >= 50) return { className: 'good', label: 'Good', color: '#8bc34a' };
-  if (score >= 30) return { className: 'warning', label: 'Warning', color: '#ff9800' };
-  return { className: 'critical', label: 'Critical', color: '#f44336' };
+  if (score >= 80) return { className: "excellent", label: "Excellent", color: "#4caf50" };
+  if (score >= 50) return { className: "good", label: "Good", color: "#8bc34a" };
+  if (score >= 30) return { className: "warning", label: "Warning", color: "#ff9800" };
+  return { className: "critical", label: "Critical", color: "#f44336" };
 }
 
 // Drift score color coding
 function getDriftColor(score: number): string {
-  if (score >= 0.7) return '#f44336';
-  if (score >= 0.4) return '#ff9800';
-  return '#4caf50';
+  if (score >= 0.7) return "#f44336";
+  if (score >= 0.4) return "#ff9800";
+  return "#4caf50";
 }
 
 // Helper to get health class CSS class
@@ -58,123 +59,126 @@ function getHealthClass(score: number): string {
 // Inline styles for dynamic values (colors, widths, etc.)
 const dynamicStyles = {
   compactContainer: {
-    display: 'flex',
-    alignItems: 'center' as const,
-    gap: '12px',
-    padding: '8px 12px',
-    borderRadius: '6px',
-    backgroundColor: 'var(--bg-tertiary)',
-    border: '1px solid var(--border)',
+    display: "flex",
+    alignItems: "center" as const,
+    gap: "12px",
+    padding: "8px 12px",
+    borderRadius: "6px",
+    backgroundColor: "var(--bg-tertiary)",
+    border: "1px solid var(--border)",
   },
   compactHealthBar: {
-    width: '60px',
-    height: '6px',
-    borderRadius: '3px',
-    backgroundColor: 'var(--bg-soft)',
-    overflow: 'hidden' as const,
+    width: "60px",
+    height: "6px",
+    borderRadius: "3px",
+    backgroundColor: "var(--bg-soft)",
+    overflow: "hidden" as const,
   },
   compactHealthFill: (width: number, color: string) => ({
-    height: '100%',
+    height: "100%",
     width: `${width}%`,
     backgroundColor: color,
-    borderRadius: '3px',
-    transition: 'width 0.3s ease, background-color 0.3s ease',
+    borderRadius: "3px",
+    transition: "width 0.3s ease, background-color 0.3s ease",
   }),
   compactMetric: {
-    display: 'flex',
-    flexDirection: 'column' as const,
-    alignItems: 'flex-end' as const,
+    display: "flex",
+    flexDirection: "column" as const,
+    alignItems: "flex-end" as const,
   },
   compactLabel: {
-    fontSize: '10px',
-    color: 'var(--ink-muted)',
+    fontSize: "10px",
+    color: "var(--ink-muted)",
   },
   compactValue: (color: string) => ({
-    fontSize: '14px',
+    fontSize: "14px",
     fontWeight: 600,
     color: color,
   }),
   compactButton: {
-    padding: '4px 8px',
-    borderRadius: '4px',
-    fontSize: '12px',
-    backgroundColor: 'var(--bg-soft)',
-    color: 'var(--ink)',
-    border: '1px solid var(--border)',
-    cursor: 'pointer',
-    minWidth: '28px',
+    padding: "4px 8px",
+    borderRadius: "4px",
+    fontSize: "12px",
+    backgroundColor: "var(--bg-soft)",
+    color: "var(--ink)",
+    border: "1px solid var(--border)",
+    cursor: "pointer",
+    minWidth: "28px",
   },
   header: {
-    display: 'flex',
-    alignItems: 'center' as const,
-    justifyContent: 'space-between',
-    marginBottom: '12px',
+    display: "flex",
+    alignItems: "center" as const,
+    justifyContent: "space-between",
+    marginBottom: "12px",
   },
   title: {
-    fontSize: '14px',
+    fontSize: "14px",
     fontWeight: 600,
-    color: 'var(--ink)',
+    color: "var(--ink)",
     margin: 0,
   },
   healthLabel: (color: string) => ({
-    fontSize: '11px',
+    fontSize: "11px",
     fontWeight: 600,
-    padding: '2px 8px',
-    borderRadius: '4px',
-    textTransform: 'uppercase' as const,
+    padding: "2px 8px",
+    borderRadius: "4px",
+    textTransform: "uppercase" as const,
     backgroundColor: color,
-    color: '#000',
+    color: "#000",
   }),
   healthScoreDisplay: {
-    fontSize: '24px',
+    fontSize: "24px",
     fontWeight: 700,
   },
   metricValueColored: (color: string) => ({
-    fontSize: '14px',
+    fontSize: "14px",
     fontWeight: 600,
     color: color,
   }),
   recommendations: {
-    display: 'flex',
-    flexDirection: 'column' as const,
-    gap: '6px',
-    padding: '10px',
-    borderRadius: '4px',
-    backgroundColor: 'var(--bg-soft)',
-    borderLeft: '3px solid',
+    display: "flex",
+    flexDirection: "column" as const,
+    gap: "6px",
+    padding: "10px",
+    borderRadius: "4px",
+    backgroundColor: "var(--bg-soft)",
+    borderLeft: "3px solid",
   },
   recommendationsTitle: {
-    fontSize: '12px',
+    fontSize: "12px",
     fontWeight: 600,
-    color: 'var(--ink)',
-    margin: '0 0 4px 0',
+    color: "var(--ink)",
+    margin: "0 0 4px 0",
   },
   recommendation: {
-    fontSize: '12px',
-    color: 'var(--ink-dim)',
+    fontSize: "12px",
+    color: "var(--ink-dim)",
     margin: 0,
-    paddingLeft: '12px',
-    position: 'relative' as const,
+    paddingLeft: "12px",
+    position: "relative" as const,
   },
   loading: {
-    display: 'flex',
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
-    padding: '20px',
-    color: 'var(--ink-muted)',
-    fontSize: '14px',
+    display: "flex",
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
+    padding: "20px",
+    color: "var(--ink-muted)",
+    fontSize: "14px",
   },
   error: {
-    padding: '12px',
-    borderRadius: '4px',
-    backgroundColor: '#7f1d1d',
-    color: '#fecaca',
-    fontSize: '12px',
+    padding: "12px",
+    borderRadius: "4px",
+    backgroundColor: "#7f1d1d",
+    color: "#fecaca",
+    fontSize: "12px",
   },
 };
 
 // Component
-export const ContextStatus: React.FC<ContextStatusProps> = ({ compact = false, onStatusChange }) => {
+export const ContextStatus: React.FC<ContextStatusProps> = ({
+  compact = false,
+  onStatusChange,
+}) => {
   const [status, setStatus] = useState<ContextStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -188,7 +192,7 @@ export const ContextStatus: React.FC<ContextStatusProps> = ({ compact = false, o
       setStatus(data);
       onStatusChange?.(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch status');
+      setError(err instanceof Error ? err.message : "Failed to fetch status");
     } finally {
       setLoading(false);
     }
@@ -198,15 +202,15 @@ export const ContextStatus: React.FC<ContextStatusProps> = ({ compact = false, o
     fetchStatus();
     const interval = setInterval(fetchStatus, 30000); // Refresh every 30s
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchStatus]);
 
   const handleCompact = async () => {
     try {
-      setActionLoading('compact');
+      setActionLoading("compact");
       await api.compact();
       await fetchStatus();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to compact');
+      setError(err instanceof Error ? err.message : "Failed to compact");
     } finally {
       setActionLoading(null);
     }
@@ -214,11 +218,11 @@ export const ContextStatus: React.FC<ContextStatusProps> = ({ compact = false, o
 
   const handleSnapshot = async () => {
     try {
-      setActionLoading('snapshot');
+      setActionLoading("snapshot");
       await api.snapshot();
       await fetchStatus();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create snapshot');
+      setError(err instanceof Error ? err.message : "Failed to create snapshot");
     } finally {
       setActionLoading(null);
     }
@@ -237,7 +241,8 @@ export const ContextStatus: React.FC<ContextStatusProps> = ({ compact = false, o
   const healthInfo = getHealthInfo(status.healthScore);
   const driftColor = getDriftColor(status.driftScore);
   const showNewSession = status.driftScore > 0.5;
-  const showRecommendations = status.healthScore < 50 && status.recommendations && status.recommendations.length > 0;
+  const showRecommendations =
+    status.healthScore < 50 && status.recommendations && status.recommendations.length > 0;
 
   // Compact mode
   if (compact) {
@@ -252,7 +257,9 @@ export const ContextStatus: React.FC<ContextStatusProps> = ({ compact = false, o
         </div>
         <div style={dynamicStyles.compactMetric}>
           <span style={dynamicStyles.compactLabel}>Drift</span>
-          <span style={dynamicStyles.compactValue(driftColor)}>{(status.driftScore * 100).toFixed(0)}%</span>
+          <span style={dynamicStyles.compactValue(driftColor)}>
+            {(status.driftScore * 100).toFixed(0)}%
+          </span>
         </div>
         <button
           onClick={handleCompact}
@@ -263,7 +270,7 @@ export const ContextStatus: React.FC<ContextStatusProps> = ({ compact = false, o
           }}
           title="Compact context"
         >
-          {actionLoading === 'compact' ? '...' : '⚡'}
+          {actionLoading === "compact" ? "..." : "⚡"}
         </button>
       </div>
     );
@@ -275,9 +282,7 @@ export const ContextStatus: React.FC<ContextStatusProps> = ({ compact = false, o
       {/* Header */}
       <div style={dynamicStyles.header}>
         <h3 style={dynamicStyles.title}>Context Manager</h3>
-        <span style={dynamicStyles.healthLabel(healthInfo.color)}>
-          {healthInfo.label}
-        </span>
+        <span style={dynamicStyles.healthLabel(healthInfo.color)}>{healthInfo.label}</span>
       </div>
 
       {/* Health Score Gauge */}
@@ -335,7 +340,7 @@ export const ContextStatus: React.FC<ContextStatusProps> = ({ compact = false, o
           disabled={actionLoading !== null}
           style={{ opacity: actionLoading ? 0.6 : 1 }}
         >
-          {actionLoading === 'compact' ? 'Compacting...' : 'Compact'}
+          {actionLoading === "compact" ? "Compacting..." : "Compact"}
         </button>
         <button
           className="context-action-btn"
@@ -343,13 +348,10 @@ export const ContextStatus: React.FC<ContextStatusProps> = ({ compact = false, o
           disabled={actionLoading !== null}
           style={{ opacity: actionLoading ? 0.6 : 1 }}
         >
-          {actionLoading === 'snapshot' ? 'Snapshotting...' : 'Snapshot'}
+          {actionLoading === "snapshot" ? "Snapshotting..." : "Snapshot"}
         </button>
         {showNewSession && (
-          <button
-            className="context-action-btn danger"
-            onClick={() => window.location.reload()}
-          >
+          <button className="context-action-btn danger" onClick={() => window.location.reload()}>
             New Session
           </button>
         )}

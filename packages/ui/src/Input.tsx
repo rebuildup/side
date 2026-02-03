@@ -1,25 +1,26 @@
-import React, { useId } from 'react';
+import type React from "react";
+import { useId } from "react";
 
-export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
+export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size"> {
   label?: string;
   error?: string;
-  size?: 'sm' | 'md' | 'lg';
+  size?: "sm" | "md" | "lg";
 }
 
 export const Input: React.FC<InputProps> = ({
   label,
   error,
-  size = 'md',
-  className = '',
+  size = "md",
+  className = "",
   id,
   ...props
 }) => {
   const generatedId = useId();
   const inputId = id || generatedId;
   const sizeClasses = {
-    sm: 'px-2 py-1 text-sm',
-    md: 'px-3 py-2 text-base',
-    lg: 'px-4 py-3 text-lg'
+    sm: "px-2 py-1 text-sm",
+    md: "px-3 py-2 text-base",
+    lg: "px-4 py-3 text-lg",
   };
 
   return (

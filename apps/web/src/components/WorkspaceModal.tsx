@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import { FileTree } from './FileTree';
-import type { FileTreeNode } from '../types';
-import { previewFiles } from '../api';
-import { getErrorMessage, getParentPath, joinPath, toTreeNodes } from '../utils';
+import { type FormEvent, useEffect, useMemo, useState } from "react";
+import { previewFiles } from "../api";
+import type { FileTreeNode } from "../types";
+import { getErrorMessage, getParentPath, joinPath, toTreeNodes } from "../utils";
+import { FileTree } from "./FileTree";
 
 interface WorkspaceModalProps {
   isOpen: boolean;
@@ -11,13 +11,8 @@ interface WorkspaceModalProps {
   onClose: () => void;
 }
 
-export const WorkspaceModal = ({
-  isOpen,
-  defaultRoot,
-  onSubmit,
-  onClose
-}: WorkspaceModalProps) => {
-  const [workspacePathDraft, setWorkspacePathDraft] = useState('');
+export const WorkspaceModal = ({ isOpen, defaultRoot, onSubmit, onClose }: WorkspaceModalProps) => {
+  const [workspacePathDraft, setWorkspacePathDraft] = useState("");
   const [previewTree, setPreviewTree] = useState<FileTreeNode[]>([]);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
@@ -38,7 +33,7 @@ export const WorkspaceModal = ({
     let alive = true;
     setPreviewLoading(true);
     setPreviewError(null);
-    previewFiles(previewRoot, '')
+    previewFiles(previewRoot, "")
       .then((entries) => {
         if (!alive) return;
         setPreviewTree(toTreeNodes(entries));
@@ -66,7 +61,7 @@ export const WorkspaceModal = ({
     if (!isOpen) return;
     setPreviewLoading(true);
     setPreviewError(null);
-    previewFiles(previewRoot, '')
+    previewFiles(previewRoot, "")
       .then((entries) => {
         setPreviewTree(toTreeNodes(entries));
         setPreviewLoading(false);
@@ -78,7 +73,7 @@ export const WorkspaceModal = ({
   };
 
   const handlePreviewToggleDir = (node: FileTreeNode) => {
-    if (node.type !== 'dir') return;
+    if (node.type !== "dir") return;
     const nextPath = joinPath(previewRoot, node.name);
     setWorkspacePathDraft(nextPath);
   };
@@ -94,7 +89,7 @@ export const WorkspaceModal = ({
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     await onSubmit(workspacePathDraft);
-    setWorkspacePathDraft('');
+    setWorkspacePathDraft("");
   };
 
   if (!isOpen) return null;
@@ -103,14 +98,14 @@ export const WorkspaceModal = ({
     <div className="modal-backdrop" role="dialog" aria-modal="true">
       <form className="modal" onSubmit={handleSubmit}>
         <div className="modal-title">
-          {'\u30ef\u30fc\u30af\u30b9\u30da\u30fc\u30b9\u8ffd\u52a0'}
+          {"\u30ef\u30fc\u30af\u30b9\u30da\u30fc\u30b9\u8ffd\u52a0"}
         </div>
         <label className="field">
-          <span>{'\u30d1\u30b9'}</span>
+          <span>{"\u30d1\u30b9"}</span>
           <input
             type="text"
             value={workspacePathDraft}
-            placeholder={defaultRoot || ''}
+            placeholder={defaultRoot || ""}
             onChange={(event) => setWorkspacePathDraft(event.target.value)}
           />
         </label>
@@ -130,10 +125,10 @@ export const WorkspaceModal = ({
         </div>
         <div className="modal-actions">
           <button type="button" className="ghost-button" onClick={onClose}>
-            {'\u30ad\u30e3\u30f3\u30bb\u30eb'}
+            {"\u30ad\u30e3\u30f3\u30bb\u30eb"}
           </button>
           <button type="submit" className="primary-button">
-            {'\u8ffd\u52a0'}
+            {"\u8ffd\u52a0"}
           </button>
         </div>
       </form>

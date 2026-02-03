@@ -4,32 +4,31 @@
  * Main entry point for session management, monitoring, and control.
  */
 
-import {
+import { ContextController } from "./core/context-controller";
+import { OutputTrimmer } from "./core/output-trimmer";
+import { SessionAnalyzer } from "./core/session-analyzer";
+import { SessionCompactor } from "./core/session-compactor";
+import { SessionMonitor } from "./core/session-monitor";
+import { SnapshotManager } from "./core/snapshot-manager";
+import { TopicDriftDetector } from "./detectors/topic-drift";
+// Core components
+import { SessionStore } from "./storage/session-store";
+import type {
   ClaudeSession,
+  CompactOptions,
+  CompactResult,
   ContextManagerOptions,
   ControllerStatus,
-  CompactResult,
-  SnapshotRef,
-  CompactOptions,
-  SnapshotOptions,
   SessionStats,
-} from './types';
-
-// Core components
-import { SessionStore } from './storage/session-store';
-import { SessionMonitor } from './core/session-monitor';
-import { SessionAnalyzer } from './core/session-analyzer';
-import { ContextController } from './core/context-controller';
-import { SnapshotManager } from './core/snapshot-manager';
-import { OutputTrimmer } from './core/output-trimmer';
-import { SessionCompactor } from './core/session-compactor';
-import { TopicDriftDetector } from './detectors/topic-drift';
+  SnapshotOptions,
+  SnapshotRef,
+} from "./types";
 
 /**
  * Default options for ContextManager
  */
 const DEFAULT_OPTIONS: Required<ContextManagerOptions> = {
-  sessionsDir: '.claude/sessions',
+  sessionsDir: ".claude/sessions",
   autoCompactThreshold: 100,
   healthCheckInterval: 60000,
   driftThreshold: 0.7,
@@ -48,7 +47,6 @@ export class ContextManager {
   private readonly controller: ContextController;
   private readonly snapshotManager: SnapshotManager;
   private readonly trimmer: OutputTrimmer;
-  private readonly compactor: SessionCompactor;
   private readonly driftDetector: TopicDriftDetector;
 
   private healthCheckTimer: ReturnType<typeof setInterval> | null = null;
@@ -74,7 +72,7 @@ export class ContextManager {
    * Create a new session with an initial prompt
    */
   createSession(sessionId: string, initialPrompt: string): void {
-    const session = this.controller.createSession(sessionId, initialPrompt);
+    const _session = this.controller.createSession(sessionId, initialPrompt);
     this.currentSessionId = sessionId;
   }
 
@@ -125,7 +123,7 @@ export class ContextManager {
   /**
    * Track a user or assistant message
    */
-  trackMessage(role: 'user' | 'assistant', content: string): void {
+  trackMessage(role: "user" | "assistant", content: string): void {
     this.controller.trackMessage(role, content);
   }
 
@@ -201,7 +199,9 @@ export class ContextManager {
   /**
    * Trim conversation output
    */
-  trimOutput(customOptions?: Parameters<OutputTrimmer['trim']>[1]): ReturnType<OutputTrimmer['trim']> | null {
+  trimOutput(
+    customOptions?: Parameters<OutputTrimmer["trim"]>[1]
+  ): ReturnType<OutputTrimmer["trim"]> | null {
     const session = this.getCurrentSession();
     if (!session) {
       return null;
@@ -216,7 +216,7 @@ export class ContextManager {
    */
   getStats(): SessionStats {
     const sessions = this.store.list();
-    const activeSessions = sessions.filter(s => s.metadata.phase !== 'ended');
+    const activeSessions = sessions.filter((s) => s.metadata.phase !== "ended");
 
     const totalEvents = sessions.reduce((sum, s) => sum + s.events.length, 0);
     const totalSnapshots = sessions.reduce((sum, s) => sum + s.snapshots.length, 0);
@@ -298,7 +298,7 @@ export class ContextManager {
 
     // Auto-snapshot if health score drops significantly
     if (status.healthScore < 0.5 && session.snapshots.length === 0) {
-      await this.createSnapshot('Auto-snapshot: Low health score');
+      await this.createSnapshot("Auto-snapshot: Low health score");
     }
   }
 
@@ -309,7 +309,7 @@ export class ContextManager {
    */
   private getOptions(): Required<ContextManagerOptions> {
     return {
-      sessionsDir: this.store['sessionsDir'] || DEFAULT_OPTIONS.sessionsDir,
+      sessionsDir: this.store.sessionsDir || DEFAULT_OPTIONS.sessionsDir,
       autoCompactThreshold: DEFAULT_OPTIONS.autoCompactThreshold,
       healthCheckInterval: DEFAULT_OPTIONS.healthCheckInterval,
       driftThreshold: this.analyzer.getDriftThreshold(),
@@ -349,7 +349,7 @@ export class ContextManager {
   async createSessionSnapshot(options?: SnapshotOptions): Promise<SnapshotRef> {
     const session = this.getCurrentSession();
     if (!session) {
-      throw new Error('No active session');
+      throw new Error("No active session");
     }
     return await this.snapshotManager.createSnapshot(session.id, options);
   }
@@ -386,19 +386,16 @@ export function createContextManager(options?: ContextManagerOptions): ContextMa
 
 // ==================== Re-exports ====================
 
-// Types
-export * from './types';
-
-// Storage
-export { SessionStore } from './storage/session-store';
-
+export { ContextController } from "./core/context-controller";
+export { OutputTrimmer } from "./core/output-trimmer";
+export { SessionAnalyzer } from "./core/session-analyzer";
+export { SessionCompactor } from "./core/session-compactor";
 // Core
-export { SessionMonitor } from './core/session-monitor';
-export { SessionAnalyzer } from './core/session-analyzer';
-export { ContextController } from './core/context-controller';
-export { SnapshotManager } from './core/snapshot-manager';
-export { OutputTrimmer } from './core/output-trimmer';
-export { SessionCompactor } from './core/session-compactor';
-
+export { SessionMonitor } from "./core/session-monitor";
+export { SnapshotManager } from "./core/snapshot-manager";
 // Detectors
-export { TopicDriftDetector } from './detectors/topic-drift';
+export { TopicDriftDetector } from "./detectors/topic-drift";
+// Storage
+export { SessionStore } from "./storage/session-store";
+// Types
+export * from "./types";

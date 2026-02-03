@@ -1,5 +1,5 @@
-import { useEffect, useState, useRef, type FormEvent } from 'react';
-import type { Workspace } from '../types';
+import { type FormEvent, useEffect, useRef, useState } from "react";
+import type { Workspace } from "../types";
 
 interface DeckModalProps {
   isOpen: boolean;
@@ -8,14 +8,9 @@ interface DeckModalProps {
   onClose: () => void;
 }
 
-export const DeckModal = ({
-  isOpen,
-  workspaces,
-  onSubmit,
-  onClose
-}: DeckModalProps) => {
-  const [deckWorkspaceId, setDeckWorkspaceId] = useState(workspaces[0]?.id || '');
-  const [deckNameDraft, setDeckNameDraft] = useState('');
+export const DeckModal = ({ isOpen, workspaces, onSubmit, onClose }: DeckModalProps) => {
+  const [deckWorkspaceId, setDeckWorkspaceId] = useState(workspaces[0]?.id || "");
+  const [deckNameDraft, setDeckNameDraft] = useState("");
   const modalRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const firstInputRef = useRef<HTMLInputElement>(null);
@@ -29,11 +24,12 @@ export const DeckModal = ({
 
     // Handle tab key for focus trap
     const handleTabKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Tab') return;
+      if (e.key !== "Tab") return;
 
-      const focusableElements = modalRef.current?.querySelectorAll(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-      ) || [];
+      const focusableElements =
+        modalRef.current?.querySelectorAll(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        ) || [];
 
       const firstElement = focusableElements[0] as HTMLElement;
       const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
@@ -53,21 +49,21 @@ export const DeckModal = ({
 
     // Handle escape key
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (e.key === "Escape") {
         onClose();
       }
     };
 
-    document.addEventListener('keydown', handleTabKey);
-    document.addEventListener('keydown', handleEscape);
+    document.addEventListener("keydown", handleTabKey);
+    document.addEventListener("keydown", handleEscape);
 
     // Prevent body scroll when modal is open
-    document.body.style.overflow = 'hidden';
+    document.body.style.overflow = "hidden";
 
     return () => {
-      document.removeEventListener('keydown', handleTabKey);
-      document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = '';
+      document.removeEventListener("keydown", handleTabKey);
+      document.removeEventListener("keydown", handleEscape);
+      document.body.style.overflow = "";
     };
   }, [isOpen, onClose]);
 
@@ -80,7 +76,7 @@ export const DeckModal = ({
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     await onSubmit(deckNameDraft.trim(), deckWorkspaceId);
-    setDeckNameDraft('');
+    setDeckNameDraft("");
   };
 
   if (!isOpen) return null;
@@ -88,19 +84,19 @@ export const DeckModal = ({
   return (
     <div className="modal-backdrop" role="dialog" aria-modal="true" ref={modalRef}>
       <form className="modal" onSubmit={handleSubmit} ref={formRef}>
-        <div className="modal-title">{'\u30c7\u30c3\u30ad\u4f5c\u6210'}</div>
+        <div className="modal-title">{"\u30c7\u30c3\u30ad\u4f5c\u6210"}</div>
         <label className="field">
-          <span>{'\u30c7\u30c3\u30ad\u540d (\u4efb\u610f)'}</span>
+          <span>{"\u30c7\u30c3\u30ad\u540d (\u4efb\u610f)"}</span>
           <input
             ref={firstInputRef}
             type="text"
             value={deckNameDraft}
-            placeholder={'\u7a7a\u767d\u306e\u307e\u307e\u3067\u3082OK'}
+            placeholder={"\u7a7a\u767d\u306e\u307e\u307e\u3067\u3082OK"}
             onChange={(event) => setDeckNameDraft(event.target.value)}
           />
         </label>
         <label className="field">
-          <span>{'\u30ef\u30fc\u30af\u30b9\u30da\u30fc\u30b9'}</span>
+          <span>{"\u30ef\u30fc\u30af\u30b9\u30da\u30fc\u30b9"}</span>
           <select
             value={deckWorkspaceId}
             onChange={(event) => setDeckWorkspaceId(event.target.value)}
@@ -114,10 +110,10 @@ export const DeckModal = ({
         </label>
         <div className="modal-actions">
           <button type="button" className="ghost-button" onClick={onClose}>
-            {'\u30ad\u30e3\u30f3\u30bb\u30eb'}
+            {"\u30ad\u30e3\u30f3\u30bb\u30eb"}
           </button>
           <button type="submit" className="primary-button">
-            {'\u4f5c\u6210'}
+            {"\u4f5c\u6210"}
           </button>
         </div>
       </form>

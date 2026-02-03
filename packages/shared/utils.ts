@@ -8,10 +8,10 @@
  * @returns Normalized key for indexing
  */
 export function getWorkspaceKey(workspacePath: string): string {
-  const normalized = workspacePath.replace(/[\\/]+$/, '');
+  const normalized = workspacePath.replace(/[\\/]+$/, "");
   // In browser, we can't reliably detect platform, so we normalize to lowercase as fallback
-  const platform = typeof process !== 'undefined' ? process.platform : 'unknown';
-  return platform === 'win32' ? normalized.toLowerCase() : normalized;
+  const platform = typeof process !== "undefined" ? process.platform : "unknown";
+  return platform === "win32" ? normalized.toLowerCase() : normalized;
 }
 
 /**
@@ -21,10 +21,10 @@ export function getWorkspaceKey(workspacePath: string): string {
  * @returns Workspace name
  */
 export function getWorkspaceName(workspacePath: string, fallbackIndex: number): string {
-  const trimmed = workspacePath.replace(/[\\/]+$/, '');
+  const trimmed = workspacePath.replace(/[\\/]+$/, "");
   // Browser-compatible basename
   const parts = trimmed.split(/[\\/]/);
-  const base = parts[parts.length - 1] || '';
+  const base = parts[parts.length - 1] || "";
   return base || `Project ${fallbackIndex}`;
 }
 
@@ -49,9 +49,9 @@ export function normalizeWorkspacePath(inputPath: string, defaultPath: string): 
  */
 export function getFileExtension(filePath: string): string {
   const cleanPath = filePath.split(/[?#]/)[0];
-  const lastSlash = cleanPath.lastIndexOf('/');
-  const lastDot = cleanPath.lastIndexOf('.');
-  if (lastDot === -1 || lastDot <= lastSlash || lastDot === cleanPath.length - 1) return '';
+  const lastSlash = cleanPath.lastIndexOf("/");
+  const lastDot = cleanPath.lastIndexOf(".");
+  if (lastDot === -1 || lastDot <= lastSlash || lastDot === cleanPath.length - 1) return "";
   return cleanPath.slice(lastDot + 1).toLowerCase();
 }
 
@@ -63,66 +63,66 @@ export function getFileExtension(filePath: string): string {
 export function getLanguageFromPath(filePath: string): string {
   const ext = getFileExtension(filePath);
   const languageMap: Record<string, string> = {
-    'js': 'javascript',
-    'jsx': 'javascript',
-    'ts': 'typescript',
-    'tsx': 'typescript',
-    'json': 'json',
-    'html': 'html',
-    'css': 'css',
-    'scss': 'scss',
-    'sass': 'sass',
-    'less': 'less',
-    'md': 'markdown',
-    'py': 'python',
-    'rb': 'ruby',
-    'go': 'go',
-    'rs': 'rust',
-    'java': 'java',
-    'c': 'c',
-    'cpp': 'cpp',
-    'cc': 'cpp',
-    'cxx': 'cpp',
-    'h': 'c',
-    'hpp': 'cpp',
-    'sh': 'shell',
-    'bash': 'shell',
-    'zsh': 'shell',
-    'fish': 'shell',
-    'xml': 'xml',
-    'yaml': 'yaml',
-    'yml': 'yaml',
-    'toml': 'toml',
-    'sql': 'sql',
-    'graphql': 'graphql',
-    'vue': 'vue',
-    'svelte': 'svelte',
-    'php': 'php',
-    'r': 'r',
-    'swift': 'swift',
-    'kt': 'kotlin',
-    'dart': 'dart',
-    'lua': 'lua',
-    'dockerfile': 'dockerfile',
+    js: "javascript",
+    jsx: "javascript",
+    ts: "typescript",
+    tsx: "typescript",
+    json: "json",
+    html: "html",
+    css: "css",
+    scss: "scss",
+    sass: "sass",
+    less: "less",
+    md: "markdown",
+    py: "python",
+    rb: "ruby",
+    go: "go",
+    rs: "rust",
+    java: "java",
+    c: "c",
+    cpp: "cpp",
+    cc: "cpp",
+    cxx: "cpp",
+    h: "c",
+    hpp: "cpp",
+    sh: "shell",
+    bash: "shell",
+    zsh: "shell",
+    fish: "shell",
+    xml: "xml",
+    yaml: "yaml",
+    yml: "yaml",
+    toml: "toml",
+    sql: "sql",
+    graphql: "graphql",
+    vue: "vue",
+    svelte: "svelte",
+    php: "php",
+    r: "r",
+    swift: "swift",
+    kt: "kotlin",
+    dart: "dart",
+    lua: "lua",
+    dockerfile: "dockerfile",
     // Additional extensions
-    'tsv': 'plaintext',
-    'csv': 'plaintext',
-    'ini': 'ini',
-    'cfg': 'ini',
-    'cmake': 'cmake',
-    'nim': 'nim',
-    'ex': 'elixir',
-    'exs': 'elixir',
-    'erl': 'erlang',
-    'hrl': 'erlang',
-    'fs': 'fsharp',
-    'fsi': 'fsharp',
-    'fsx': 'fsharp',
-    'cs': 'csharp',
-    'vb': 'vb',
+    tsv: "plaintext",
+    csv: "plaintext",
+    ini: "ini",
+    cfg: "ini",
+    cmake: "cmake",
+    nim: "nim",
+    ex: "elixir",
+    exs: "elixir",
+    erl: "erlang",
+    hrl: "erlang",
+    fs: "fsharp",
+    fsi: "fsharp",
+    fsx: "fsharp",
+    cs: "csharp",
+    vb: "vb",
   };
 
-  return languageMap[ext] || 'plaintext';
+  return languageMap[ext] || "plaintext";
 }
 
 /**
@@ -131,7 +131,7 @@ export function getLanguageFromPath(filePath: string): string {
  * @returns Path with forward slashes
  */
 export function normalizePathSeparators(inputPath: string): string {
-  return inputPath.replace(/\\/g, '/');
+  return inputPath.replace(/\\/g, "/");
 }
 
 /**
@@ -142,7 +142,7 @@ export function normalizePathSeparators(inputPath: string): string {
  * @returns True if the name indicates a hidden file/directory
  */
 export function isHidden(name: string): boolean {
-  return name.startsWith('.');
+  return name.startsWith(".");
 }
 
 /**
@@ -170,7 +170,7 @@ export class HttpError extends Error {
    */
   constructor(message: string, status: number) {
     super(message);
-    this.name = 'HttpError';
+    this.name = "HttpError";
     this.status = status;
   }
 }
@@ -194,7 +194,7 @@ export function createHttpError(message: string, status: number): HttpError {
  */
 export function truncate(str: string, maxLength: number): string {
   if (str.length <= maxLength) return str;
-  return str.slice(0, maxLength - 3) + '...';
+  return `${str.slice(0, maxLength - 3)}...`;
 }
 
 /**
@@ -204,8 +204,8 @@ export function truncate(str: string, maxLength: number): string {
  * @throws Error if uuid is invalid (less than 8 characters)
  */
 export function shortId(uuid: string): string {
-  if (!uuid || typeof uuid !== 'string' || uuid.length < 8) {
-    throw new Error('Invalid UUID: must be at least 8 characters');
+  if (!uuid || typeof uuid !== "string" || uuid.length < 8) {
+    throw new Error("Invalid UUID: must be at least 8 characters");
   }
   return uuid.slice(0, 8);
 }
@@ -217,13 +217,13 @@ export function shortId(uuid: string): string {
  */
 export function formatFileSize(bytes: number): string {
   if (!Number.isFinite(bytes) || bytes < 0) {
-    return 'Invalid size';
+    return "Invalid size";
   }
-  if (bytes === 0) return '0 B';
+  if (bytes === 0) return "0 B";
   const k = 1024;
-  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const sizes = ["B", "KB", "MB", "GB", "TB"];
   const i = Math.min(Math.floor(Math.log(bytes) / Math.log(k)), sizes.length - 1);
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
+  return `${parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`;
 }
 
 /**
@@ -231,10 +231,12 @@ export function formatFileSize(bytes: number): string {
  * @param entries - Array of file system entries
  * @returns Sorted array (new array, input is not mutated)
  */
-export function sortFileEntries<T extends { name: string; type: 'file' | 'dir' }>(entries: T[]): T[] {
+export function sortFileEntries<T extends { name: string; type: "file" | "dir" }>(
+  entries: T[]
+): T[] {
   return [...entries].sort((a, b) => {
     if (a.type !== b.type) {
-      return a.type === 'dir' ? -1 : 1;
+      return a.type === "dir" ? -1 : 1;
     }
     return a.name.localeCompare(b.name);
   });

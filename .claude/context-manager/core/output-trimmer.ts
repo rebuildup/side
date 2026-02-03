@@ -4,16 +4,16 @@
  * Intelligently trims conversation output to maintain context relevance.
  */
 
-import { ClaudeSession, ClaudeMessage } from '../types';
+import type { ClaudeMessage, ClaudeSession } from "../types";
 
 /**
  * Trimming strategy options
  */
 export interface TrimmerOptions {
-  maxMessages?: number;           // Maximum messages to keep (default: 50)
+  maxMessages?: number; // Maximum messages to keep (default: 50)
   preserveSystemMessages?: boolean; // Keep system messages (default: true)
-  preserveFirstMessage?: boolean;   // Keep initial user message (default: true)
-  preserveRecent?: number;          // Always keep last N messages (default: 10)
+  preserveFirstMessage?: boolean; // Keep initial user message (default: true)
+  preserveRecent?: number; // Always keep last N messages (default: 10)
 }
 
 /**
@@ -67,7 +67,7 @@ export class OutputTrimmer {
     // Always preserve system messages
     if (opts.preserveSystemMessages) {
       messages.forEach((msg, idx) => {
-        if (msg.role === 'system') {
+        if (msg.role === "system") {
           messagesToKeep.push(msg);
           processedIndices.add(idx);
         }
@@ -134,10 +134,10 @@ export class OutputTrimmer {
   trimMessages(messages: ClaudeMessage[], customOptions?: TrimmerOptions): ClaudeMessage[] {
     const result = this.trim(
       {
-        id: 'temp',
-        createdAt: '',
-        updatedAt: '',
-        metadata: { initialPrompt: '', phase: '', healthScore: 1 },
+        id: "temp",
+        createdAt: "",
+        updatedAt: "",
+        metadata: { initialPrompt: "", phase: "", healthScore: 1 },
         metrics: {
           totalTokens: 0,
           messageCount: 0,
@@ -179,9 +179,9 @@ export class OutputTrimmer {
     const messages = session.messages || [];
     const opts = { ...this.defaultOptions, ...this.options };
 
-    const systemMessages = messages.filter(m => m.role === 'system').length;
-    const userMessages = messages.filter(m => m.role === 'user').length;
-    const assistantMessages = messages.filter(m => m.role === 'assistant').length;
+    const systemMessages = messages.filter((m) => m.role === "system").length;
+    const userMessages = messages.filter((m) => m.role === "user").length;
+    const assistantMessages = messages.filter((m) => m.role === "assistant").length;
 
     const needsTrim = this.needsTrimming(session);
     const wouldRemove = needsTrim ? messages.length - opts.maxMessages : 0;

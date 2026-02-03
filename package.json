@@ -1,22 +1,38 @@
 {
   "name": "side",
   "private": true,
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
+  "type": "module",
   "scripts": {
-    "dev": "npm run dev:web",
-    "dev:web": "npm --workspace apps/web run dev",
-    "dev:server": "npm --workspace apps/server run dev",
-    "dev:desktop": "npm --workspace apps/desktop run dev",
-    "dev:mobile": "npm --workspace apps/mobile run start",
-    "build": "npm run build:web && npm run build:server && npm run build:desktop",
-    "build:ui": "npm --workspace packages/ui run build",
-    "build:web": "npm --workspace apps/web run build",
-    "build:server": "npm --workspace apps/server run build",
-    "build:desktop": "npm run build:web && npm run build:server && npm --workspace apps/desktop run build",
-    "build:mobile": "npm --workspace apps/mobile run build",
-    "serve": "npm run build:web && npm run build:server && npm --workspace apps/server run serve"
+    "dev": "pnpm run dev:web",
+    "dev:web": "pnpm -F side-web run dev",
+    "dev:server": "pnpm -F side-server run dev",
+    "dev:desktop": "pnpm -F side-desktop run dev",
+    "dev:mobile": "pnpm -F side-mobile run start",
+    "build": "pnpm run build:web && pnpm run build:server && pnpm run build:desktop",
+    "build:ui": "pnpm -F @side-ide/ui run build",
+    "build:web": "pnpm -F side-web run build",
+    "build:server": "pnpm -F side-server run build",
+    "build:desktop": "pnpm run build:web && pnpm run build:server && pnpm -F side-desktop run build",
+    "build:mobile": "pnpm -F side-mobile run build",
+    "bundle:server": "node scripts/bundle-server.js",
+    "serve": "pnpm run build:web && pnpm run build:server && pnpm -F side-server run serve",
+    "type-check": "pnpm run type-check:shared && pnpm run type-check:ui && pnpm run type-check:server && pnpm run type-check:web",
+    "type-check:shared": "pnpm -F @side-ide/shared run type-check",
+    "type-check:ui": "pnpm -F @side-ide/ui run type-check",
+    "type-check:server": "pnpm -F side-server run type-check",
+    "type-check:web": "pnpm -F side-web run type-check",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write --unsafe .",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
+    "test": "pnpm run test:shared && pnpm run test:ui && pnpm run test:server && pnpm run test:web",
+    "test:shared": "pnpm -F @side-ide/shared run test",
+    "test:ui": "pnpm -F @side-ide/ui run test",
+    "test:server": "pnpm -F side-server run test",
+    "test:web": "pnpm -F side-web run test",
+    "ci": "pnpm run lint && pnpm run type-check && pnpm run build"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.3.13"
   }
 }

@@ -56,6 +56,7 @@ Deck IDE includes an advanced **Context Manager** system specifically designed t
 1. Download the latest installer from [Releases](https://github.com/rebuildup/side/releases)
 2. Run `S-IDE-Setup-x.x.x.exe`
 3. Launch S-IDE from the desktop or Start menu
+4. **Note:** Node.js must be installed on your system. The desktop app will automatically start the backend server.
 
 ### From Source
 
@@ -67,12 +68,14 @@ cd side
 # Install dependencies
 npm install
 
-# Build the desktop app
+# Build for production
 npm run build:desktop
 
 # Or run in development mode
 npm run dev:desktop
 ```
+
+**Important:** The desktop app automatically starts the backend server when launched. No manual server startup required.
 
 ### Web Version
 
@@ -94,13 +97,13 @@ npm run build
 ```
 side/
 ├── apps/
-│   ├── desktop/          # Tauri desktop app
+│   ├── desktop/          # Tauri desktop app (auto-starts server)
 │   │   ├── src-tauri/    # Rust backend
 │   │   └── package.json
 │   ├── mobile/           # React Native mobile app
 │   │   ├── src/          # React Native components
 │   │   └── package.json
-│   ├── server/           # Backend API server
+│   ├── server/           # Backend API server (auto-started by desktop)
 │   │   ├── src/
 │   │   │   ├── routes/   # API routes
 │   │   │   ├── middleware/# Express middleware
@@ -148,10 +151,23 @@ side/
 ### Desktop
 - **Tauri 2.0** - Desktop framework with Rust backend
 - **Rust** - Backend language for desktop app
+- **Sidecar Process** - Automatic Node.js server management
 
 ---
 
 ## Usage Guide
+
+### Desktop App (One-Click Launch)
+
+The desktop app handles everything automatically:
+
+1. **Launch the app** - Double-click `S-IDE.exe` or run from Start menu
+2. **Server auto-starts** - The backend server starts automatically on port 8787
+3. **Ready to use** - Once loaded, you can create workspaces, open files, and use terminals
+
+**Requirements:**
+- Node.js must be installed and in your PATH
+- The app will show an error if Node.js is not found
 
 ### Adding Workspaces
 
@@ -239,10 +255,12 @@ The compact status bar shows:
 ### Available Scripts
 
 ```bash
-# Development
+# Development (desktop app auto-starts server)
+npm run dev:desktop    # Start desktop app with auto-server
+
+# Development (individual components)
 npm run dev:web        # Start web dev server
-npm run dev:server     # Start server in dev mode
-npm run dev:desktop    # Start Electron app in dev mode
+npm run dev:server     # Start server in dev mode (manual)
 
 # Building
 npm run build:web      # Build web frontend

@@ -1,7 +1,7 @@
-import fsSync from 'node:fs';
-import { DatabaseSync } from 'node:sqlite';
-import type { Workspace, Deck } from '../types.js';
-import { getWorkspaceKey } from './path.js';
+import fsSync from "node:fs";
+import { DatabaseSync } from "node:sqlite";
+import type { Deck, Workspace } from "../types.js";
+import { getWorkspaceKey } from "./path.js";
 
 export type PersistedTerminal = {
   id: string;
@@ -15,32 +15,39 @@ export type PersistedTerminal = {
 export function checkDatabaseIntegrity(dbPath: string): boolean {
   try {
     const tempDb = new DatabaseSync(dbPath);
-    const result = tempDb.prepare('PRAGMA integrity_check').get() as Record<string, unknown> | undefined;
+    const result = tempDb.prepare("PRAGMA integrity_check").get() as
+      | Record<string, unknown>
+      | undefined;
     tempDb.close();
-    return result !== undefined && typeof result === 'object' && 'integrity_check' in result && result.integrity_check === 'ok';
+    return (
+      result !== undefined &&
+      typeof result === "object" &&
+      "integrity_check" in result &&
+      result.integrity_check === "ok"
+    );
   } catch {
     return false;
   }
 }
 
 export function handleDatabaseCorruption(dbPath: string): void {
-  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
   const corruptedPath = `${dbPath}.corrupted-${timestamp}`;
-  console.error('CRITICAL: Database corruption detected!');
+  console.error("CRITICAL: Database corruption detected!");
   try {
     fsSync.renameSync(dbPath, corruptedPath);
     console.log(`Corrupted database moved to: ${corruptedPath}`);
   } catch (err) {
-    console.error('Failed to move corrupted database:', err);
+    console.error("Failed to move corrupted database:", err);
   }
 }
 
 export function initializeDatabase(db: DatabaseSync): void {
   // Enable WAL mode for better concurrent access
-  db.exec('PRAGMA journal_mode = WAL;');
-  db.exec('PRAGMA synchronous = NORMAL;');
+  db.exec("PRAGMA journal_mode = WAL;");
+  db.exec("PRAGMA synchronous = NORMAL;");
   // Set busy timeout to 5 seconds to handle concurrent access gracefully
-  db.exec('PRAGMA busy_timeout = 5000;');
+  db.exec("PRAGMA busy_timeout = 5000;");
 
   db.exec(`
     CREATE TABLE IF NOT EXISTS workspaces (
@@ -84,9 +91,7 @@ export function loadPersistedState(
   decks: Map<string, Deck>
 ): void {
   const workspaceRows = db
-    .prepare(
-      'SELECT id, name, path, created_at FROM workspaces ORDER BY created_at ASC'
-    )
+    .prepare("SELECT id, name, path, created_at FROM workspaces ORDER BY created_at ASC")
     .all();
   workspaceRows.forEach((row) => {
     const id = String(row.id);
@@ -97,16 +102,14 @@ export function loadPersistedState(
       id,
       name,
       path: workspacePath,
-      createdAt
+      createdAt,
     };
     workspaces.set(id, workspace);
     workspacePathIndex.set(getWorkspaceKey(workspacePath), id);
   });
 
   const deckRows = db
-    .prepare(
-      'SELECT id, name, root, workspace_id, created_at FROM decks ORDER BY created_at ASC'
-    )
+    .prepare("SELECT id, name, root, workspace_id, created_at FROM decks ORDER BY created_at ASC")
     .all();
   deckRows.forEach((row) => {
     const workspaceId = String(row.workspace_id);
@@ -116,17 +119,20 @@ export function loadPersistedState(
       name: String(row.name),
       root: String(row.root),
       workspaceId,
-      createdAt: String(row.created_at)
+      createdAt: String(row.created_at),
     };
     decks.set(deck.id, deck);
   });
 }
 
 // Terminal persistence functions
-export function loadPersistedTerminals(db: DatabaseSync, decks: Map<string, Deck>): PersistedTerminal[] {
+export function loadPersistedTerminals(
+  db: DatabaseSync,
+  decks: Map<string, Deck>
+): PersistedTerminal[] {
   const rows = db
     .prepare(
-      'SELECT id, deck_id, title, command, buffer, created_at FROM terminals ORDER BY created_at ASC'
+      "SELECT id, deck_id, title, command, buffer, created_at FROM terminals ORDER BY created_at ASC"
     )
     .all();
 
@@ -136,7 +142,7 @@ export function loadPersistedTerminals(db: DatabaseSync, decks: Map<string, Deck
     // Only load terminals for existing decks
     if (!decks.has(deckId)) {
       // Clean up orphaned terminal
-      db.prepare('DELETE FROM terminals WHERE id = ?').run(String(row.id));
+      db.prepare("DELETE FROM terminals WHERE id = ?").run(String(row.id));
       return;
     }
     terminals.push({
@@ -144,8 +150,8 @@ export function loadPersistedTerminals(db: DatabaseSync, decks: Map<string, Deck
       deckId,
       title: String(row.title),
       command: row.command ? String(row.command) : null,
-      buffer: String(row.buffer || ''),
-      createdAt: String(row.created_at)
+      buffer: String(row.buffer || ""),
+      createdAt: String(row.created_at),
     });
   });
 
@@ -161,18 +167,18 @@ export function saveTerminal(
   createdAt: string
 ): void {
   const stmt = db.prepare(
-    'INSERT OR REPLACE INTO terminals (id, deck_id, title, command, buffer, created_at) VALUES (?, ?, ?, ?, ?, ?)'
+    "INSERT OR REPLACE INTO terminals (id, deck_id, title, command, buffer, created_at) VALUES (?, ?, ?, ?, ?, ?)"
   );
-  stmt.run(id, deckId, title, command, '', createdAt);
+  stmt.run(id, deckId, title, command, "", createdAt);
 }
 
 export function updateTerminalBuffer(db: DatabaseSync, id: string, buffer: string): void {
-  const stmt = db.prepare('UPDATE terminals SET buffer = ? WHERE id = ?');
+  const stmt = db.prepare("UPDATE terminals SET buffer = ? WHERE id = ?");
   stmt.run(buffer, id);
 }
 
 export function deleteTerminal(db: DatabaseSync, id: string): void {
-  const stmt = db.prepare('DELETE FROM terminals WHERE id = ?');
+  const stmt = db.prepare("DELETE FROM terminals WHERE id = ?");
   stmt.run(id);
 }
 
@@ -180,7 +186,7 @@ export function saveAllTerminalBuffers(
   db: DatabaseSync,
   terminals: Map<string, { id: string; buffer: string }>
 ): void {
-  const stmt = db.prepare('UPDATE terminals SET buffer = ? WHERE id = ?');
+  const stmt = db.prepare("UPDATE terminals SET buffer = ? WHERE id = ?");
   terminals.forEach((session) => {
     stmt.run(session.buffer, session.id);
   });

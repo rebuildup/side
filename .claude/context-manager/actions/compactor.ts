@@ -5,9 +5,9 @@
  * Uses rule-based summarization now, with LLM-based summarization planned for future.
  */
 
-import { SessionStore } from '../storage/session-store';
-import type { ClaudeSession, SessionEvent, CompactOptions, CompactResult } from '../types';
-import { COMPACTION_THRESHOLDS } from '../config';
+import { COMPACTION_THRESHOLDS } from "../config";
+import { SessionStore } from "../storage/session-store";
+import type { CompactOptions, CompactResult, SessionEvent } from "../types";
 
 /**
  * Grouped events for summarization
@@ -88,7 +88,7 @@ export class SessionCompactor {
         originalEvents,
         remainingEvents: originalEvents,
         compactedEvents: 0,
-        summary: 'No compaction needed - below threshold',
+        summary: "No compaction needed - below threshold",
         spaceSaved: 0,
       };
     }
@@ -106,7 +106,7 @@ export class SessionCompactor {
     // Create compacted event
     const compactedEvent: SessionEvent = {
       timestamp: new Date().toISOString(),
-      type: 'compact',
+      type: "compact",
       data: {
         summary,
         compactedEventCount: eventsToCompact.length,
@@ -176,7 +176,7 @@ export class SessionCompactor {
    */
   generateSummary(events: SessionEvent[]): string {
     if (events.length === 0) {
-      return 'No events to summarize';
+      return "No events to summarize";
     }
 
     // Group events by type
@@ -192,9 +192,12 @@ export class SessionCompactor {
     }
 
     // Add time range
-    const timeRange = this.formatTimeRange(events[0].timestamp, events[events.length - 1].timestamp);
+    const timeRange = this.formatTimeRange(
+      events[0].timestamp,
+      events[events.length - 1].timestamp
+    );
 
-    return `[Compacted: ${timeRange}]\n${summaryParts.join('\n')}`;
+    return `[Compacted: ${timeRange}]\n${summaryParts.join("\n")}`;
   }
 
   /**
@@ -206,7 +209,7 @@ export class SessionCompactor {
     let currentGroup: SessionEvent[] = [];
 
     for (const event of events) {
-      if (event.type === 'compact') {
+      if (event.type === "compact") {
         // Skip existing compacted events
         continue;
       }
@@ -250,16 +253,16 @@ export class SessionCompactor {
     const count = group.events.length;
 
     switch (type) {
-      case 'tool':
+      case "tool":
         return this.summarizeToolEvents(group.events);
 
-      case 'message':
+      case "message":
         return `Processed ${count} messages`;
 
-      case 'error':
+      case "error":
         return this.summarizeErrorEvents(group.events);
 
-      case 'snapshot':
+      case "snapshot":
         return this.summarizeSnapshotEvents(group.events);
 
       default:
@@ -278,19 +281,19 @@ export class SessionCompactor {
 
     for (const event of events) {
       const data = event.data as ToolEventData;
-      const toolName = data.name || 'unknown';
+      const toolName = data.name || "unknown";
 
       toolCounts.set(toolName, (toolCounts.get(toolName) || 0) + 1);
 
       // Track file operations
-      if (toolName === 'Read' || toolName === 'Grep' || toolName === 'Glob') {
+      if (toolName === "Read" || toolName === "Grep" || toolName === "Glob") {
         // Extract file paths if available
         if (data.file_path) {
           fileReads.push(data.file_path as string);
         } else if (data.pattern) {
           fileReads.push(`pattern: ${data.pattern}`);
         }
-      } else if (toolName === 'Write' || toolName === 'Edit') {
+      } else if (toolName === "Write" || toolName === "Edit") {
         fileWrites++;
       } else {
         otherTools++;
@@ -304,12 +307,12 @@ export class SessionCompactor {
       const uniqueFiles = new Set(fileReads);
       const fileList = Array.from(uniqueFiles)
         .slice(0, 5)
-        .map(f => {
+        .map((f) => {
           // Extract just filename for readability
           const parts = f.split(/[/\\]/);
           return parts[parts.length - 1] || f;
         })
-        .join(', ');
+        .join(", ");
 
       if (uniqueFiles.size > 5) {
         parts.push(`Read ${uniqueFiles.size} files including: ${fileList}...`);
@@ -319,24 +322,31 @@ export class SessionCompactor {
     }
 
     if (fileWrites > 0) {
-      parts.push(`Modified ${fileWrites} file${fileWrites > 1 ? 's' : ''}`);
+      parts.push(`Modified ${fileWrites} file${fileWrites > 1 ? "s" : ""}`);
     }
 
     if (otherTools > 0) {
       const topTools = Array.from(toolCounts.entries())
-        .filter(([name]) => name !== 'Read' && name !== 'Write' && name !== 'Edit' && name !== 'Grep' && name !== 'Glob')
+        .filter(
+          ([name]) =>
+            name !== "Read" &&
+            name !== "Write" &&
+            name !== "Edit" &&
+            name !== "Grep" &&
+            name !== "Glob"
+        )
         .sort((a, b) => b[1] - a[1])
         .slice(0, 3)
         .map(([name, count]) => `${name} (${count})`);
 
       if (topTools.length > 0) {
-        parts.push(`Executed tools: ${topTools.join(', ')}`);
+        parts.push(`Executed tools: ${topTools.join(", ")}`);
       } else {
-        parts.push(`Executed ${otherTools} tool${otherTools > 1 ? 's' : ''}`);
+        parts.push(`Executed ${otherTools} tool${otherTools > 1 ? "s" : ""}`);
       }
     }
 
-    return parts.length > 0 ? `Tool operations: ${parts.join('; ')}` : 'Executed tools';
+    return parts.length > 0 ? `Tool operations: ${parts.join("; ")}` : "Executed tools";
   }
 
   /**
@@ -347,18 +357,18 @@ export class SessionCompactor {
 
     for (const event of events) {
       const data = event.data as ErrorEventData;
-      const message = data.message || 'Unknown error';
+      const message = data.message || "Unknown error";
 
       // Group by error type
-      let errorType = 'unknown';
-      if (message.includes('not found')) {
-        errorType = 'not_found';
-      } else if (message.includes('permission') || message.includes('denied')) {
-        errorType = 'permission';
-      } else if (message.includes('timeout')) {
-        errorType = 'timeout';
-      } else if (message.includes('syntax') || message.includes('parse')) {
-        errorType = 'syntax';
+      let errorType = "unknown";
+      if (message.includes("not found")) {
+        errorType = "not_found";
+      } else if (message.includes("permission") || message.includes("denied")) {
+        errorType = "permission";
+      } else if (message.includes("timeout")) {
+        errorType = "timeout";
+      } else if (message.includes("syntax") || message.includes("parse")) {
+        errorType = "syntax";
       }
 
       errorTypes.set(errorType, (errorTypes.get(errorType) || 0) + 1);
@@ -369,7 +379,7 @@ export class SessionCompactor {
 
     if (uniqueTypes === 1) {
       const type = Array.from(errorTypes.keys())[0];
-      return `Encountered ${totalErrors} ${type} error${totalErrors > 1 ? 's' : ''}`;
+      return `Encountered ${totalErrors} ${type} error${totalErrors > 1 ? "s" : ""}`;
     }
 
     return `Encountered ${totalErrors} errors across ${uniqueTypes} categories`;
@@ -379,11 +389,11 @@ export class SessionCompactor {
    * Summarize snapshot events
    */
   private summarizeSnapshotEvents(events: SessionEvent[]): string {
-    const snapshots = events.map(e => e.data as SnapshotEventData);
+    const snapshots = events.map((e) => e.data as SnapshotEventData);
     const avgHealth =
       snapshots.reduce((sum, s) => sum + (s.healthScore || 0), 0) / snapshots.length;
 
-    return `Created ${events.length} snapshot${events.length > 1 ? 's' : ''} (avg health: ${avgHealth.toFixed(2)})`;
+    return `Created ${events.length} snapshot${events.length > 1 ? "s" : ""} (avg health: ${avgHealth.toFixed(2)})`;
   }
 
   /**
@@ -398,11 +408,11 @@ export class SessionCompactor {
     const diffDays = Math.floor(diffMs / 86400000);
 
     if (diffMins < 60) {
-      return `${diffMins} minute${diffMins !== 1 ? 's' : ''}`;
+      return `${diffMins} minute${diffMins !== 1 ? "s" : ""}`;
     } else if (diffHours < 24) {
-      return `${diffHours} hour${diffHours !== 1 ? 's' : ''}`;
+      return `${diffHours} hour${diffHours !== 1 ? "s" : ""}`;
     } else {
-      return `${diffDays} day${diffDays !== 1 ? 's' : ''}`;
+      return `${diffDays} day${diffDays !== 1 ? "s" : ""}`;
     }
   }
 

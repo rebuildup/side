@@ -2,7 +2,7 @@
  * State management utilities
  */
 
-import type { WorkspaceState, DeckState } from '../types';
+import type { DeckState, WorkspaceState } from "../types";
 
 /**
  * Creates an empty workspace state object
@@ -13,7 +13,7 @@ export function createEmptyWorkspaceState(): WorkspaceState {
     activeFileId: null,
     tree: [],
     treeLoading: false,
-    treeError: null
+    treeError: null,
   };
 }
 
@@ -23,6 +23,6 @@ export function createEmptyWorkspaceState(): WorkspaceState {
 export function createEmptyDeckState(): DeckState {
   return {
     terminals: [],
-    terminalsLoaded: false
+    terminalsLoaded: false,
   };
 }

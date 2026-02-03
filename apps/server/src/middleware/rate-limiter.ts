@@ -1,4 +1,4 @@
-import type { MiddlewareHandler } from 'hono';
+import type { MiddlewareHandler } from "hono";
 
 interface RateLimitEntry {
   count: number;
@@ -23,10 +23,10 @@ setInterval(() => {
  * Rate limiting configuration
  */
 export interface RateLimitOptions {
-  windowMs?: number;      // Time window in milliseconds (default: 60000 = 1 minute)
-  maxRequests?: number;   // Max requests per window (default: 100)
+  windowMs?: number; // Time window in milliseconds (default: 60000 = 1 minute)
+  maxRequests?: number; // Max requests per window (default: 100)
   skipSuccessfulRequests?: boolean; // Don't count successful requests (default: false)
-  skipFailedRequests?: boolean;     // Don't count failed requests (default: false)
+  skipFailedRequests?: boolean; // Don't count failed requests (default: false)
 }
 
 /**
@@ -35,18 +35,19 @@ export interface RateLimitOptions {
  */
 export function createRateLimitMiddleware(options: RateLimitOptions = {}): MiddlewareHandler {
   const {
-    windowMs = 60 * 1000,  // 1 minute default
-    maxRequests = 100,      // 100 requests per minute default
+    windowMs = 60 * 1000, // 1 minute default
+    maxRequests = 100, // 100 requests per minute default
     skipSuccessfulRequests = false,
     skipFailedRequests = false,
   } = options;
 
   return async (c, next) => {
     // Get client IP from various headers (supporting proxies)
-    const ip = c.req.header('x-forwarded-for')?.split(',')[0]?.trim()
-      || c.req.header('x-real-ip')
-      || c.req.header('cf-connecting-ip')
-      || 'unknown';
+    const ip =
+      c.req.header("x-forwarded-for")?.split(",")[0]?.trim() ||
+      c.req.header("x-real-ip") ||
+      c.req.header("cf-connecting-ip") ||
+      "unknown";
 
     const now = Date.now();
     const entry = rateLimitStore.get(ip);
@@ -63,27 +64,29 @@ export function createRateLimitMiddleware(options: RateLimitOptions = {}): Middl
     // Check if limit exceeded
     if (entry.count >= maxRequests) {
       const retryAfter = Math.ceil((entry.resetTime - now) / 1000);
-      c.header('X-RateLimit-Limit', maxRequests.toString());
-      c.header('X-RateLimit-Remaining', '0');
-      c.header('X-RateLimit-Reset', entry.resetTime.toString());
-      c.header('Retry-After', retryAfter.toString());
-      return c.json({ error: 'Too many requests' }, 429);
+      c.header("X-RateLimit-Limit", maxRequests.toString());
+      c.header("X-RateLimit-Remaining", "0");
+      c.header("X-RateLimit-Reset", entry.resetTime.toString());
+      c.header("Retry-After", retryAfter.toString());
+      return c.json({ error: "Too many requests" }, 429);
     }
 
     // Increment counter
     entry.count++;
 
     // Add rate limit headers
-    c.header('X-RateLimit-Limit', maxRequests.toString());
-    c.header('X-RateLimit-Remaining', (maxRequests - entry.count).toString());
-    c.header('X-RateLimit-Reset', entry.resetTime.toString());
+    c.header("X-RateLimit-Limit", maxRequests.toString());
+    c.header("X-RateLimit-Remaining", (maxRequests - entry.count).toString());
+    c.header("X-RateLimit-Reset", entry.resetTime.toString());
 
     await next();
 
     // Optionally decrement count based on response status
     const status = c.res.status;
-    if ((skipSuccessfulRequests && status >= 200 && status < 300) ||
-        (skipFailedRequests && (status < 200 || status >= 400))) {
+    if (
+      (skipSuccessfulRequests && status >= 200 && status < 300) ||
+      (skipFailedRequests && (status < 200 || status >= 400))
+    ) {
       entry.count--;
     }
   };
@@ -91,16 +94,16 @@ export function createRateLimitMiddleware(options: RateLimitOptions = {}): Middl
 
 // Pre-configured rate limiters for common use cases
 export const strictRateLimit = createRateLimitMiddleware({
-  windowMs: 60 * 1000,   // 1 minute
-  maxRequests: 20,       // 20 requests per minute
+  windowMs: 60 * 1000, // 1 minute
+  maxRequests: 20, // 20 requests per minute
 });
 
 export const mediumRateLimit = createRateLimitMiddleware({
-  windowMs: 60 * 1000,   // 1 minute
-  maxRequests: 100,      // 100 requests per minute
+  windowMs: 60 * 1000, // 1 minute
+  maxRequests: 100, // 100 requests per minute
 });
 
 export const looseRateLimit = createRateLimitMiddleware({
-  windowMs: 60 * 1000,   // 1 minute
-  maxRequests: 300,      // 300 requests per minute
+  windowMs: 60 * 1000, // 1 minute
+  maxRequests: 300, // 300 requests per minute
 });

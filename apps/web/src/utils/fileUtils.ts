@@ -2,8 +2,8 @@
  * File and tree manipulation utilities
  */
 
-import type { FileSystemEntry, FileTreeNode } from '../types';
-import { getLanguageFromPath as sharedGetLanguageFromPath } from '@side-ide/shared/utils';
+import { getLanguageFromPath as sharedGetLanguageFromPath } from "@side-ide/shared/utils";
+import type { FileSystemEntry, FileTreeNode } from "../types";
 
 /**
  * Converts FileSystemEntry array to FileTreeNode array
@@ -13,7 +13,7 @@ export function toTreeNodes(entries: FileSystemEntry[]): FileTreeNode[] {
     ...entry,
     expanded: false,
     loading: false,
-    children: entry.type === 'dir' ? [] : undefined
+    children: entry.type === "dir" ? [] : undefined,
   }));
 }
 
@@ -40,7 +40,7 @@ export function updateTreeNode(
     if (node.children) {
       return {
         ...node,
-        children: updateTreeNode(node.children, targetPath, updater)
+        children: updateTreeNode(node.children, targetPath, updater),
       };
     }
     return node;

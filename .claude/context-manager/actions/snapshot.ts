@@ -9,11 +9,11 @@
  * - Auto-snapshot on high health scores
  */
 
-import { exec } from 'child_process';
-import { promisify } from 'util';
-import * as fs from 'fs';
-import * as path from 'path';
-import type { SnapshotRef } from '../types';
+import { exec } from "node:child_process";
+import * as fs from "node:fs";
+import * as path from "node:path";
+import { promisify } from "node:util";
+import type { SnapshotRef } from "../types";
 
 const execAsync = promisify(exec);
 
@@ -61,12 +61,12 @@ interface GitResult {
 export class SnapshotManager {
   private readonly baseDir: string;
   private readonly sessionsDir: string;
-  private readonly commitPrefix = '[ctxmgr]';
+  private readonly commitPrefix = "[ctxmgr]";
   private readonly autoSnapshotThreshold = 80;
 
-  constructor(baseDir: string = '.claude') {
+  constructor(baseDir: string = ".claude") {
     this.baseDir = path.resolve(baseDir);
-    this.sessionsDir = path.join(this.baseDir, 'sessions');
+    this.sessionsDir = path.join(this.baseDir, "sessions");
   }
 
   /**
@@ -74,8 +74,8 @@ export class SnapshotManager {
    */
   private async checkGitAvailable(): Promise<boolean> {
     try {
-      await execAsync('git --version', { cwd: this.baseDir });
-      await execAsync('git rev-parse --git-dir', { cwd: this.baseDir });
+      await execAsync("git --version", { cwd: this.baseDir });
+      await execAsync("git rev-parse --git-dir", { cwd: this.baseDir });
       return true;
     } catch {
       return false;
@@ -86,7 +86,7 @@ export class SnapshotManager {
    * Execute a Git command in the base directory
    */
   private async gitCommand(args: string[]): Promise<GitResult> {
-    const command = `git ${args.join(' ')}`;
+    const command = `git ${args.join(" ")}`;
     return execAsync(command, { cwd: this.baseDir });
   }
 
@@ -101,7 +101,7 @@ export class SnapshotManager {
    * Format commit message for a snapshot
    */
   private formatCommitMessage(sessionId: string, description: string): string {
-    const desc = description || 'Session snapshot';
+    const desc = description || "Session snapshot";
     return `${this.commitPrefix} ${sessionId} - ${desc}`;
   }
 
@@ -122,7 +122,7 @@ export class SnapshotManager {
     }
 
     try {
-      const content = fs.readFileSync(sessionPath, 'utf-8');
+      const content = fs.readFileSync(sessionPath, "utf-8");
       return JSON.parse(content);
     } catch {
       return null;
@@ -145,7 +145,7 @@ export class SnapshotManager {
 
       // Write to temp file first
       const content = JSON.stringify(sessionData, null, 2);
-      fs.writeFileSync(tmpPath, content, 'utf-8');
+      fs.writeFileSync(tmpPath, content, "utf-8");
 
       // Atomic rename
       fs.renameSync(tmpPath, sessionPath);
@@ -186,7 +186,7 @@ export class SnapshotManager {
     // Check if Git is available
     const gitAvailable = await this.checkGitAvailable();
     if (!gitAvailable) {
-      throw new Error('Git is not available or not a Git repository');
+      throw new Error("Git is not available or not a Git repository");
     }
 
     // Read current session data
@@ -201,14 +201,14 @@ export class SnapshotManager {
     try {
       // Stage the session file
       const sessionPath = this.getSessionPath(sessionId);
-      await this.gitCommand(['add', '--force', sessionPath]);
+      await this.gitCommand(["add", "--force", sessionPath]);
 
       // Create commit
-      const commitMessage = this.formatCommitMessage(sessionId, description ?? 'Auto snapshot');
-      await this.gitCommand(['commit', '-m', commitMessage]);
+      const commitMessage = this.formatCommitMessage(sessionId, description ?? "Auto snapshot");
+      await this.gitCommand(["commit", "-m", commitMessage]);
 
       // Get the commit hash
-      const logResult = await this.gitCommand(['log', '-1', '--format=%H']);
+      const logResult = await this.gitCommand(["log", "-1", "--format=%H"]);
       const commitHash = this.getShortHash(logResult.stdout);
 
       // Create snapshot reference
@@ -216,7 +216,7 @@ export class SnapshotManager {
         commitHash,
         timestamp: now,
         healthScore,
-        description: description ?? 'Auto snapshot',
+        description: description ?? "Auto snapshot",
       };
 
       // Add snapshot to session data
@@ -228,8 +228,12 @@ export class SnapshotManager {
       this.writeSession(sessionId, sessionData);
 
       // Stage and commit the updated session data
-      await this.gitCommand(['add', '--force', sessionPath]);
-      await this.gitCommand(['commit', '-m', `${this.commitPrefix} ${sessionId} - Add snapshot reference`]);
+      await this.gitCommand(["add", "--force", sessionPath]);
+      await this.gitCommand([
+        "commit",
+        "-m",
+        `${this.commitPrefix} ${sessionId} - Add snapshot reference`,
+      ]);
 
       return snapshot;
     } catch (error) {
@@ -268,7 +272,7 @@ export class SnapshotManager {
     // Check if Git is available
     const gitAvailable = await this.checkGitAvailable();
     if (!gitAvailable) {
-      throw new Error('Git is not available or not a Git repository');
+      throw new Error("Git is not available or not a Git repository");
     }
 
     try {
@@ -277,22 +281,23 @@ export class SnapshotManager {
 
       // First, check if the commit exists
       try {
-        await this.gitCommand(['cat-file', '-t', commitHash]);
+        await this.gitCommand(["cat-file", "-t", commitHash]);
       } catch {
         throw new Error(`Commit ${commitHash} not found`);
       }
 
       // Checkout the specific file at the commit
-      await this.gitCommand(['checkout', commitHash, '--', sessionPath]);
+      await this.gitCommand(["checkout", commitHash, "--", sessionPath]);
 
       // Record the restore event
       const sessionData = this.readSession(sessionId);
       if (sessionData) {
-        const events = (sessionData.events as { timestamp: string; type: string; data: unknown }[]) ?? [];
+        const events =
+          (sessionData.events as { timestamp: string; type: string; data: unknown }[]) ?? [];
         events.push({
           timestamp: new Date().toISOString(),
-          type: 'snapshot',
-          data: { action: 'restore', commitHash },
+          type: "snapshot",
+          data: { action: "restore", commitHash },
         });
         sessionData.events = events;
         this.writeSession(sessionId, sessionData);
@@ -317,17 +322,17 @@ export class SnapshotManager {
     // Check if Git is available
     const gitAvailable = await this.checkGitAvailable();
     if (!gitAvailable) {
-      throw new Error('Git is not available or not a Git repository');
+      throw new Error("Git is not available or not a Git repository");
     }
 
     try {
       const sessionPath = this.getSessionPath(sessionId);
-      const toCommit = to ?? 'HEAD';
+      const toCommit = to ?? "HEAD";
 
       // Get diff between commits for the session file
-      const diffResult = await this.gitCommand(['diff', `${from}..${toCommit}`, '--', sessionPath]);
+      const diffResult = await this.gitCommand(["diff", `${from}..${toCommit}`, "--", sessionPath]);
 
-      return diffResult.stdout || 'No differences found';
+      return diffResult.stdout || "No differences found";
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       throw new Error(`Failed to get diff: ${errorMessage}`);
@@ -370,7 +375,10 @@ export class SnapshotManager {
         };
       }
 
-      const snapshot = await this.createSnapshot(sessionId, `Auto snapshot (health score: ${this.getHealthScore(this.readSession(sessionId)!)})`);
+      const snapshot = await this.createSnapshot(
+        sessionId,
+        `Auto snapshot (health score: ${this.getHealthScore(this.readSession(sessionId)!)})`
+      );
 
       return {
         success: true,
@@ -397,7 +405,7 @@ export class SnapshotManager {
     validateSessionId(sessionId);
 
     try {
-      const snapshot = await this.createSnapshot(sessionId, 'Pre-compaction snapshot');
+      const snapshot = await this.createSnapshot(sessionId, "Pre-compaction snapshot");
 
       return {
         success: true,
@@ -436,11 +444,11 @@ export class SnapshotManager {
     try {
       const pattern = `${this.commitPrefix} ${sessionId}`;
       const logResult = await this.gitCommand([
-        'log',
-        '--all',
-        '--grep',
+        "log",
+        "--all",
+        "--grep",
         `^${pattern}`,
-        '--format=%H|%s|%ai',
+        "--format=%H|%s|%ai",
       ]);
 
       if (!logResult.stdout.trim()) {
@@ -449,13 +457,13 @@ export class SnapshotManager {
 
       const commits = logResult.stdout
         .trim()
-        .split('\n')
-        .filter(line => line.includes(pattern))
-        .map(line => {
-          const [hash, message, timestamp] = line.split('|');
+        .split("\n")
+        .filter((line) => line.includes(pattern))
+        .map((line) => {
+          const [hash, message, timestamp] = line.split("|");
           return {
             hash: this.getShortHash(hash),
-            message: message.replace(`${this.commitPrefix} ${sessionId} - `, ''),
+            message: message.replace(`${this.commitPrefix} ${sessionId} - `, ""),
             timestamp,
           };
         });
@@ -488,7 +496,7 @@ export class SnapshotManager {
     const initialLength = snapshots.length;
 
     // Filter out the snapshot with matching commit hash
-    sessionData.snapshots = snapshots.filter(s => s.commitHash !== commitHash);
+    sessionData.snapshots = snapshots.filter((s) => s.commitHash !== commitHash);
 
     if (sessionData.snapshots.length < initialLength) {
       this.writeSession(sessionId, sessionData);

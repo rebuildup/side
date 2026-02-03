@@ -1,15 +1,15 @@
-import fs from 'node:fs/promises';
-import path from 'node:path';
-import { DEFAULT_ROOT } from '../config.js';
-import { createHttpError, type HttpError } from './error.js';
+import fs from "node:fs/promises";
+import path from "node:path";
 import {
-  normalizeWorkspacePath as sharedNormalizeWorkspacePath,
   getWorkspaceKey as sharedGetWorkspaceKey,
-  getWorkspaceName as sharedGetWorkspaceName
-} from '@side-ide/shared/utils-node';
+  getWorkspaceName as sharedGetWorkspaceName,
+  normalizeWorkspacePath as sharedNormalizeWorkspacePath,
+} from "@side-ide/shared/utils-node";
+import { DEFAULT_ROOT } from "../config.js";
+import { createHttpError, type HttpError } from "./error.js";
 
-export function normalizeWorkspacePath(inputPath = ''): string {
-  return sharedNormalizeWorkspacePath(inputPath || '', DEFAULT_ROOT);
+export function normalizeWorkspacePath(inputPath = ""): string {
+  return sharedNormalizeWorkspacePath(inputPath || "", DEFAULT_ROOT);
 }
 
 export function getWorkspaceKey(workspacePath: string): string {
@@ -24,13 +24,13 @@ export function getWorkspaceName(workspacePath: string, index: number): string {
  * Validates and resolves a path safely within a workspace root.
  * Prevents path traversal and symlink escape attacks.
  */
-export async function resolveSafePath(workspacePath: string, inputPath = ''): Promise<string> {
+export async function resolveSafePath(workspacePath: string, inputPath = ""): Promise<string> {
   // Normalize the input to prevent directory traversal
   const normalizedInput = path.normalize(inputPath);
 
   // Check for obvious path traversal attempts
-  if (normalizedInput.includes('..') || path.isAbsolute(normalizedInput)) {
-    throw createHttpError('Invalid path: path traversal not allowed', 400);
+  if (normalizedInput.includes("..") || path.isAbsolute(normalizedInput)) {
+    throw createHttpError("Invalid path: path traversal not allowed", 400);
   }
 
   // Resolve paths
@@ -39,8 +39,8 @@ export async function resolveSafePath(workspacePath: string, inputPath = ''): Pr
 
   // Double-check the resolved path is within root
   const relative = path.relative(root, resolved);
-  if (relative.startsWith('..') || path.isAbsolute(relative)) {
-    throw createHttpError('Path escapes workspace root', 400);
+  if (relative.startsWith("..") || path.isAbsolute(relative)) {
+    throw createHttpError("Path escapes workspace root", 400);
   }
 
   // Try to resolve the real path (following symlinks)
@@ -50,8 +50,8 @@ export async function resolveSafePath(workspacePath: string, inputPath = ''): Pr
 
     // Ensure the real path is still within the real root
     const realRelative = path.relative(realRoot, realPath);
-    if (realRelative.startsWith('..') || path.isAbsolute(realRelative)) {
-      throw createHttpError('Symlink target escapes workspace root', 400);
+    if (realRelative.startsWith("..") || path.isAbsolute(realRelative)) {
+      throw createHttpError("Symlink target escapes workspace root", 400);
     }
 
     return realPath;
@@ -70,8 +70,8 @@ export async function resolveSafePath(workspacePath: string, inputPath = ''): Pr
       const realRoot = await fs.realpath(root);
 
       const parentRelative = path.relative(realRoot, realParent);
-      if (parentRelative.startsWith('..') || path.isAbsolute(parentRelative)) {
-        throw createHttpError('Parent directory escapes workspace root', 400);
+      if (parentRelative.startsWith("..") || path.isAbsolute(parentRelative)) {
+        throw createHttpError("Parent directory escapes workspace root", 400);
       }
 
       // Parent is safe, return the unresolved path for the new file
@@ -84,7 +84,7 @@ export async function resolveSafePath(workspacePath: string, inputPath = ''): Pr
 
       // Verify the resolved path is still within root bounds
       if (!resolved.startsWith(root + path.sep) && resolved !== root) {
-        throw createHttpError('Path escapes workspace root', 400);
+        throw createHttpError("Path escapes workspace root", 400);
       }
 
       return resolved;
@@ -97,18 +97,18 @@ export async function resolveSafePath(workspacePath: string, inputPath = ''): Pr
  * Useful for quick validation before more expensive operations.
  */
 export function validatePathSyntax(inputPath: string): boolean {
-  if (!inputPath || typeof inputPath !== 'string') {
+  if (!inputPath || typeof inputPath !== "string") {
     return false;
   }
 
   // Check for null bytes
-  if (inputPath.includes('\0')) {
+  if (inputPath.includes("\0")) {
     return false;
   }
 
   // Check for path traversal
   const normalized = path.normalize(inputPath);
-  if (normalized.includes('..') || path.isAbsolute(normalized)) {
+  if (normalized.includes("..") || path.isAbsolute(normalized)) {
     return false;
   }
 

@@ -1,7 +1,7 @@
-import * as fs from 'fs';
-import * as path from 'path';
-import { sync as mkdirpSync } from 'mkdirp';
-import type { ClaudeSession, SessionEvent, SnapshotRef } from '../types';
+import * as fs from "node:fs";
+import * as path from "node:path";
+import { sync as mkdirpSync } from "mkdirp";
+import type { ClaudeSession } from "../types";
 
 /**
  * Session storage layer with fsync for data safety
@@ -9,8 +9,8 @@ import type { ClaudeSession, SessionEvent, SnapshotRef } from '../types';
 export class SessionStore {
   private readonly sessionsDir: string;
 
-  constructor(baseDir: string = '.claude') {
-    this.sessionsDir = path.join(baseDir, 'sessions');
+  constructor(baseDir: string = ".claude") {
+    this.sessionsDir = path.join(baseDir, "sessions");
     this.ensureDirectory();
   }
 
@@ -35,7 +35,7 @@ export class SessionStore {
       updatedAt: now,
       metadata: {
         initialPrompt,
-        phase: 'initialization',
+        phase: "initialization",
         healthScore: 1.0,
       },
       metrics: {
@@ -52,7 +52,7 @@ export class SessionStore {
       events: [
         {
           timestamp: now,
-          type: 'message',
+          type: "message",
           data: { prompt: initialPrompt },
         },
       ],
@@ -74,13 +74,11 @@ export class SessionStore {
     }
 
     try {
-      const content = fs.readFileSync(filePath, 'utf-8');
+      const content = fs.readFileSync(filePath, "utf-8");
       return JSON.parse(content) as ClaudeSession;
     } catch (error) {
       if (error instanceof SyntaxError) {
-        throw new Error(
-          `Invalid session JSON for ${sessionId}: ${(error as Error).message}`,
-        );
+        throw new Error(`Invalid session JSON for ${sessionId}: ${(error as Error).message}`);
       }
       throw error;
     }
@@ -129,7 +127,7 @@ export class SessionStore {
 
     const files = fs.readdirSync(this.sessionsDir);
     for (const file of files) {
-      if (file.endsWith('.json')) {
+      if (file.endsWith(".json")) {
         const sessionId = file.slice(0, -5);
         const session = this.get(sessionId);
         if (session) {
@@ -139,9 +137,7 @@ export class SessionStore {
     }
 
     // Sort by createdAt descending (newest first)
-    return sessions.sort(
-      (a, b) => b.createdAt.localeCompare(a.createdAt),
-    );
+    return sessions.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   }
 
   /**
@@ -162,10 +158,10 @@ export class SessionStore {
     try {
       // Write to temp file first
       const content = JSON.stringify(session, null, 2);
-      fs.writeFileSync(tmpPath, content, 'utf-8');
+      fs.writeFileSync(tmpPath, content, "utf-8");
 
       // Sync to disk
-      fd = fs.openSync(tmpPath, 'r');
+      fd = fs.openSync(tmpPath, "r");
       fs.fsyncSync(fd);
     } finally {
       // Always close file descriptor

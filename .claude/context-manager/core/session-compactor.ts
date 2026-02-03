@@ -4,12 +4,7 @@
  * Compacts session events to reduce storage while preserving important history.
  */
 
-import {
-  ClaudeSession,
-  CompactResult,
-  CompactOptions,
-  SessionEvent,
-} from '../types';
+import type { ClaudeSession, CompactOptions, CompactResult, SessionEvent } from "../types";
 
 /**
  * Session Compactor
@@ -36,7 +31,7 @@ export class SessionCompactor {
     // Always preserve snapshot events if enabled
     if (opts.preserveSnapshots) {
       events.forEach((event, idx) => {
-        if (event.type === 'snapshot') {
+        if (event.type === "snapshot") {
           eventsToKeep.push(event);
           processedIndices.add(idx);
         }
@@ -46,7 +41,7 @@ export class SessionCompactor {
     // Always preserve error events if enabled
     if (opts.preserveErrors) {
       events.forEach((event, idx) => {
-        if (event.type === 'error' && !processedIndices.has(idx)) {
+        if (event.type === "error" && !processedIndices.has(idx)) {
           eventsToKeep.push(event);
           processedIndices.add(idx);
         }
@@ -55,7 +50,7 @@ export class SessionCompactor {
 
     // Preserve compact events (they track compaction history)
     events.forEach((event, idx) => {
-      if (event.type === 'compact' && !processedIndices.has(idx)) {
+      if (event.type === "compact" && !processedIndices.has(idx)) {
         eventsToKeep.push(event);
         processedIndices.add(idx);
       }
@@ -86,7 +81,10 @@ export class SessionCompactor {
   /**
    * Calculate compaction statistics without applying
    */
-  analyze(session: ClaudeSession, options?: CompactOptions): {
+  analyze(
+    session: ClaudeSession,
+    options?: CompactOptions
+  ): {
     currentEvents: number;
     eventsAfterCompaction: number;
     eventsToRemove: number;
@@ -104,7 +102,7 @@ export class SessionCompactor {
         eventsToRemove: 0,
         compressionRatio: 1.0,
         recommended: false,
-        reason: 'Event count is below threshold',
+        reason: "Event count is below threshold",
       };
     }
 
@@ -121,7 +119,7 @@ export class SessionCompactor {
         ? `Compaction would remove ${result.eventsRemoved} events (${Math.round(
             (1 - 1 / result.compressionRatio) * 100
           )}% reduction)`
-        : 'Compaction would provide minimal benefit',
+        : "Compaction would provide minimal benefit",
     };
   }
 
@@ -136,7 +134,7 @@ export class SessionCompactor {
   } {
     const byType: Record<string, number> = {};
 
-    session.events.forEach(event => {
+    session.events.forEach((event) => {
       byType[event.type] = (byType[event.type] || 0) + 1;
     });
 
@@ -154,15 +152,12 @@ export class SessionCompactor {
   /**
    * Find old events that could be compacted
    */
-  findCompactionCandidates(
-    session: ClaudeSession,
-    ageHours: number = 24
-  ): SessionEvent[] {
+  findCompactionCandidates(session: ClaudeSession, ageHours: number = 24): SessionEvent[] {
     const cutoff = new Date(Date.now() - ageHours * 60 * 60 * 1000);
 
-    return session.events.filter(event => {
+    return session.events.filter((event) => {
       const eventTime = new Date(event.timestamp);
-      return eventTime < cutoff && event.type !== 'snapshot' && event.type !== 'error';
+      return eventTime < cutoff && event.type !== "snapshot" && event.type !== "error";
     });
   }
 

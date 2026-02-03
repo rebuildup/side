@@ -1,4 +1,3 @@
-"use strict";
 /**
  * Shared types for Claude Context Manager
  *

@@ -1,20 +1,23 @@
-import { useCallback, useEffect, useState } from 'react';
-import type { Deck, TerminalGroup, TerminalSession } from '../types';
+import { useCallback, useEffect, useState } from "react";
 import {
-  listDecks,
   createDeck as apiCreateDeck,
   createTerminal as apiCreateTerminal,
   deleteTerminal as apiDeleteTerminal,
-  listTerminals
-} from '../api';
-import { getErrorMessage, createEmptyDeckState } from '../utils';
+  listDecks,
+  listTerminals,
+} from "../api";
+import type { Deck, TerminalGroup } from "../types";
+import { createEmptyDeckState, getErrorMessage } from "../utils";
 
 interface UseDecksProps {
   setStatusMessage: (message: string) => void;
   initializeDeckStates: (deckIds: string[]) => void;
-  updateDeckState: (deckId: string, updater: (state: import('../types').DeckState) => import('../types').DeckState) => void;
-  deckStates: Record<string, import('../types').DeckState>;
-  setDeckStates: React.Dispatch<React.SetStateAction<Record<string, import('../types').DeckState>>>;
+  updateDeckState: (
+    deckId: string,
+    updater: (state: import("../types").DeckState) => import("../types").DeckState
+  ) => void;
+  deckStates: Record<string, import("../types").DeckState>;
+  setDeckStates: React.Dispatch<React.SetStateAction<Record<string, import("../types").DeckState>>>;
   initialDeckIds?: string[];
 }
 
@@ -24,7 +27,7 @@ export const useDecks = ({
   updateDeckState,
   deckStates,
   setDeckStates,
-  initialDeckIds
+  initialDeckIds,
 }: UseDecksProps) => {
   const [decks, setDecks] = useState<Deck[]>([]);
   const [activeDeckIds, setActiveDeckIds] = useState<string[]>(initialDeckIds ?? []);
@@ -41,9 +44,7 @@ export const useDecks = ({
       })
       .catch((error: unknown) => {
         if (!alive) return;
-        setStatusMessage(
-          `デッキを取得できませんでした: ${getErrorMessage(error)}`
-        );
+        setStatusMessage(`デッキを取得できませんでした: ${getErrorMessage(error)}`);
       });
 
     return () => {
@@ -80,17 +81,15 @@ export const useDecks = ({
           updateDeckState(deckId, (state) => ({
             ...state,
             terminals: sessions,
-            terminalsLoaded: true
+            terminalsLoaded: true,
           }));
         })
         .catch((error: unknown) => {
           updateDeckState(deckId, (state) => ({
             ...state,
-            terminalsLoaded: true
+            terminalsLoaded: true,
           }));
-          setStatusMessage(
-            `ターミナルを取得できませんでした: ${getErrorMessage(error)}`
-          );
+          setStatusMessage(`ターミナルを取得できませんでした: ${getErrorMessage(error)}`);
         });
     });
   }, [activeDeckIds, deckStates, updateDeckState, setStatusMessage]);
@@ -103,13 +102,11 @@ export const useDecks = ({
         setActiveDeckIds((prev) => [...prev.filter((id) => id !== deck.id), deck.id]);
         setDeckStates((prev) => ({
           ...prev,
-          [deck.id]: createEmptyDeckState()
+          [deck.id]: createEmptyDeckState(),
         }));
         return deck;
       } catch (error: unknown) {
-        setStatusMessage(
-          `デッキの作成に失敗しました: ${getErrorMessage(error)}`
-        );
+        setStatusMessage(`デッキの作成に失敗しました: ${getErrorMessage(error)}`);
         return null;
       }
     },
@@ -127,18 +124,16 @@ export const useDecks = ({
         updateDeckState(deckId, (state) => {
           const terminal = {
             id: session.id,
-            title: session.title || title
+            title: session.title || title,
           };
           return {
             ...state,
             terminals: [...state.terminals, terminal],
-            terminalsLoaded: true
+            terminalsLoaded: true,
           };
         });
       } catch (error: unknown) {
-        setStatusMessage(
-          `ターミナルを起動できませんでした: ${getErrorMessage(error)}`
-        );
+        setStatusMessage(`ターミナルを起動できませんでした: ${getErrorMessage(error)}`);
       } finally {
         // Clear loading state
         setCreatingTerminalDeckIds((prev) => {
@@ -157,31 +152,26 @@ export const useDecks = ({
         await apiDeleteTerminal(terminalId);
         updateDeckState(deckId, (state) => ({
           ...state,
-          terminals: state.terminals.filter((t) => t.id !== terminalId)
+          terminals: state.terminals.filter((t) => t.id !== terminalId),
         }));
       } catch (error: unknown) {
-        setStatusMessage(
-          `ターミナルを削除できませんでした: ${getErrorMessage(error)}`
-        );
+        setStatusMessage(`ターミナルを削除できませんでした: ${getErrorMessage(error)}`);
       }
     },
     [updateDeckState, setStatusMessage]
   );
 
   // Terminal group management functions
-  const handleCreateGroup = useCallback(
-    (name: string, color: string) => {
-      const newGroup: TerminalGroup = {
-        id: `group-${Date.now()}`,
-        name,
-        color,
-        terminalIds: [],
-        collapsed: false
-      };
-      setTerminalGroups((prev) => [...prev, newGroup]);
-    },
-    []
-  );
+  const handleCreateGroup = useCallback((name: string, color: string) => {
+    const newGroup: TerminalGroup = {
+      id: `group-${Date.now()}`,
+      name,
+      color,
+      terminalIds: [],
+      collapsed: false,
+    };
+    setTerminalGroups((prev) => [...prev, newGroup]);
+  }, []);
 
   const handleDeleteGroup = useCallback(
     (groupId: string) => {
@@ -194,7 +184,7 @@ export const useDecks = ({
             ...updated[deckId],
             terminals: updated[deckId].terminals.map((t) =>
               t.groupId === groupId ? { ...t, groupId: undefined } : t
-            )
+            ),
           };
         });
         return updated;
@@ -204,32 +194,23 @@ export const useDecks = ({
   );
 
   const handleUpdateGroup = useCallback(
-    (groupId: string, updates: Partial<Omit<TerminalGroup, 'id'>>) => {
-      setTerminalGroups((prev) =>
-        prev.map((g) => (g.id === groupId ? { ...g, ...updates } : g))
-      );
+    (groupId: string, updates: Partial<Omit<TerminalGroup, "id">>) => {
+      setTerminalGroups((prev) => prev.map((g) => (g.id === groupId ? { ...g, ...updates } : g)));
     },
     []
   );
 
-  const handleToggleGroupCollapsed = useCallback(
-    (groupId: string) => {
-      setTerminalGroups((prev) =>
-        prev.map((g) =>
-          g.id === groupId ? { ...g, collapsed: !g.collapsed } : g
-        )
-      );
-    },
-    []
-  );
+  const handleToggleGroupCollapsed = useCallback((groupId: string) => {
+    setTerminalGroups((prev) =>
+      prev.map((g) => (g.id === groupId ? { ...g, collapsed: !g.collapsed } : g))
+    );
+  }, []);
 
   const handleAssignTerminalToGroup = useCallback(
     (deckId: string, terminalId: string, groupId: string | undefined) => {
       updateDeckState(deckId, (state) => ({
         ...state,
-        terminals: state.terminals.map((t) =>
-          t.id === terminalId ? { ...t, groupId } : t
-        )
+        terminals: state.terminals.map((t) => (t.id === terminalId ? { ...t, groupId } : t)),
       }));
     },
     [updateDeckState]
@@ -239,9 +220,7 @@ export const useDecks = ({
     (deckId: string, terminalId: string, color: string | undefined) => {
       updateDeckState(deckId, (state) => ({
         ...state,
-        terminals: state.terminals.map((t) =>
-          t.id === terminalId ? { ...t, color } : t
-        )
+        terminals: state.terminals.map((t) => (t.id === terminalId ? { ...t, color } : t)),
       }));
     },
     [updateDeckState]
@@ -251,9 +230,7 @@ export const useDecks = ({
     (deckId: string, terminalId: string, tags: string[]) => {
       updateDeckState(deckId, (state) => ({
         ...state,
-        terminals: state.terminals.map((t) =>
-          t.id === terminalId ? { ...t, tags } : t
-        )
+        terminals: state.terminals.map((t) => (t.id === terminalId ? { ...t, tags } : t)),
       }));
     },
     [updateDeckState]
@@ -274,6 +251,6 @@ export const useDecks = ({
     handleAssignTerminalToGroup,
     handleUpdateTerminalColor,
     handleUpdateTerminalTags,
-    creatingTerminalDeckIds
+    creatingTerminalDeckIds,
   };
 };

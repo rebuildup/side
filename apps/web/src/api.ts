@@ -1,5 +1,13 @@
-import type { Deck, FileSystemEntry, Workspace, GitStatus, GitDiff, GitRepoInfo, MultiRepoGitStatus } from './types';
-import { API_BASE } from './constants';
+import { API_BASE } from "./constants";
+import type {
+  Deck,
+  FileSystemEntry,
+  GitDiff,
+  GitRepoInfo,
+  GitStatus,
+  MultiRepoGitStatus,
+  Workspace,
+} from "./types";
 
 const HTTP_STATUS_NO_CONTENT = 204;
 
@@ -13,7 +21,7 @@ const HTTP_STATUS_NO_CONTENT = 204;
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
     ...options,
-    credentials: 'include'
+    credentials: "include",
   });
   if (!response.ok) {
     const message = await response.text();
@@ -28,48 +36,48 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return data as T;
 }
 
-const CONTENT_TYPE_JSON = 'application/json';
-const HTTP_METHOD_POST = 'POST';
-const HTTP_METHOD_PUT = 'PUT';
-const HTTP_METHOD_DELETE = 'DELETE';
+const CONTENT_TYPE_JSON = "application/json";
+const HTTP_METHOD_POST = "POST";
+const HTTP_METHOD_PUT = "PUT";
+const HTTP_METHOD_DELETE = "DELETE";
 
 /**
  * Converts HTTP(S) base URL to WebSocket URL
  */
 export function getWsBase(): string {
   const base = API_BASE || window.location.origin;
-  return base.replace(/^http/, 'ws');
+  return base.replace(/^http/, "ws");
 }
 
 /**
  * Fetches a one-time WebSocket authentication token
  */
 export function getWsToken(): Promise<{ token: string; authEnabled: boolean }> {
-  return request<{ token: string; authEnabled: boolean }>('/api/ws-token');
+  return request<{ token: string; authEnabled: boolean }>("/api/ws-token");
 }
 
 /**
  * Fetches all workspaces
  */
 export function listWorkspaces(): Promise<Workspace[]> {
-  return request<Workspace[]>('/api/workspaces');
+  return request<Workspace[]>("/api/workspaces");
 }
 
 /**
  * Fetches server configuration
  */
 export function getConfig(): Promise<{ defaultRoot?: string }> {
-  return request<{ defaultRoot?: string }>('/api/config');
+  return request<{ defaultRoot?: string }>("/api/config");
 }
 
 /**
  * Creates a new workspace
  */
 export function createWorkspace(path: string): Promise<Workspace> {
-  return request<Workspace>('/api/workspaces', {
+  return request<Workspace>("/api/workspaces", {
     method: HTTP_METHOD_POST,
-    headers: { 'Content-Type': CONTENT_TYPE_JSON },
-    body: JSON.stringify({ path })
+    headers: { "Content-Type": CONTENT_TYPE_JSON },
+    body: JSON.stringify({ path }),
   });
 }
 
@@ -77,27 +85,24 @@ export function createWorkspace(path: string): Promise<Workspace> {
  * Fetches all decks
  */
 export function listDecks(): Promise<Deck[]> {
-  return request<Deck[]>('/api/decks');
+  return request<Deck[]>("/api/decks");
 }
 
 /**
  * Creates a new deck
  */
 export function createDeck(name: string, workspaceId: string): Promise<Deck> {
-  return request<Deck>('/api/decks', {
+  return request<Deck>("/api/decks", {
     method: HTTP_METHOD_POST,
-    headers: { 'Content-Type': CONTENT_TYPE_JSON },
-    body: JSON.stringify({ name, workspaceId })
+    headers: { "Content-Type": CONTENT_TYPE_JSON },
+    body: JSON.stringify({ name, workspaceId }),
   });
 }
 
 /**
  * Lists files in a workspace directory
  */
-export function listFiles(
-  workspaceId: string,
-  path = ''
-): Promise<FileSystemEntry[]> {
+export function listFiles(workspaceId: string, path = ""): Promise<FileSystemEntry[]> {
   const query = new URLSearchParams({ workspaceId, path });
   return request<FileSystemEntry[]>(`/api/files?${query.toString()}`);
 }
@@ -105,10 +110,7 @@ export function listFiles(
 /**
  * Previews files in a directory (without workspace context)
  */
-export function previewFiles(
-  rootPath: string,
-  subpath = ''
-): Promise<FileSystemEntry[]> {
+export function previewFiles(rootPath: string, subpath = ""): Promise<FileSystemEntry[]> {
   const query = new URLSearchParams({ path: rootPath, subpath });
   return request<FileSystemEntry[]>(`/api/preview?${query.toString()}`);
 }
@@ -121,9 +123,7 @@ export function readFile(
   path: string
 ): Promise<{ path: string; contents: string }> {
   const query = new URLSearchParams({ workspaceId, path });
-  return request<{ path: string; contents: string }>(
-    `/api/file?${query.toString()}`
-  );
+  return request<{ path: string; contents: string }>(`/api/file?${query.toString()}`);
 }
 
 /**
@@ -134,10 +134,10 @@ export function writeFile(
   path: string,
   contents: string
 ): Promise<{ path: string; saved: boolean }> {
-  return request<{ path: string; saved: boolean }>('/api/file', {
+  return request<{ path: string; saved: boolean }>("/api/file", {
     method: HTTP_METHOD_PUT,
-    headers: { 'Content-Type': CONTENT_TYPE_JSON },
-    body: JSON.stringify({ workspaceId, path, contents })
+    headers: { "Content-Type": CONTENT_TYPE_JSON },
+    body: JSON.stringify({ workspaceId, path, contents }),
   });
 }
 
@@ -147,12 +147,12 @@ export function writeFile(
 export function createFile(
   workspaceId: string,
   path: string,
-  contents = ''
+  contents = ""
 ): Promise<{ path: string; created: boolean }> {
-  return request<{ path: string; created: boolean }>('/api/file', {
+  return request<{ path: string; created: boolean }>("/api/file", {
     method: HTTP_METHOD_POST,
-    headers: { 'Content-Type': CONTENT_TYPE_JSON },
-    body: JSON.stringify({ workspaceId, path, contents })
+    headers: { "Content-Type": CONTENT_TYPE_JSON },
+    body: JSON.stringify({ workspaceId, path, contents }),
   });
 }
 
@@ -164,10 +164,9 @@ export function deleteFile(
   path: string
 ): Promise<{ path: string; deleted: boolean }> {
   const query = new URLSearchParams({ workspaceId, path });
-  return request<{ path: string; deleted: boolean }>(
-    `/api/file?${query.toString()}`,
-    { method: HTTP_METHOD_DELETE }
-  );
+  return request<{ path: string; deleted: boolean }>(`/api/file?${query.toString()}`, {
+    method: HTTP_METHOD_DELETE,
+  });
 }
 
 /**
@@ -177,10 +176,10 @@ export function createDirectory(
   workspaceId: string,
   path: string
 ): Promise<{ path: string; created: boolean }> {
-  return request<{ path: string; created: boolean }>('/api/dir', {
+  return request<{ path: string; created: boolean }>("/api/dir", {
     method: HTTP_METHOD_POST,
-    headers: { 'Content-Type': CONTENT_TYPE_JSON },
-    body: JSON.stringify({ workspaceId, path })
+    headers: { "Content-Type": CONTENT_TYPE_JSON },
+    body: JSON.stringify({ workspaceId, path }),
   });
 }
 
@@ -192,10 +191,9 @@ export function deleteDirectory(
   path: string
 ): Promise<{ path: string; deleted: boolean }> {
   const query = new URLSearchParams({ workspaceId, path });
-  return request<{ path: string; deleted: boolean }>(
-    `/api/dir?${query.toString()}`,
-    { method: HTTP_METHOD_DELETE }
-  );
+  return request<{ path: string; deleted: boolean }>(`/api/dir?${query.toString()}`, {
+    method: HTTP_METHOD_DELETE,
+  });
 }
 
 /**
@@ -206,23 +204,19 @@ export function createTerminal(
   title?: string,
   command?: string
 ): Promise<{ id: string; title: string }> {
-  return request<{ id: string; title: string }>('/api/terminals', {
+  return request<{ id: string; title: string }>("/api/terminals", {
     method: HTTP_METHOD_POST,
-    headers: { 'Content-Type': CONTENT_TYPE_JSON },
-    body: JSON.stringify({ deckId, title, command })
+    headers: { "Content-Type": CONTENT_TYPE_JSON },
+    body: JSON.stringify({ deckId, title, command }),
   });
 }
 
 /**
  * Lists all terminals for a deck
  */
-export function listTerminals(
-  deckId: string
-): Promise<{ id: string; title: string }[]> {
+export function listTerminals(deckId: string): Promise<{ id: string; title: string }[]> {
   const query = new URLSearchParams({ deckId });
-  return request<{ id: string; title: string }[]>(
-    `/api/terminals?${query.toString()}`
-  );
+  return request<{ id: string; title: string }[]>(`/api/terminals?${query.toString()}`);
 }
 
 /**
@@ -230,7 +224,7 @@ export function listTerminals(
  */
 export function deleteTerminal(terminalId: string): Promise<void> {
   return request<void>(`/api/terminals/${terminalId}`, {
-    method: HTTP_METHOD_DELETE
+    method: HTTP_METHOD_DELETE,
   });
 }
 
@@ -270,10 +264,10 @@ export function stageFiles(
   paths: string[],
   repoPath?: string
 ): Promise<{ success: boolean }> {
-  return request<{ success: boolean }>('/api/git/stage', {
+  return request<{ success: boolean }>("/api/git/stage", {
     method: HTTP_METHOD_POST,
-    headers: { 'Content-Type': CONTENT_TYPE_JSON },
-    body: JSON.stringify({ workspaceId, paths, repoPath })
+    headers: { "Content-Type": CONTENT_TYPE_JSON },
+    body: JSON.stringify({ workspaceId, paths, repoPath }),
   });
 }
 
@@ -285,10 +279,10 @@ export function unstageFiles(
   paths: string[],
   repoPath?: string
 ): Promise<{ success: boolean }> {
-  return request<{ success: boolean }>('/api/git/unstage', {
+  return request<{ success: boolean }>("/api/git/unstage", {
     method: HTTP_METHOD_POST,
-    headers: { 'Content-Type': CONTENT_TYPE_JSON },
-    body: JSON.stringify({ workspaceId, paths, repoPath })
+    headers: { "Content-Type": CONTENT_TYPE_JSON },
+    body: JSON.stringify({ workspaceId, paths, repoPath }),
   });
 }
 
@@ -304,10 +298,10 @@ export function commitChanges(
   commit: string;
   summary: { changes: number; insertions: number; deletions: number };
 }> {
-  return request('/api/git/commit', {
+  return request("/api/git/commit", {
     method: HTTP_METHOD_POST,
-    headers: { 'Content-Type': CONTENT_TYPE_JSON },
-    body: JSON.stringify({ workspaceId, message, repoPath })
+    headers: { "Content-Type": CONTENT_TYPE_JSON },
+    body: JSON.stringify({ workspaceId, message, repoPath }),
   });
 }
 
@@ -319,10 +313,10 @@ export function discardChanges(
   paths: string[],
   repoPath?: string
 ): Promise<{ success: boolean }> {
-  return request<{ success: boolean }>('/api/git/discard', {
+  return request<{ success: boolean }>("/api/git/discard", {
     method: HTTP_METHOD_POST,
-    headers: { 'Content-Type': CONTENT_TYPE_JSON },
-    body: JSON.stringify({ workspaceId, paths, repoPath })
+    headers: { "Content-Type": CONTENT_TYPE_JSON },
+    body: JSON.stringify({ workspaceId, paths, repoPath }),
   });
 }
 
@@ -338,7 +332,7 @@ export function getGitDiff(
   const params: Record<string, string> = {
     workspaceId,
     path,
-    staged: staged.toString()
+    staged: staged.toString(),
   };
   if (repoPath !== undefined) {
     params.repoPath = repoPath;
@@ -354,10 +348,10 @@ export function pushChanges(
   workspaceId: string,
   repoPath?: string
 ): Promise<{ success: boolean; branch: string }> {
-  return request('/api/git/push', {
+  return request("/api/git/push", {
     method: HTTP_METHOD_POST,
-    headers: { 'Content-Type': CONTENT_TYPE_JSON },
-    body: JSON.stringify({ workspaceId, repoPath })
+    headers: { "Content-Type": CONTENT_TYPE_JSON },
+    body: JSON.stringify({ workspaceId, repoPath }),
   });
 }
 
@@ -371,10 +365,10 @@ export function pullChanges(
   success: boolean;
   summary: { changes: number; insertions: number; deletions: number };
 }> {
-  return request('/api/git/pull', {
+  return request("/api/git/pull", {
     method: HTTP_METHOD_POST,
-    headers: { 'Content-Type': CONTENT_TYPE_JSON },
-    body: JSON.stringify({ workspaceId, repoPath })
+    headers: { "Content-Type": CONTENT_TYPE_JSON },
+    body: JSON.stringify({ workspaceId, repoPath }),
   });
 }
 
@@ -385,10 +379,10 @@ export function fetchChanges(
   workspaceId: string,
   repoPath?: string
 ): Promise<{ success: boolean }> {
-  return request('/api/git/fetch', {
+  return request("/api/git/fetch", {
     method: HTTP_METHOD_POST,
-    headers: { 'Content-Type': CONTENT_TYPE_JSON },
-    body: JSON.stringify({ workspaceId, repoPath })
+    headers: { "Content-Type": CONTENT_TYPE_JSON },
+    body: JSON.stringify({ workspaceId, repoPath }),
   });
 }
 
@@ -451,10 +445,10 @@ export function checkoutBranch(
   branchName: string,
   repoPath?: string
 ): Promise<{ success: boolean }> {
-  return request('/api/git/checkout', {
+  return request("/api/git/checkout", {
     method: HTTP_METHOD_POST,
-    headers: { 'Content-Type': CONTENT_TYPE_JSON },
-    body: JSON.stringify({ workspaceId, branchName, repoPath })
+    headers: { "Content-Type": CONTENT_TYPE_JSON },
+    body: JSON.stringify({ workspaceId, branchName, repoPath }),
   });
 }
 
@@ -467,10 +461,10 @@ export function createBranch(
   checkout = true,
   repoPath?: string
 ): Promise<{ success: boolean }> {
-  return request('/api/git/create-branch', {
+  return request("/api/git/create-branch", {
     method: HTTP_METHOD_POST,
-    headers: { 'Content-Type': CONTENT_TYPE_JSON },
-    body: JSON.stringify({ workspaceId, branchName, checkout, repoPath })
+    headers: { "Content-Type": CONTENT_TYPE_JSON },
+    body: JSON.stringify({ workspaceId, branchName, checkout, repoPath }),
   });
 }
 

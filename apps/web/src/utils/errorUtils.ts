@@ -3,4 +3,4 @@
  * Re-exports from shared package
  */
 
-export { getErrorMessage, createHttpError } from '@side-ide/shared/utils';
+export { createHttpError, getErrorMessage } from "@side-ide/shared/utils";

@@ -12,10 +12,5 @@
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true
   },
-  "exclude": [
-    "node_modules",
-    "dist",
-    "build",
-    ".claude"
-  ]
+  "exclude": ["node_modules", "dist", "build", ".claude"]
 }

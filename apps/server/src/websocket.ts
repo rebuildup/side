@@ -1,12 +1,11 @@
-import crypto from 'node:crypto';
-import type { Server as HttpServer } from 'node:http';
-import type { Server as HttpsServer } from 'node:https';
-import type { IncomingMessage } from 'node:http';
-import { WebSocketServer, WebSocket } from 'ws';
-import type { TerminalSession } from './types.js';
-import { PORT, TRUST_PROXY } from './config.js';
-import { logSecurityEvent } from './middleware/security.js';
-import { verifyWebSocketAuth } from './middleware/auth.js';
+import crypto from "node:crypto";
+import type { Server as HttpServer, IncomingMessage } from "node:http";
+import type { Server as HttpsServer } from "node:https";
+import { type WebSocket, WebSocketServer } from "ws";
+import { PORT, TRUST_PROXY } from "./config.js";
+import { verifyWebSocketAuth } from "./middleware/auth.js";
+import { logSecurityEvent } from "./middleware/security.js";
+import type { TerminalSession } from "./types.js";
 
 // Type for WebSocket data messages
 type WebSocketData = Buffer & { isBinary: boolean };
@@ -43,10 +42,10 @@ export function getConnectionStats(): { ip: string; count: number }[] {
 
 export function clearAllConnections(): number {
   let closedCount = 0;
-  for (const [ip, connections] of connectionsByIP) {
+  for (const [_ip, connections] of connectionsByIP) {
     for (const socket of connections) {
       try {
-        socket.close(1000, 'Connection cleared by admin');
+        socket.close(1000, "Connection cleared by admin");
         closedCount++;
       } catch {
         // Socket might already be closed
@@ -59,16 +58,16 @@ export function clearAllConnections(): number {
 
 function getClientIP(req: IncomingMessage): string {
   if (TRUST_PROXY) {
-    const forwarded = req.headers['x-forwarded-for'];
-    if (typeof forwarded === 'string') {
-      return forwarded.split(',')[0].trim();
+    const forwarded = req.headers["x-forwarded-for"];
+    if (typeof forwarded === "string") {
+      return forwarded.split(",")[0].trim();
     }
-    const realIp = req.headers['x-real-ip'];
-    if (typeof realIp === 'string') {
+    const realIp = req.headers["x-real-ip"];
+    if (typeof realIp === "string") {
       return realIp;
     }
   }
-  return req.socket?.remoteAddress || 'unknown';
+  return req.socket?.remoteAddress || "unknown";
 }
 
 function trackConnection(ip: string, socket: WebSocket): boolean {
@@ -111,15 +110,15 @@ export function setupWebSocketServer(
 ): WebSocketServer {
   const wss = new WebSocketServer({ server });
 
-  wss.on('connection', (socket: WebSocket, req: IncomingMessage) => {
+  wss.on("connection", (socket: WebSocket, req: IncomingMessage) => {
     const socketId = crypto.randomUUID();
     const clientIP = getClientIP(req);
 
     // Add error handler for socket
-    socket.on('error', (error: Error) => {
+    socket.on("error", (error: Error) => {
       console.error(`WebSocket error for socket ${socketId}:`, error.message);
       try {
-        socket.close(1011, 'Internal error');
+        socket.close(1011, "Internal error");
       } catch {
         // Socket might already be closed
       }
@@ -127,29 +126,29 @@ export function setupWebSocketServer(
 
     // Check connection limit per IP
     if (!trackConnection(clientIP, socket)) {
-      logSecurityEvent('WS_CONNECTION_LIMIT_EXCEEDED', { ip: clientIP });
-      socket.close(1013, 'Too many connections');
+      logSecurityEvent("WS_CONNECTION_LIMIT_EXCEEDED", { ip: clientIP });
+      socket.close(1013, "Too many connections");
       return;
     }
 
     if (!verifyWebSocketAuth(req)) {
-      logSecurityEvent('WS_AUTH_FAILED', { ip: clientIP });
+      logSecurityEvent("WS_AUTH_FAILED", { ip: clientIP });
       untrackConnection(clientIP, socket);
-      socket.close(1008, 'Unauthorized');
+      socket.close(1008, "Unauthorized");
       return;
     }
 
-    const url = new URL(req.url || '', `http://localhost:${PORT}`);
+    const url = new URL(req.url || "", `http://localhost:${PORT}`);
     const match = url.pathname.match(/\/api\/terminals\/(.+)/);
     if (!match) {
-      socket.close(1002, 'Invalid path');
+      socket.close(1002, "Invalid path");
       return;
     }
 
     const id = match[1];
     const session = terminals.get(id);
     if (!session) {
-      socket.close(1002, 'Terminal not found');
+      socket.close(1002, "Terminal not found");
       return;
     }
 
@@ -170,16 +169,16 @@ export function setupWebSocketServer(
       }
     }
 
-    socket.on('message', (data: Buffer, isBinary: boolean) => {
+    socket.on("message", (data: Buffer, _isBinary: boolean) => {
       try {
         // Convert to string
-        const message = data.toString('utf8');
+        const message = data.toString("utf8");
 
         // Check message size
-        const messageSize = Buffer.byteLength(message, 'utf8');
+        const messageSize = Buffer.byteLength(message, "utf8");
         if (messageSize > MAX_MESSAGE_SIZE) {
-          logSecurityEvent('WS_MESSAGE_TOO_LARGE', { ip: clientIP, size: messageSize });
-          socket.send('\r\n\x1b[31mMessage too large. Maximum size is 64KB.\x1b[0m\r\n');
+          logSecurityEvent("WS_MESSAGE_TOO_LARGE", { ip: clientIP, size: messageSize });
+          socket.send("\r\n\x1b[31mMessage too large. Maximum size is 64KB.\x1b[0m\r\n");
           return;
         }
 
@@ -191,9 +190,11 @@ export function setupWebSocketServer(
         }
         if (message.match(/\x1b\[\?[^;]+;[0-4]\$y/)) {
           const match = message.match(/\x1b\[\?(\d+);([0-4])\$y/);
-          const mode = match ? match[1] : '?';
-          const status = match ? match[2] : '?';
-          console.log(`[RESPONSE] DECRQM mode ${mode} status ${status} from client to terminal ${id}`);
+          const mode = match ? match[1] : "?";
+          const status = match ? match[2] : "?";
+          console.log(
+            `[RESPONSE] DECRQM mode ${mode} status ${status} from client to terminal ${id}`
+          );
         }
         if (message.match(/\x1b\[\?[\d;]+c/)) {
           console.log(`[RESPONSE] DA1 from client to terminal ${id}`);
@@ -201,7 +202,7 @@ export function setupWebSocketServer(
         if (message.match(/\x1b\[>[^c]*c/)) {
           console.log(`[RESPONSE] DA2 from client to terminal ${id}`);
         }
-        if (message.match(/\x1bP>[\|]/)) {
+        if (message.match(/\x1bP>[|]/)) {
           console.log(`[RESPONSE] XTVERSION from client to terminal ${id}`);
         }
         if (message.match(/\x1b\]1[012];rgb:/)) {
@@ -221,9 +222,9 @@ export function setupWebSocketServer(
         }
 
         // Check for resize message
-        if (message.startsWith('\u0000resize:')) {
-          const payload = message.slice('\u0000resize:'.length);
-          const [colsRaw, rowsRaw] = payload.split(',');
+        if (message.startsWith("\u0000resize:")) {
+          const payload = message.slice("\u0000resize:".length);
+          const [colsRaw, rowsRaw] = payload.split(",");
           const cols = validateTerminalSize(Number(colsRaw));
           const rows = validateTerminalSize(Number(rowsRaw));
 
@@ -246,18 +247,19 @@ export function setupWebSocketServer(
       }
     });
 
-    socket.on('close', (code: number, reason: Buffer) => {
-      console.log(`[WS] Socket ${socketId} closed for terminal ${id}: code=${code}, reason=${reason?.toString() || 'none'}`);
+    socket.on("close", (code: number, reason: Buffer) => {
+      console.log(
+        `[WS] Socket ${socketId} closed for terminal ${id}: code=${code}, reason=${reason?.toString() || "none"}`
+      );
       session.sockets.delete(socket);
       session.lastActive = Date.now();
       untrackConnection(clientIP, socket);
     });
   });
 
-  wss.on('error', (error: Error) => {
-    console.error('WebSocket server error:', error);
+  wss.on("error", (error: Error) => {
+    console.error("WebSocket server error:", error);
   });
 
   return wss;
 }
-

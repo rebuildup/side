@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { getClient } from '../api/client';
+import type React from "react";
+import { useEffect, useRef, useState } from "react";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { getClient } from "../api/client";
 
 export interface TerminalScreenProps {
   terminalId: string;
@@ -19,7 +20,7 @@ export const TerminalScreen: React.FC<TerminalScreenProps> = ({ terminalId, titl
         wsRef.current.close();
       }
     };
-  }, [terminalId]);
+  }, [connectWebSocket]);
 
   const connectWebSocket = async () => {
     try {
@@ -31,12 +32,12 @@ export const TerminalScreen: React.FC<TerminalScreenProps> = ({ terminalId, titl
           setOutput((prev) => [...prev, data]);
         },
         onError: (error) => {
-          console.error('WebSocket error:', error);
+          console.error("WebSocket error:", error);
           setConnected(false);
         },
         onClose: () => {
           setConnected(false);
-        }
+        },
       });
 
       ws.onopen = () => {
@@ -45,7 +46,7 @@ export const TerminalScreen: React.FC<TerminalScreenProps> = ({ terminalId, titl
 
       wsRef.current = ws;
     } catch (error) {
-      console.error('Failed to connect:', error);
+      console.error("Failed to connect:", error);
     }
   };
 
@@ -53,13 +54,8 @@ export const TerminalScreen: React.FC<TerminalScreenProps> = ({ terminalId, titl
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>{title}</Text>
-        <View style={[
-          styles.statusIndicator,
-          connected ? styles.connected : styles.disconnected
-        ]}>
-          <Text style={styles.statusText}>
-            {connected ? 'Connected' : 'Disconnected'}
-          </Text>
+        <View style={[styles.statusIndicator, connected ? styles.connected : styles.disconnected]}>
+          <Text style={styles.statusText}>{connected ? "Connected" : "Disconnected"}</Text>
         </View>
       </View>
       <ScrollView style={styles.output}>
@@ -76,43 +72,43 @@ export const TerminalScreen: React.FC<TerminalScreenProps> = ({ terminalId, titl
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a1a1a'
+    backgroundColor: "#1a1a1a",
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#3a3a3a'
+    borderBottomColor: "#3a3a3a",
   },
   title: {
-    color: '#ffffff',
+    color: "#ffffff",
     fontSize: 18,
-    fontWeight: '600'
+    fontWeight: "600",
   },
   statusIndicator: {
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 4
+    borderRadius: 4,
   },
   connected: {
-    backgroundColor: '#22c55e'
+    backgroundColor: "#22c55e",
   },
   disconnected: {
-    backgroundColor: '#ef4444'
+    backgroundColor: "#ef4444",
   },
   statusText: {
-    color: '#ffffff',
-    fontSize: 12
+    color: "#ffffff",
+    fontSize: 12,
   },
   output: {
     flex: 1,
-    padding: 8
+    padding: 8,
   },
   outputLine: {
-    color: '#e5e7eb',
-    fontFamily: 'monospace',
-    fontSize: 12
-  }
+    color: "#e5e7eb",
+    fontFamily: "monospace",
+    fontSize: 12,
+  },
 });

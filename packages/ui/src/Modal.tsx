@@ -1,5 +1,6 @@
-import React, { useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom';
+import type React from "react";
+import { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 
 export interface ModalProps {
   isOpen: boolean;
@@ -14,7 +15,7 @@ export const Modal: React.FC<ModalProps> = ({
   onClose,
   title,
   children,
-  className = ''
+  className = "",
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const previousActiveElement = useRef<HTMLElement | null>(null);
@@ -30,11 +31,11 @@ export const Modal: React.FC<ModalProps> = ({
         const firstElement = focusableElements[0] as HTMLElement;
         if (firstElement) firstElement.focus();
       }
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
     }
     return () => {
       // Cleanup: restore overflow on unmount
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
       if (previousActiveElement.current) {
         previousActiveElement.current.focus();
       }
@@ -43,10 +44,10 @@ export const Modal: React.FC<ModalProps> = ({
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) onClose();
+      if (e.key === "Escape" && isOpen) onClose();
     };
-    window.addEventListener('keydown', handleEscape);
-    return () => window.removeEventListener('keydown', handleEscape);
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
@@ -58,13 +59,16 @@ export const Modal: React.FC<ModalProps> = ({
   };
 
   return createPortal(
-    <div onClick={handleBackdropClick} className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+    <div
+      onClick={handleBackdropClick}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+    >
       <div
         ref={modalRef}
         className={`bg-gray-900 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-auto ${className}`}
         role="dialog"
         aria-modal="true"
-        aria-labelledby={title ? 'modal-title' : undefined}
+        aria-labelledby={title ? "modal-title" : undefined}
       >
         {title && (
           <div className="flex items-center justify-between p-4 border-b border-gray-700">

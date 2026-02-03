@@ -1,6 +1,6 @@
-import type { Workspace } from '../types';
+import type { Workspace } from "../types";
 
-type AppView = 'workspace' | 'terminal';
+type AppView = "workspace" | "terminal";
 
 interface TopBarProps {
   view: AppView;
@@ -9,8 +9,8 @@ interface TopBarProps {
   status?: string;
 }
 
-const LABEL_PROJECT = '\u30ef\u30fc\u30af\u30b9\u30da\u30fc\u30b9';
-const LABEL_TERMINAL = '\u30bf\u30fc\u30df\u30ca\u30eb';
+const LABEL_PROJECT = "\u30ef\u30fc\u30af\u30b9\u30da\u30fc\u30b9";
+const LABEL_TERMINAL = "\u30bf\u30fc\u30df\u30ca\u30eb";
 
 export function TopBar({ view, workspace, apiBase, status }: TopBarProps) {
   return (
@@ -18,7 +18,7 @@ export function TopBar({ view, workspace, apiBase, status }: TopBarProps) {
       <div>
         <div className="brand">Deck IDE</div>
         <div className="deck-meta">
-          <span>{view === 'workspace' ? LABEL_PROJECT : LABEL_TERMINAL}</span>
+          <span>{view === "workspace" ? LABEL_PROJECT : LABEL_TERMINAL}</span>
           {workspace ? (
             <>
               <span className="deck-root">{workspace.name}</span>

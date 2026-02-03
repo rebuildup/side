@@ -2,8 +2,8 @@
  * URL and routing utilities
  */
 
-type AppView = 'workspace' | 'terminal';
-type WorkspaceMode = 'list' | 'editor';
+type AppView = "workspace" | "terminal";
+type WorkspaceMode = "list" | "editor";
 
 export type UrlState = {
   view: AppView;
@@ -16,23 +16,23 @@ export type UrlState = {
  * Parses URL search parameters into application state
  */
 export function parseUrlState(): UrlState {
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     return {
-      view: 'terminal',
+      view: "terminal",
       workspaceId: null,
       deckIds: [],
-      workspaceMode: 'list'
+      workspaceMode: "list",
     };
   }
   const params = new URLSearchParams(window.location.search);
-  const viewParam = params.get('view');
-  const modeParam = params.get('mode');
-  const deckParam = params.get('decks') || params.get('deck');
-  const deckIds = deckParam ? deckParam.split(',').filter(Boolean) : [];
+  const viewParam = params.get("view");
+  const modeParam = params.get("mode");
+  const deckParam = params.get("decks") || params.get("deck");
+  const deckIds = deckParam ? deckParam.split(",").filter(Boolean) : [];
   return {
-    view: viewParam === 'workspace' ? 'workspace' : 'terminal',
-    workspaceId: params.get('workspace'),
+    view: viewParam === "workspace" ? "workspace" : "terminal",
+    workspaceId: params.get("workspace"),
     deckIds,
-    workspaceMode: modeParam === 'editor' ? 'editor' : 'list'
+    workspaceMode: modeParam === "editor" ? "editor" : "list",
   };
 }

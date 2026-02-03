@@ -1,18 +1,18 @@
-import { Plus, Minus, X } from 'lucide-react';
-import type { GitFileStatus, GitFileStatusCode } from '../types';
+import { Minus, Plus, X } from "lucide-react";
+import type { GitFileStatus, GitFileStatusCode } from "../types";
 
-const LABEL_STAGE = 'ステージ';
-const LABEL_UNSTAGE = 'アンステージ';
-const LABEL_DISCARD = '変更を破棄';
-const LABEL_VIEW_DIFF = '差分を表示';
+const LABEL_STAGE = "ステージ";
+const LABEL_UNSTAGE = "アンステージ";
+const LABEL_DISCARD = "変更を破棄";
+const LABEL_VIEW_DIFF = "差分を表示";
 
 const STATUS_LABELS: Record<GitFileStatusCode, string> = {
-  modified: 'M',
-  staged: 'A',
-  untracked: 'U',
-  deleted: 'D',
-  renamed: 'R',
-  conflicted: 'C'
+  modified: "M",
+  staged: "A",
+  untracked: "U",
+  deleted: "D",
+  renamed: "R",
+  conflicted: "C",
 };
 
 interface GitFileRowProps {
@@ -23,13 +23,7 @@ interface GitFileRowProps {
   onShowDiff: (file: GitFileStatus) => void;
 }
 
-export function GitFileRow({
-  file,
-  onStage,
-  onUnstage,
-  onDiscard,
-  onShowDiff
-}: GitFileRowProps) {
+export function GitFileRow({ file, onStage, onUnstage, onDiscard, onShowDiff }: GitFileRowProps) {
   const statusClass = `git-${file.status}`;
   const statusLabel = STATUS_LABELS[file.status];
 

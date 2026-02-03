@@ -4,31 +4,39 @@
   "version": "2.0.0",
   "identifier": "com.side.ide",
   "build": {
-    "beforeDevCommand": "npm run dev:web",
-    "beforeBuildCommand": "npm run build:web",
+    "beforeDevCommand": "cd ../.. && pnpm run dev:web",
+    "beforeBuildCommand": "cd ../.. && pnpm run build:web && pnpm run build:server && pnpm run bundle:server",
     "frontendDist": "../../web/dist",
     "devUrl": "http://localhost:5173"
   },
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "S-IDE Studio IDE",
         "width": 1400,
         "height": 900,
-        "minWidth": 800,
-        "minHeight": 600,
+        "minWidth": 400,
+        "minHeight": 300,
         "resizable": true,
-        "fullscreen": false
+        "fullscreen": false,
+        "decorations": false,
+        "hiddenTitle": true,
+        "dragDropEnabled": true,
+        "skipTaskbar": false
       }
     ],
     "security": {
-      "csp": null
-    }
+      "csp": "createObjectURL 'self' blob: 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://localhost:* ws://localhost:*",
+      "capabilities": ["default"]
+    },
+    "withGlobalTauri": true
   },
   "bundle": {
     "active": true,
     "targets": ["msi", "nsis"],
-    "icon": []
+    "icon": ["icons/icon.ico"],
+    "resources": ["resources/*"]
   },
   "plugins": {}
 }

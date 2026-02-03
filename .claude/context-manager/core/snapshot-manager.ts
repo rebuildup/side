@@ -4,13 +4,9 @@
  * Manages session snapshots for state preservation and restoration.
  */
 
-import {
-  ClaudeSession,
-  SnapshotRef,
-  SnapshotOptions,
-} from '../types';
-import { SessionStore } from '../storage/session-store';
-import { createHash } from 'crypto';
+import { createHash } from "node:crypto";
+import type { SessionStore } from "../storage/session-store";
+import type { SnapshotOptions, SnapshotRef } from "../types";
 
 /**
  * Snapshot Manager
@@ -27,20 +23,13 @@ export class SnapshotManager {
   /**
    * Create a snapshot for a session
    */
-  async createSnapshot(
-    sessionId: string,
-    options: SnapshotOptions = {}
-  ): Promise<SnapshotRef> {
+  async createSnapshot(sessionId: string, options: SnapshotOptions = {}): Promise<SnapshotRef> {
     const session = this.store.get(sessionId);
     if (!session) {
       throw new Error(`Session ${sessionId} not found`);
     }
 
-    const {
-      description,
-      includeMetrics = true,
-      includeEvents = true,
-    } = options;
+    const { description, includeMetrics = true, includeEvents = true } = options;
 
     const snapshotRef: SnapshotRef = {
       commitHash: this.generateCommitHash(),
@@ -56,7 +45,7 @@ export class SnapshotManager {
     // Record snapshot event
     const snapshotEvent = {
       timestamp: snapshotRef.timestamp,
-      type: 'snapshot' as const,
+      type: "snapshot" as const,
       data: {
         commitHash: snapshotRef.commitHash,
         description: snapshotRef.description,
@@ -90,16 +79,13 @@ export class SnapshotManager {
    */
   getSnapshot(sessionId: string, commitHash: string): SnapshotRef | null {
     const snapshots = this.getSnapshots(sessionId);
-    return snapshots.find(s => s.commitHash === commitHash) || null;
+    return snapshots.find((s) => s.commitHash === commitHash) || null;
   }
 
   /**
    * Restore a session to a snapshot state
    */
-  async restoreSnapshot(
-    sessionId: string,
-    commitHash: string
-  ): Promise<void> {
+  async restoreSnapshot(sessionId: string, commitHash: string): Promise<void> {
     const session = this.store.get(sessionId);
     if (!session) {
       throw new Error(`Session ${sessionId} not found`);
@@ -115,16 +101,16 @@ export class SnapshotManager {
       metadata: {
         ...session.metadata,
         healthScore: snapshot.healthScore,
-        phase: 'restored',
+        phase: "restored",
       },
     });
 
     // Record restore event
     const restoreEvent = {
       timestamp: new Date().toISOString(),
-      type: 'snapshot' as const,
+      type: "snapshot" as const,
       data: {
-        action: 'restore',
+        action: "restore",
         commitHash,
         fromHealthScore: session.metadata.healthScore,
         toHealthScore: snapshot.healthScore,
@@ -149,37 +135,27 @@ export class SnapshotManager {
       throw new Error(`Session ${sessionId} not found`);
     }
 
-    const snapshots = session.snapshots.filter(s => s.commitHash !== commitHash);
+    const snapshots = session.snapshots.filter((s) => s.commitHash !== commitHash);
     this.store.update(sessionId, { snapshots });
   }
 
   /**
    * Find snapshots by health score range
    */
-  findSnapshotsByHealth(
-    sessionId: string,
-    minScore: number,
-    maxScore: number
-  ): SnapshotRef[] {
+  findSnapshotsByHealth(sessionId: string, minScore: number, maxScore: number): SnapshotRef[] {
     const snapshots = this.getSnapshots(sessionId);
-    return snapshots.filter(
-      s => s.healthScore >= minScore && s.healthScore <= maxScore
-    );
+    return snapshots.filter((s) => s.healthScore >= minScore && s.healthScore <= maxScore);
   }
 
   /**
    * Find snapshots by time range
    */
-  findSnapshotsByTime(
-    sessionId: string,
-    startTime: Date,
-    endTime: Date
-  ): SnapshotRef[] {
+  findSnapshotsByTime(sessionId: string, startTime: Date, endTime: Date): SnapshotRef[] {
     const snapshots = this.getSnapshots(sessionId);
     const start = startTime.getTime();
     const end = endTime.getTime();
 
-    return snapshots.filter(s => {
+    return snapshots.filter((s) => {
       const timestamp = new Date(s.timestamp).getTime();
       return timestamp >= start && timestamp <= end;
     });
@@ -215,9 +191,9 @@ export class SnapshotManager {
    * Generate a crypto-based commit hash for snapshots
    */
   private generateCommitHash(): string {
-    const hash = createHash('sha256')
+    const hash = createHash("sha256")
       .update(`${Date.now()}-${Math.random()}-${process.pid}`)
-      .digest('hex');
+      .digest("hex");
     return hash.substring(0, 12);
   }
 }

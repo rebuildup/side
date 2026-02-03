@@ -1,32 +1,32 @@
-import { useState, useCallback } from 'react';
-import { Download, Upload, Minus, Plus, GitBranch, Folder } from 'lucide-react';
-import type { GitStatus, GitFileStatus, GitRepoInfo } from '../types';
-import { GitFileRow } from './GitFileRow';
-import type { BranchStatus, GitBranch as GitBranchType, GitLogEntry } from '../hooks/useGitState';
+import { Download, Folder, GitBranch, Minus, Plus, Upload } from "lucide-react";
+import { useCallback, useState } from "react";
+import type { BranchStatus, GitBranch as GitBranchType, GitLogEntry } from "../hooks/useGitState";
+import type { GitFileStatus, GitRepoInfo, GitStatus } from "../types";
+import { GitFileRow } from "./GitFileRow";
 
-const LABEL_SOURCE_CONTROL = 'ソースコントロール';
-const LABEL_NOT_GIT_REPO = 'Gitリポジトリではありません';
-const LABEL_SELECT_WORKSPACE = 'ワークスペースを選択してください';
-const LABEL_LOADING = '読み込み中...';
-const LABEL_REFRESH = '更新';
-const LABEL_STAGED_CHANGES = 'ステージ済みの変更';
-const LABEL_CHANGES = '変更';
-const LABEL_COMMIT = 'コミット';
-const LABEL_COMMIT_PLACEHOLDER = 'コミットメッセージを入力...';
-const LABEL_NO_CHANGES = '変更はありません';
-const LABEL_STAGE_ALL = 'すべてステージ';
-const LABEL_UNSTAGE_ALL = 'すべてアンステージ';
-const LABEL_PUSH = 'Push';
-const LABEL_PULL = 'Pull';
-const LABEL_PUSHING = 'Pushing...';
-const LABEL_PULLING = 'Pulling...';
-const LABEL_BRANCHES = 'ブランチ';
-const LABEL_HISTORY = '履歴';
-const LABEL_NEW_BRANCH = '新規ブランチ';
-const LABEL_CREATE = '作成';
-const LABEL_CANCEL = 'キャンセル';
+const LABEL_SOURCE_CONTROL = "ソースコントロール";
+const LABEL_NOT_GIT_REPO = "Gitリポジトリではありません";
+const LABEL_SELECT_WORKSPACE = "ワークスペースを選択してください";
+const LABEL_LOADING = "読み込み中...";
+const LABEL_REFRESH = "更新";
+const LABEL_STAGED_CHANGES = "ステージ済みの変更";
+const LABEL_CHANGES = "変更";
+const LABEL_COMMIT = "コミット";
+const LABEL_COMMIT_PLACEHOLDER = "コミットメッセージを入力...";
+const LABEL_NO_CHANGES = "変更はありません";
+const LABEL_STAGE_ALL = "すべてステージ";
+const LABEL_UNSTAGE_ALL = "すべてアンステージ";
+const LABEL_PUSH = "Push";
+const LABEL_PULL = "Pull";
+const LABEL_PUSHING = "Pushing...";
+const LABEL_PULLING = "Pulling...";
+const LABEL_BRANCHES = "ブランチ";
+const LABEL_HISTORY = "履歴";
+const LABEL_NEW_BRANCH = "新規ブランチ";
+const LABEL_CREATE = "作成";
+const LABEL_CANCEL = "キャンセル";
 
-type TabType = 'changes' | 'branches' | 'history';
+type TabType = "changes" | "branches" | "history";
 
 interface SourceControlProps {
   status: GitStatus | null;
@@ -91,23 +91,23 @@ export function SourceControl({
   onLoadBranches,
   onCheckoutBranch,
   onCreateBranch,
-  onLoadLogs
+  onLoadLogs,
 }: SourceControlProps) {
-  const [commitMessage, setCommitMessage] = useState('');
-  const [activeTab, setActiveTab] = useState<TabType>('changes');
+  const [commitMessage, setCommitMessage] = useState("");
+  const [activeTab, setActiveTab] = useState<TabType>("changes");
   const [showNewBranchInput, setShowNewBranchInput] = useState(false);
-  const [newBranchName, setNewBranchName] = useState('');
+  const [newBranchName, setNewBranchName] = useState("");
 
   const handleCommit = useCallback(() => {
     if (commitMessage.trim()) {
       onCommit(commitMessage.trim());
-      setCommitMessage('');
+      setCommitMessage("");
     }
   }, [commitMessage, onCommit]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
         handleCommit();
       }
@@ -115,31 +115,34 @@ export function SourceControl({
     [handleCommit]
   );
 
-  const handleTabChange = useCallback((tab: TabType) => {
-    setActiveTab(tab);
-    if (tab === 'branches') {
-      onLoadBranches();
-    } else if (tab === 'history') {
-      onLoadLogs();
-    }
-  }, [onLoadBranches, onLoadLogs]);
+  const handleTabChange = useCallback(
+    (tab: TabType) => {
+      setActiveTab(tab);
+      if (tab === "branches") {
+        onLoadBranches();
+      } else if (tab === "history") {
+        onLoadLogs();
+      }
+    },
+    [onLoadBranches, onLoadLogs]
+  );
 
   const handleCreateBranch = useCallback(() => {
     if (newBranchName.trim()) {
       onCreateBranch(newBranchName.trim());
-      setNewBranchName('');
+      setNewBranchName("");
       setShowNewBranchInput(false);
     }
   }, [newBranchName, onCreateBranch]);
 
   const handleNewBranchKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === 'Enter') {
+      if (e.key === "Enter") {
         e.preventDefault();
         handleCreateBranch();
-      } else if (e.key === 'Escape') {
+      } else if (e.key === "Escape") {
         setShowNewBranchInput(false);
-        setNewBranchName('');
+        setNewBranchName("");
       }
     },
     [handleCreateBranch]
@@ -242,7 +245,7 @@ export function SourceControl({
           >
             <Download size={16} />
             {pulling ? LABEL_PULLING : LABEL_PULL}
-            {branchStatus?.behind ? ` (${branchStatus.behind})` : ''}
+            {branchStatus?.behind ? ` (${branchStatus.behind})` : ""}
           </button>
           <button
             type="button"
@@ -253,7 +256,7 @@ export function SourceControl({
           >
             <Upload size={16} />
             {pushing ? LABEL_PUSHING : LABEL_PUSH}
-            {branchStatus?.ahead ? ` (${branchStatus.ahead})` : ''}
+            {branchStatus?.ahead ? ` (${branchStatus.ahead})` : ""}
           </button>
         </div>
       )}
@@ -340,7 +343,6 @@ export function SourceControl({
               value={newBranchName}
               onChange={(e) => setNewBranchName(e.target.value)}
               onKeyDown={handleNewBranchKeyDown}
-              autoFocus
             />
             <button
               type="button"
@@ -355,18 +357,14 @@ export function SourceControl({
               className="chip"
               onClick={() => {
                 setShowNewBranchInput(false);
-                setNewBranchName('');
+                setNewBranchName("");
               }}
             >
               {LABEL_CANCEL}
             </button>
           </div>
         ) : (
-          <button
-            type="button"
-            className="chip"
-            onClick={() => setShowNewBranchInput(true)}
-          >
+          <button type="button" className="chip" onClick={() => setShowNewBranchInput(true)}>
             {LABEL_NEW_BRANCH}
           </button>
         )}
@@ -379,7 +377,7 @@ export function SourceControl({
             <button
               key={branch.name}
               type="button"
-              className={`branch-item ${branch.current ? 'current' : ''}`}
+              className={`branch-item ${branch.current ? "current" : ""}`}
               onClick={() => !branch.current && onCheckoutBranch(branch.name)}
               disabled={branch.current}
             >
@@ -417,7 +415,7 @@ export function SourceControl({
   );
 
   // Get the selected repo info
-  const selectedRepo = repos.find((r) => r.path === selectedRepoPath) || repos[0];
+  const _selectedRepo = repos.find((r) => r.path === selectedRepoPath) || repos[0];
   const hasMultipleRepos = repos.length > 1;
 
   return (
@@ -441,12 +439,12 @@ export function SourceControl({
           <Folder size={14} className="repo-icon" />
           <select
             className="repo-select"
-            value={selectedRepoPath || ''}
+            value={selectedRepoPath || ""}
             onChange={(e) => onSelectRepo(e.target.value)}
           >
             {repos.map((repo) => (
               <option key={repo.path} value={repo.path}>
-                {repo.name} ({repo.branch}) {repo.fileCount > 0 ? `• ${repo.fileCount}` : ''}
+                {repo.name} ({repo.branch}) {repo.fileCount > 0 ? `• ${repo.fileCount}` : ""}
               </option>
             ))}
           </select>
@@ -456,31 +454,31 @@ export function SourceControl({
       <div className="git-tabs">
         <button
           type="button"
-          className={`git-tab ${activeTab === 'changes' ? 'active' : ''}`}
-          onClick={() => handleTabChange('changes')}
+          className={`git-tab ${activeTab === "changes" ? "active" : ""}`}
+          onClick={() => handleTabChange("changes")}
         >
           {LABEL_CHANGES}
           {hasChanges && <span className="git-tab-count">{status.files.length}</span>}
         </button>
         <button
           type="button"
-          className={`git-tab ${activeTab === 'branches' ? 'active' : ''}`}
-          onClick={() => handleTabChange('branches')}
+          className={`git-tab ${activeTab === "branches" ? "active" : ""}`}
+          onClick={() => handleTabChange("branches")}
         >
           {LABEL_BRANCHES}
         </button>
         <button
           type="button"
-          className={`git-tab ${activeTab === 'history' ? 'active' : ''}`}
-          onClick={() => handleTabChange('history')}
+          className={`git-tab ${activeTab === "history" ? "active" : ""}`}
+          onClick={() => handleTabChange("history")}
         >
           {LABEL_HISTORY}
         </button>
       </div>
       <div className="panel-body source-control-body">
-        {activeTab === 'changes' && renderChangesTab()}
-        {activeTab === 'branches' && renderBranchesTab()}
-        {activeTab === 'history' && renderHistoryTab()}
+        {activeTab === "changes" && renderChangesTab()}
+        {activeTab === "branches" && renderBranchesTab()}
+        {activeTab === "history" && renderHistoryTab()}
       </div>
     </section>
   );

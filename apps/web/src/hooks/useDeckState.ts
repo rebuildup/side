@@ -1,6 +1,6 @@
-import { useCallback, useState } from 'react';
-import type { DeckState } from '../types';
-import { createEmptyDeckState } from '../utils';
+import { useCallback, useState } from "react";
+import type { DeckState } from "../types";
+import { createEmptyDeckState } from "../utils";
 
 export const useDeckState = () => {
   const [deckStates, setDeckStates] = useState<Record<string, DeckState>>({});
@@ -31,6 +31,6 @@ export const useDeckState = () => {
     deckStates,
     setDeckStates,
     updateDeckState,
-    initializeDeckStates
+    initializeDeckStates,
   };
 };

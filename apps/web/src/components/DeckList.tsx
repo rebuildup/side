@@ -11,17 +11,12 @@ interface DeckListProps {
   onCreate: () => void;
 }
 
-const LABEL_DECK = '\u30c7\u30c3\u30ad';
-const LABEL_MULTI = '\u8907\u6570\u4f5c\u6210\u53ef\u80fd';
-const LABEL_CREATE = '\u30c7\u30c3\u30ad\u4f5c\u6210';
-const LABEL_EMPTY = '\u30c7\u30c3\u30ad\u304c\u3042\u308a\u307e\u305b\u3093\u3002';
+const LABEL_DECK = "\u30c7\u30c3\u30ad";
+const LABEL_MULTI = "\u8907\u6570\u4f5c\u6210\u53ef\u80fd";
+const LABEL_CREATE = "\u30c7\u30c3\u30ad\u4f5c\u6210";
+const LABEL_EMPTY = "\u30c7\u30c3\u30ad\u304c\u3042\u308a\u307e\u305b\u3093\u3002";
 
-export function DeckList({
-  decks,
-  activeDeckId,
-  onSelect,
-  onCreate
-}: DeckListProps) {
+export function DeckList({ decks, activeDeckId, onSelect, onCreate }: DeckListProps) {
   return (
     <section className="panel deck-list">
       <div className="panel-header">
@@ -43,9 +38,7 @@ export function DeckList({
             <button
               key={deck.id}
               type="button"
-              className={`deck-item ${
-                deck.id === activeDeckId ? 'is-active' : ''
-              }`}
+              className={`deck-item ${deck.id === activeDeckId ? "is-active" : ""}`}
               onClick={() => onSelect(deck.id)}
             >
               <div className="deck-name">{deck.name}</div>

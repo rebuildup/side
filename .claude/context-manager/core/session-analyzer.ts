@@ -4,13 +4,13 @@
  * Analyzes session health, drift, and provides recommendations.
  */
 
-import {
+import { TopicDriftDetector } from "../detectors/topic-drift";
+import type {
   ClaudeSession,
   ControllerStatus,
-  HealthAnalysis,
   DriftDetectionResult,
-} from '../types';
-import { TopicDriftDetector } from '../detectors/topic-drift';
+  HealthAnalysis,
+} from "../types";
 
 /**
  * Session Analyzer
@@ -95,8 +95,7 @@ export class SessionAnalyzer {
   private analyzeActivity(session: ClaudeSession): number {
     const now = new Date();
     const lastUpdate = new Date(session.updatedAt);
-    const hoursSinceUpdate =
-      (now.getTime() - lastUpdate.getTime()) / (1000 * 60 * 60);
+    const hoursSinceUpdate = (now.getTime() - lastUpdate.getTime()) / (1000 * 60 * 60);
 
     // Decay over time: 1.0 at 0h, 0.5 at 2h, 0.0 at 4+ hours
     return Math.max(0, 1 - hoursSinceUpdate / 4);
@@ -143,32 +142,26 @@ export class SessionAnalyzer {
 
     if (factors.drift.driftScore > this.driftThreshold) {
       recommendations.push(
-        'High topic drift detected. Consider creating a snapshot and starting a new session.'
+        "High topic drift detected. Consider creating a snapshot and starting a new session."
       );
     }
 
     if (factors.errors > 0.5) {
-      recommendations.push(
-        'High error rate detected. Review recent errors for patterns.'
-      );
+      recommendations.push("High error rate detected. Review recent errors for patterns.");
     }
 
     if (factors.length > 0.7) {
       recommendations.push(
-        'Session is becoming lengthy. Consider compacting or creating a snapshot.'
+        "Session is becoming lengthy. Consider compacting or creating a snapshot."
       );
     }
 
     if (factors.activity < 0.3) {
-      recommendations.push(
-        'Session has been inactive. Consider ending or archiving.'
-      );
+      recommendations.push("Session has been inactive. Consider ending or archiving.");
     }
 
     if (session.metrics.retryCount > 5) {
-      recommendations.push(
-        'High retry count detected. This may indicate persistent issues.'
-      );
+      recommendations.push("High retry count detected. This may indicate persistent issues.");
     }
 
     return recommendations;
@@ -182,13 +175,13 @@ export class SessionAnalyzer {
     const driftResult = await this.analyzeDrift(session);
 
     // Determine state based on health score
-    let state: ControllerStatus['state'];
+    let state: ControllerStatus["state"];
     if (health.score >= 0.7) {
-      state = 'healthy';
+      state = "healthy";
     } else if (health.score >= 0.4) {
-      state = 'warning';
+      state = "warning";
     } else {
-      state = 'critical';
+      state = "critical";
     }
 
     return {
@@ -205,9 +198,7 @@ export class SessionAnalyzer {
    * Get timestamp of last compaction
    */
   private getLastCompactTime(session: ClaudeSession): string | undefined {
-    const compactEvent = session.events
-      .filter(e => e.type === 'compact')
-      .pop();
+    const compactEvent = session.events.filter((e) => e.type === "compact").pop();
 
     return compactEvent?.timestamp;
   }
@@ -220,9 +211,7 @@ export class SessionAnalyzer {
       return session.snapshots[session.snapshots.length - 1].timestamp;
     }
 
-    const snapshotEvent = session.events
-      .filter(e => e.type === 'snapshot')
-      .pop();
+    const snapshotEvent = session.events.filter((e) => e.type === "snapshot").pop();
 
     return snapshotEvent?.timestamp;
   }
@@ -232,7 +221,7 @@ export class SessionAnalyzer {
    */
   setDriftThreshold(threshold: number): void {
     if (threshold < 0 || threshold > 1) {
-      throw new Error('Drift threshold must be between 0 and 1');
+      throw new Error("Drift threshold must be between 0 and 1");
     }
     this.driftThreshold = threshold;
   }

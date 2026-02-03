@@ -1,21 +1,21 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
-import { ChevronRight, Folder, File } from 'lucide-react';
-import type { FileTreeNode, GitFileStatus } from '../types';
+import { ChevronRight, File, Folder } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { FileTreeNode, GitFileStatus } from "../types";
 
-const LABEL_LOADING = '読み込み中...';
-const LABEL_FILES = 'ファイル';
-const LABEL_REFRESH = '更新';
-const LABEL_EMPTY = 'ファイルが見つかりません。';
-const LABEL_BACK = '戻る';
+const LABEL_LOADING = "読み込み中...";
+const LABEL_FILES = "ファイル";
+const LABEL_REFRESH = "更新";
+const LABEL_EMPTY = "ファイルが見つかりません。";
+const LABEL_BACK = "戻る";
 
 // Invalid filename characters for Windows and Unix systems
 const INVALID_FILENAME_CHARS = /[<>:"/\\|?*\x00-\x1F]/;
-const INVALID_FILENAME_CHARS_WIN = /[<>:"/\\|?*\x00-\x1F]/;
+const _INVALID_FILENAME_CHARS_WIN = /[<>:"/\\|?*\x00-\x1F]/;
 const RESERVED_NAMES_WIN = /^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])$/i;
 
 function validateFileName(name: string): { valid: boolean; error?: string } {
   if (!name || name.trim().length === 0) {
-    return { valid: false, error: 'ファイル名を入力してください' };
+    return { valid: false, error: "ファイル名を入力してください" };
   }
 
   // Check for invalid characters
@@ -25,38 +25,29 @@ function validateFileName(name: string): { valid: boolean; error?: string } {
 
   // Check for Windows reserved names
   if (RESERVED_NAMES_WIN.test(name)) {
-    return { valid: false, error: 'この名前は予約されています' };
+    return { valid: false, error: "この名前は予約されています" };
   }
 
   // Check for names ending with space or dot (invalid on Windows)
-  if (name.endsWith(' ') || name.endsWith('.')) {
-    return { valid: false, error: 'ファイル名はスペースまたはピリオドで終わることができません' };
+  if (name.endsWith(" ") || name.endsWith(".")) {
+    return { valid: false, error: "ファイル名はスペースまたはピリオドで終わることができません" };
   }
 
   return { valid: true };
 }
 
-function getGitStatusClass(
-  path: string,
-  gitFiles: GitFileStatus[] | undefined
-): string {
-  if (!gitFiles) return '';
+function getGitStatusClass(path: string, gitFiles: GitFileStatus[] | undefined): string {
+  if (!gitFiles) return "";
   const file = gitFiles.find((f) => f.path === path || path.endsWith(f.path));
-  if (!file) return '';
+  if (!file) return "";
   return `git-tree-${file.status}`;
 }
 
-const ChevronIcon = () => (
-  <ChevronRight size={14} className="tree-chevron-icon" />
-);
+const ChevronIcon = () => <ChevronRight size={14} className="tree-chevron-icon" />;
 
-const FolderIcon = () => (
-  <Folder size={16} className="tree-svg" />
-);
+const FolderIcon = () => <Folder size={16} className="tree-svg" />;
 
-const FileIcon = () => (
-  <File size={16} className="tree-svg" />
-);
+const FileIcon = () => <File size={16} className="tree-svg" />;
 
 interface ContextMenu {
   x: number;
@@ -67,7 +58,7 @@ interface ContextMenu {
 
 interface NewItemInput {
   parentPath: string;
-  type: 'file' | 'dir';
+  type: "file" | "dir";
   depth: number;
 }
 
@@ -76,7 +67,7 @@ interface FileTreeProps {
   entries?: FileTreeNode[];
   loading?: boolean;
   error?: string | null;
-  mode?: 'tree' | 'navigator';
+  mode?: "tree" | "navigator";
   canBack?: boolean;
   onBack?: () => void;
   onToggleDir: (node: FileTreeNode) => void;
@@ -94,7 +85,7 @@ export function FileTree({
   entries = [],
   loading,
   error,
-  mode = 'tree',
+  mode = "tree",
   canBack,
   onBack,
   onToggleDir,
@@ -104,11 +95,11 @@ export function FileTree({
   onCreateDirectory,
   onDeleteFile,
   onDeleteDirectory,
-  gitFiles
+  gitFiles,
 }: FileTreeProps) {
   const [contextMenu, setContextMenu] = useState<ContextMenu | null>(null);
   const [newItemInput, setNewItemInput] = useState<NewItemInput | null>(null);
-  const [inputValue, setInputValue] = useState('');
+  const [inputValue, setInputValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const treeRef = useRef<HTMLDivElement>(null);
 
@@ -118,8 +109,8 @@ export function FileTree({
   useEffect(() => {
     const handleClickOutside = () => setContextMenu(null);
     if (contextMenu) {
-      document.addEventListener('click', handleClickOutside);
-      return () => document.removeEventListener('click', handleClickOutside);
+      document.addEventListener("click", handleClickOutside);
+      return () => document.removeEventListener("click", handleClickOutside);
     }
   }, [contextMenu]);
 
@@ -130,41 +121,51 @@ export function FileTree({
     }
   }, [newItemInput]);
 
-  const handleContextMenu = useCallback((e: React.MouseEvent, node: FileTreeNode | null, isRoot = false) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setContextMenu({
-      x: e.clientX,
-      y: e.clientY,
-      node,
-      isRoot
-    });
-  }, []);
+  const handleContextMenu = useCallback(
+    (e: React.MouseEvent, node: FileTreeNode | null, isRoot = false) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setContextMenu({
+        x: e.clientX,
+        y: e.clientY,
+        node,
+        isRoot,
+      });
+    },
+    []
+  );
 
   const handleNewFile = useCallback((parentPath: string, depth: number) => {
     setContextMenu(null);
-    setNewItemInput({ parentPath, type: 'file', depth });
-    setInputValue('');
+    setNewItemInput({ parentPath, type: "file", depth });
+    setInputValue("");
   }, []);
 
   const handleNewFolder = useCallback((parentPath: string, depth: number) => {
     setContextMenu(null);
-    setNewItemInput({ parentPath, type: 'dir', depth });
-    setInputValue('');
+    setNewItemInput({ parentPath, type: "dir", depth });
+    setInputValue("");
   }, []);
 
-  const handleDelete = useCallback((node: FileTreeNode) => {
-    setContextMenu(null);
-    if (node.type === 'dir') {
-      if (window.confirm(`フォルダ "${node.name}" を削除しますか？\n中のファイルも全て削除されます。`)) {
-        onDeleteDirectory?.(node.path);
+  const handleDelete = useCallback(
+    (node: FileTreeNode) => {
+      setContextMenu(null);
+      if (node.type === "dir") {
+        if (
+          window.confirm(
+            `フォルダ "${node.name}" を削除しますか？\n中のファイルも全て削除されます。`
+          )
+        ) {
+          onDeleteDirectory?.(node.path);
+        }
+      } else {
+        if (window.confirm(`ファイル "${node.name}" を削除しますか？`)) {
+          onDeleteFile?.(node.path);
+        }
       }
-    } else {
-      if (window.confirm(`ファイル "${node.name}" を削除しますか？`)) {
-        onDeleteFile?.(node.path);
-      }
-    }
-  }, [onDeleteFile, onDeleteDirectory]);
+    },
+    [onDeleteFile, onDeleteDirectory]
+  );
 
   const handleInputSubmit = useCallback(() => {
     if (!newItemInput || !inputValue.trim()) {
@@ -176,38 +177,38 @@ export function FileTree({
     // Validate filename
     const validation = validateFileName(name);
     if (!validation.valid) {
-      alert(validation.error || '無効なファイル名です');
-      setInputValue('');
+      alert(validation.error || "無効なファイル名です");
+      setInputValue("");
       inputRef.current?.focus();
       return;
     }
 
-    if (newItemInput.type === 'file') {
+    if (newItemInput.type === "file") {
       onCreateFile?.(newItemInput.parentPath, name);
     } else {
       onCreateDirectory?.(newItemInput.parentPath, name);
     }
     setNewItemInput(null);
-    setInputValue('');
+    setInputValue("");
   }, [newItemInput, inputValue, onCreateFile, onCreateDirectory]);
 
-  const handleInputKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleInputSubmit();
-    } else if (e.key === 'Escape') {
-      setNewItemInput(null);
-    }
-  }, [handleInputSubmit]);
+  const handleInputKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter") {
+        handleInputSubmit();
+      } else if (e.key === "Escape") {
+        setNewItemInput(null);
+      }
+    },
+    [handleInputSubmit]
+  );
 
   const renderNewItemInput = (depth: number) => {
     if (!newItemInput || newItemInput.depth !== depth) return null;
     return (
-      <div
-        className="tree-row tree-input-row"
-        style={{ paddingLeft: 12 + depth * 16 }}
-      >
+      <div className="tree-row tree-input-row" style={{ paddingLeft: 12 + depth * 16 }}>
         <span className="tree-icon" aria-hidden="true">
-          {newItemInput.type === 'dir' ? <FolderIcon /> : <FileIcon />}
+          {newItemInput.type === "dir" ? <FolderIcon /> : <FileIcon />}
         </span>
         <input
           ref={inputRef}
@@ -217,48 +218,43 @@ export function FileTree({
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleInputKeyDown}
           onBlur={handleInputSubmit}
-          placeholder={newItemInput.type === 'dir' ? 'フォルダ名' : 'ファイル名'}
+          placeholder={newItemInput.type === "dir" ? "フォルダ名" : "ファイル名"}
         />
       </div>
     );
   };
 
-  const renderEntries = (
-    nodeEntries: FileTreeNode[],
-    depth: number
-  ): JSX.Element[] =>
+  const renderEntries = (nodeEntries: FileTreeNode[], depth: number): JSX.Element[] =>
     nodeEntries.map((entry) => {
-      const gitClass = entry.type === 'file' ? getGitStatusClass(entry.path, gitFiles) : '';
+      const gitClass = entry.type === "file" ? getGitStatusClass(entry.path, gitFiles) : "";
       return (
         <div key={entry.path}>
           <button
             type="button"
             className={`tree-row ${
-              entry.type === 'dir' ? 'is-dir' : ''
-            } ${mode === 'tree' && entry.expanded ? 'is-open' : ''} ${gitClass}`}
+              entry.type === "dir" ? "is-dir" : ""
+            } ${mode === "tree" && entry.expanded ? "is-open" : ""} ${gitClass}`}
             style={{ paddingLeft: 12 + depth * 16 }}
-            onClick={() =>
-              entry.type === 'dir' ? onToggleDir(entry) : onOpenFile(entry)
-            }
+            onClick={() => (entry.type === "dir" ? onToggleDir(entry) : onOpenFile(entry))}
             onContextMenu={(e) => handleContextMenu(e, entry)}
-            aria-expanded={
-              entry.type === 'dir' && mode === 'tree' ? entry.expanded : undefined
-            }
+            aria-expanded={entry.type === "dir" && mode === "tree" ? entry.expanded : undefined}
             title={entry.path}
           >
             <span className="tree-chevron" aria-hidden="true">
-              {entry.type === 'dir' ? <ChevronIcon /> : null}
+              {entry.type === "dir" ? <ChevronIcon /> : null}
             </span>
             <span className={`tree-icon ${entry.type}`} aria-hidden="true">
-              {entry.type === 'dir' ? <FolderIcon /> : <FileIcon />}
+              {entry.type === "dir" ? <FolderIcon /> : <FileIcon />}
             </span>
             <span className="tree-label">{entry.name}</span>
             {entry.loading ? <span className="tree-meta">{LABEL_LOADING}</span> : null}
           </button>
-          {mode === 'tree' && entry.expanded && entry.type === 'dir' && (
+          {mode === "tree" && entry.expanded && entry.type === "dir" && (
             <>
               {newItemInput?.parentPath === entry.path && renderNewItemInput(depth + 1)}
-              {entry.children && entry.children.length > 0 && renderEntries(entry.children, depth + 1)}
+              {entry.children &&
+                entry.children.length > 0 &&
+                renderEntries(entry.children, depth + 1)}
             </>
           )}
         </div>
@@ -274,12 +270,7 @@ export function FileTree({
         </div>
         <div className="tree-actions">
           {onBack ? (
-            <button
-              type="button"
-              className="chip"
-              onClick={onBack}
-              disabled={canBack === false}
-            >
+            <button type="button" className="chip" onClick={onBack} disabled={canBack === false}>
               {LABEL_BACK}
             </button>
           ) : null}
@@ -288,16 +279,13 @@ export function FileTree({
           </button>
         </div>
       </div>
-      <div
-        className="panel-body tree-body"
-        onContextMenu={(e) => handleContextMenu(e, null, true)}
-      >
+      <div className="panel-body tree-body" onContextMenu={(e) => handleContextMenu(e, null, true)}>
         {loading ? <div className="tree-state">{LABEL_LOADING}</div> : null}
         {error ? <div className="tree-state error">{error}</div> : null}
         {safeEntries.length === 0 && !loading ? (
           <div className="tree-state">{LABEL_EMPTY}</div>
         ) : null}
-        {newItemInput?.parentPath === '' && renderNewItemInput(0)}
+        {newItemInput?.parentPath === "" && renderNewItemInput(0)}
         {renderEntries(safeEntries, 0)}
       </div>
 
@@ -308,19 +296,23 @@ export function FileTree({
           style={{ left: contextMenu.x, top: contextMenu.y }}
           onClick={(e) => e.stopPropagation()}
         >
-          {(contextMenu.isRoot || contextMenu.node?.type === 'dir') && (
+          {(contextMenu.isRoot || contextMenu.node?.type === "dir") && (
             <>
               <button
                 type="button"
                 className="context-menu-item"
-                onClick={() => handleNewFile(contextMenu.node?.path || '', contextMenu.node ? 1 : 0)}
+                onClick={() =>
+                  handleNewFile(contextMenu.node?.path || "", contextMenu.node ? 1 : 0)
+                }
               >
                 新規ファイル
               </button>
               <button
                 type="button"
                 className="context-menu-item"
-                onClick={() => handleNewFolder(contextMenu.node?.path || '', contextMenu.node ? 1 : 0)}
+                onClick={() =>
+                  handleNewFolder(contextMenu.node?.path || "", contextMenu.node ? 1 : 0)
+                }
               >
                 新規フォルダ
               </button>
@@ -328,7 +320,7 @@ export function FileTree({
           )}
           {contextMenu.node && !contextMenu.isRoot && (
             <>
-              {contextMenu.node.type === 'dir' && <div className="context-menu-separator" />}
+              {contextMenu.node.type === "dir" && <div className="context-menu-separator" />}
               <button
                 type="button"
                 className="context-menu-item delete"

@@ -6,20 +6,34 @@
   "scripts": {
     "dev": "tsx src/index.ts",
     "build": "tsc",
+    "type-check": "tsc --noEmit",
     "serve": "node dist/index.js",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "bundle": "tsc && pkg dist/index.js -t node18-win-x64 -o ../desktop/src-tauri/resources/server.exe --options package"
+  },
+  "pkg": {
+    "assets": [
+      "src/**/*"
+    ],
+    "targets": [
+      "node18-win-x64"
+    ],
+    "outputPath": "bundle"
   },
   "dependencies": {
-    "@side-ide/shared": "file:../../packages/shared",
     "@hono/node-server": "^1.13.0",
+    "@side-ide/shared": "file:../../packages/shared",
+    "better-sqlite3": "^12.6.2",
     "hono": "^4.6.0",
     "node-pty": "^1.0.0",
     "simple-git": "^3.27.0",
+    "toml": "^3.0.0",
     "ws": "^8.18.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
     "@types/ws": "^8.5.13",
+    "pkg": "^5.8.1",
     "tsx": "^4.19.2",
     "typescript": "^5.6.3"
   }

@@ -1,22 +1,23 @@
 [package]
-name = "deck-ide-desktop"
+name = "side-desktop"
 version = "2.0.0"
-description = "Deck IDE Desktop"
-authors = ["Deck IDE"]
+description = "S-IDE Desktop"
+authors = ["rebuildup"]
 license = "MIT"
-repository = ""
+repository = "https://github.com/rebuildup/side"
 edition = "2021"
 
 [build-dependencies]
 tauri-build = { version = "2.0", features = [] }
 
 [dependencies]
-tauri = { version = "2.0", features = ["shell-open"] }
+tauri = { version = "2.0", features = [] }
 tauri-plugin-shell = "2.0"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tokio = { version = "1", features = ["full"] }
 sysinfo = "0.30"
+which = "7"
 
 [features]
 default = ["custom-protocol"]

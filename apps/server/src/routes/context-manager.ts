@@ -5,9 +5,9 @@
  * Provides session management, health monitoring, compaction, and snapshot capabilities.
  */
 
-import { randomUUID } from 'node:crypto';
-import { Hono } from 'hono';
-import { handleError, readJson } from '../utils/error.js';
+import { randomUUID } from "node:crypto";
+import { Hono } from "hono";
+import { handleError, readJson } from "../utils/error.js";
 
 // Context Manager singleton instance with lazy initialization
 let contextManagerInstance: any = null;
@@ -18,19 +18,21 @@ async function getContextManager() {
   if (!contextManagerInstance) {
     try {
       // Dynamic import using eval to completely bypass TypeScript type checking
-      const importFn = new Function('return import("../../../../.claude/context-manager/index.js")');
+      const importFn = new Function(
+        'return import("../../../../.claude/context-manager/index.js")'
+      );
       const contextManagerModule = await importFn();
       contextManagerInstance = contextManagerModule.createContextManager({
-        sessionsDir: '.claude/sessions',
+        sessionsDir: ".claude/sessions",
         autoCompactThreshold: 100,
         healthCheckInterval: 60000,
         driftThreshold: 0.7,
       });
       // Start auto-monitoring
       contextManagerInstance.start();
-      console.log('[CONTEXT] Context Manager initialized and started');
+      console.log("[CONTEXT] Context Manager initialized and started");
     } catch (error) {
-      console.error('Failed to initialize ContextManager:', error);
+      console.error("Failed to initialize ContextManager:", error);
       return null;
     }
   }
@@ -98,20 +100,23 @@ export function createContextManagerRouter() {
    *
    * Get current health status of the context manager
    */
-  router.get('/status', async (c) => {
+  router.get("/status", async (c) => {
     try {
       const cm = await getContextManager();
       if (!cm) {
-        return c.json<ContextManagerStatus>({
-          sessionId: null,
-          healthScore: 0,
-          driftScore: 0,
-          phase: 'unavailable',
-          messageCount: 0,
-          tokenCount: 0,
-          recommendations: ['Context manager not available'],
-          needsAttention: true,
-        }, 503);
+        return c.json<ContextManagerStatus>(
+          {
+            sessionId: null,
+            healthScore: 0,
+            driftScore: 0,
+            phase: "unavailable",
+            messageCount: 0,
+            tokenCount: 0,
+            recommendations: ["Context manager not available"],
+            needsAttention: true,
+          },
+          503
+        );
       }
 
       const status = await cm.getStatus();
@@ -122,7 +127,7 @@ export function createContextManagerRouter() {
           sessionId: null,
           healthScore: 100,
           driftScore: 0,
-          phase: 'idle',
+          phase: "idle",
           messageCount: 0,
           tokenCount: 0,
           recommendations: [],
@@ -150,17 +155,17 @@ export function createContextManagerRouter() {
    *
    * Create a new session
    */
-  router.post('/session', async (c) => {
+  router.post("/session", async (c) => {
     try {
       const cm = await getContextManager();
       if (!cm) {
-        return c.json({ error: 'Context manager not available' }, 503);
+        return c.json({ error: "Context manager not available" }, 503);
       }
 
       const body = await readJson<CreateSessionRequest>(c);
 
       if (!body || !body.initialPrompt) {
-        return c.json({ error: 'initialPrompt is required' }, 400);
+        return c.json({ error: "initialPrompt is required" }, 400);
       }
 
       // Generate session ID if not provided
@@ -170,10 +175,13 @@ export function createContextManagerRouter() {
       // Create the session
       cm.createSession(sessionId, body.initialPrompt);
 
-      return c.json<CreateSessionResponse>({
-        sessionId,
-        createdAt,
-      }, 201);
+      return c.json<CreateSessionResponse>(
+        {
+          sessionId,
+          createdAt,
+        },
+        201
+      );
     } catch (error) {
       return handleError(c, error);
     }
@@ -184,17 +192,17 @@ export function createContextManagerRouter() {
    *
    * Get the current active session
    */
-  router.get('/session', async (c) => {
+  router.get("/session", async (c) => {
     try {
       const cm = await getContextManager();
       if (!cm) {
-        return c.json({ error: 'Context manager not available' }, 503);
+        return c.json({ error: "Context manager not available" }, 503);
       }
 
       const session = cm.getCurrentSession();
 
       if (!session) {
-        return c.json({ error: 'No active session' }, 404);
+        return c.json({ error: "No active session" }, 404);
       }
 
       return c.json(session);
@@ -208,24 +216,24 @@ export function createContextManagerRouter() {
    *
    * End the current session
    */
-  router.delete('/session', async (c) => {
+  router.delete("/session", async (c) => {
     try {
       const cm = await getContextManager();
       if (!cm) {
-        return c.json({ error: 'Context manager not available' }, 503);
+        return c.json({ error: "Context manager not available" }, 503);
       }
 
       const currentSession = cm.getCurrentSession();
 
       if (!currentSession) {
-        return c.json({ error: 'No active session' }, 404);
+        return c.json({ error: "No active session" }, 404);
       }
 
       cm.endSession(currentSession.id);
 
       return c.json({
         sessionId: currentSession.id,
-        message: 'Session ended successfully',
+        message: "Session ended successfully",
       });
     } catch (error) {
       return handleError(c, error);
@@ -237,17 +245,17 @@ export function createContextManagerRouter() {
    *
    * Trigger compaction of the current session
    */
-  router.post('/compact', async (c) => {
+  router.post("/compact", async (c) => {
     try {
       const cm = await getContextManager();
       if (!cm) {
-        return c.json({ error: 'Context manager not available' }, 503);
+        return c.json({ error: "Context manager not available" }, 503);
       }
 
       const currentSession = cm.getCurrentSession();
 
       if (!currentSession) {
-        return c.json({ error: 'No active session to compact' }, 404);
+        return c.json({ error: "No active session to compact" }, 404);
       }
 
       // Read optional compaction options
@@ -278,29 +286,32 @@ export function createContextManagerRouter() {
    *
    * Create a snapshot of the current session
    */
-  router.post('/snapshot', async (c) => {
+  router.post("/snapshot", async (c) => {
     try {
       const cm = await getContextManager();
       if (!cm) {
-        return c.json({ error: 'Context manager not available' }, 503);
+        return c.json({ error: "Context manager not available" }, 503);
       }
 
       const currentSession = cm.getCurrentSession();
 
       if (!currentSession) {
-        return c.json({ error: 'No active session to snapshot' }, 404);
+        return c.json({ error: "No active session to snapshot" }, 404);
       }
 
       // Read optional snapshot options
       const body = await readJson<{ description?: string }>(c);
       const snapshot = await cm.createSnapshot(body?.description);
 
-      return c.json<SnapshotResponse>({
-        commitHash: snapshot.commitHash,
-        timestamp: snapshot.timestamp,
-        healthScore: snapshot.healthScore,
-        description: snapshot.description,
-      }, 201);
+      return c.json<SnapshotResponse>(
+        {
+          commitHash: snapshot.commitHash,
+          timestamp: snapshot.timestamp,
+          healthScore: snapshot.healthScore,
+          description: snapshot.description,
+        },
+        201
+      );
     } catch (error) {
       return handleError(c, error);
     }
@@ -311,11 +322,11 @@ export function createContextManagerRouter() {
    *
    * List all snapshots for the current session
    */
-  router.get('/snapshots', async (c) => {
+  router.get("/snapshots", async (c) => {
     try {
       const cm = await getContextManager();
       if (!cm) {
-        return c.json({ error: 'Context manager not available' }, 503);
+        return c.json({ error: "Context manager not available" }, 503);
       }
 
       const snapshots = cm.getSnapshots();
@@ -339,17 +350,17 @@ export function createContextManagerRouter() {
    *
    * Get the latest snapshot
    */
-  router.get('/snapshots/latest', async (c) => {
+  router.get("/snapshots/latest", async (c) => {
     try {
       const cm = await getContextManager();
       if (!cm) {
-        return c.json({ error: 'Context manager not available' }, 503);
+        return c.json({ error: "Context manager not available" }, 503);
       }
 
       const snapshot = cm.getLatestSnapshot();
 
       if (!snapshot) {
-        return c.json({ error: 'No snapshots found' }, 404);
+        return c.json({ error: "No snapshots found" }, 404);
       }
 
       return c.json<SnapshotResponse>({
@@ -368,17 +379,17 @@ export function createContextManagerRouter() {
    *
    * Get the healthiest snapshot
    */
-  router.get('/snapshots/healthiest', async (c) => {
+  router.get("/snapshots/healthiest", async (c) => {
     try {
       const cm = await getContextManager();
       if (!cm) {
-        return c.json({ error: 'Context manager not available' }, 503);
+        return c.json({ error: "Context manager not available" }, 503);
       }
 
       const snapshot = cm.getHealthiestSnapshot();
 
       if (!snapshot) {
-        return c.json({ error: 'No snapshots found' }, 404);
+        return c.json({ error: "No snapshots found" }, 404);
       }
 
       return c.json<SnapshotResponse>({
@@ -397,24 +408,24 @@ export function createContextManagerRouter() {
    *
    * Restore a session from a snapshot
    */
-  router.post('/snapshots/:commitHash/restore', async (c) => {
+  router.post("/snapshots/:commitHash/restore", async (c) => {
     try {
       const cm = await getContextManager();
       if (!cm) {
-        return c.json({ error: 'Context manager not available' }, 503);
+        return c.json({ error: "Context manager not available" }, 503);
       }
 
-      const commitHash = c.req.param('commitHash');
+      const commitHash = c.req.param("commitHash");
 
       if (!commitHash) {
-        return c.json({ error: 'commitHash is required' }, 400);
+        return c.json({ error: "commitHash is required" }, 400);
       }
 
       await cm.restoreSnapshot(commitHash);
 
       return c.json({
         commitHash,
-        message: 'Snapshot restored successfully',
+        message: "Snapshot restored successfully",
       });
     } catch (error) {
       return handleError(c, error);
@@ -426,11 +437,11 @@ export function createContextManagerRouter() {
    *
    * Get overall statistics for all sessions
    */
-  router.get('/stats', async (c) => {
+  router.get("/stats", async (c) => {
     try {
       const cm = await getContextManager();
       if (!cm) {
-        return c.json({ error: 'Context manager not available' }, 503);
+        return c.json({ error: "Context manager not available" }, 503);
       }
 
       const stats = cm.getStats();
@@ -446,11 +457,11 @@ export function createContextManagerRouter() {
    *
    * List all sessions
    */
-  router.get('/sessions', async (c) => {
+  router.get("/sessions", async (c) => {
     try {
       const cm = await getContextManager();
       if (!cm) {
-        return c.json({ error: 'Context manager not available' }, 503);
+        return c.json({ error: "Context manager not available" }, 503);
       }
 
       const sessions = cm.listSessions();
@@ -469,23 +480,23 @@ export function createContextManagerRouter() {
    *
    * Get a specific session by ID
    */
-  router.get('/sessions/:sessionId', async (c) => {
+  router.get("/sessions/:sessionId", async (c) => {
     try {
       const cm = await getContextManager();
       if (!cm) {
-        return c.json({ error: 'Context manager not available' }, 503);
+        return c.json({ error: "Context manager not available" }, 503);
       }
 
-      const sessionId = c.req.param('sessionId');
+      const sessionId = c.req.param("sessionId");
 
       if (!sessionId) {
-        return c.json({ error: 'sessionId is required' }, 400);
+        return c.json({ error: "sessionId is required" }, 400);
       }
 
       const session = cm.getSession(sessionId);
 
       if (!session) {
-        return c.json({ error: 'Session not found' }, 404);
+        return c.json({ error: "Session not found" }, 404);
       }
 
       return c.json(session);
@@ -499,24 +510,24 @@ export function createContextManagerRouter() {
    *
    * Delete a specific session
    */
-  router.delete('/sessions/:sessionId', async (c) => {
+  router.delete("/sessions/:sessionId", async (c) => {
     try {
       const cm = await getContextManager();
       if (!cm) {
-        return c.json({ error: 'Context manager not available' }, 503);
+        return c.json({ error: "Context manager not available" }, 503);
       }
 
-      const sessionId = c.req.param('sessionId');
+      const sessionId = c.req.param("sessionId");
 
       if (!sessionId) {
-        return c.json({ error: 'sessionId is required' }, 400);
+        return c.json({ error: "sessionId is required" }, 400);
       }
 
       cm.deleteSession(sessionId);
 
       return c.json({
         sessionId,
-        message: 'Session deleted successfully',
+        message: "Session deleted successfully",
       });
     } catch (error) {
       return handleError(c, error);
@@ -528,24 +539,24 @@ export function createContextManagerRouter() {
    *
    * Track a user or assistant message
    */
-  router.post('/track/message', async (c) => {
+  router.post("/track/message", async (c) => {
     try {
       const cm = await getContextManager();
       if (!cm) {
-        return c.json({ error: 'Context manager not available' }, 503);
+        return c.json({ error: "Context manager not available" }, 503);
       }
 
-      const body = await readJson<{ role: 'user' | 'assistant'; content: string }>(c);
+      const body = await readJson<{ role: "user" | "assistant"; content: string }>(c);
 
       if (!body || !body.role || !body.content) {
-        return c.json({ error: 'role and content are required' }, 400);
+        return c.json({ error: "role and content are required" }, 400);
       }
 
       cm.trackMessage(body.role, body.content);
 
       return c.json({
         role: body.role,
-        message: 'Message tracked successfully',
+        message: "Message tracked successfully",
       });
     } catch (error) {
       return handleError(c, error);
@@ -557,24 +568,24 @@ export function createContextManagerRouter() {
    *
    * Track a tool execution
    */
-  router.post('/track/tool', async (c) => {
+  router.post("/track/tool", async (c) => {
     try {
       const cm = await getContextManager();
       if (!cm) {
-        return c.json({ error: 'Context manager not available' }, 503);
+        return c.json({ error: "Context manager not available" }, 503);
       }
 
       const body = await readJson<{ name: string; args: unknown; result: unknown }>(c);
 
       if (!body || !body.name) {
-        return c.json({ error: 'name is required' }, 400);
+        return c.json({ error: "name is required" }, 400);
       }
 
       cm.trackTool(body.name, body.args, body.result);
 
       return c.json({
         name: body.name,
-        message: 'Tool execution tracked successfully',
+        message: "Tool execution tracked successfully",
       });
     } catch (error) {
       return handleError(c, error);
@@ -586,23 +597,23 @@ export function createContextManagerRouter() {
    *
    * Track an error
    */
-  router.post('/track/error', async (c) => {
+  router.post("/track/error", async (c) => {
     try {
       const cm = await getContextManager();
       if (!cm) {
-        return c.json({ error: 'Context manager not available' }, 503);
+        return c.json({ error: "Context manager not available" }, 503);
       }
 
       const body = await readJson<{ error: string | Error }>(c);
 
       if (!body || !body.error) {
-        return c.json({ error: 'error is required' }, 400);
+        return c.json({ error: "error is required" }, 400);
       }
 
       cm.trackError(body.error);
 
       return c.json({
-        message: 'Error tracked successfully',
+        message: "Error tracked successfully",
       });
     } catch (error) {
       return handleError(c, error);
@@ -614,11 +625,11 @@ export function createContextManagerRouter() {
    *
    * Analyze topic drift for the current session
    */
-  router.get('/drift', async (c) => {
+  router.get("/drift", async (c) => {
     try {
       const cm = await getContextManager();
       if (!cm) {
-        return c.json({ error: 'Context manager not available' }, 503);
+        return c.json({ error: "Context manager not available" }, 503);
       }
 
       const result = await cm.analyzeDrift();
@@ -627,7 +638,7 @@ export function createContextManagerRouter() {
         return c.json({
           driftScore: 0,
           needsDeepAnalysis: false,
-          message: 'No active session',
+          message: "No active session",
         });
       }
 
@@ -642,29 +653,29 @@ export function createContextManagerRouter() {
    *
    * Trim conversation output
    */
-  router.post('/trim', async (c) => {
+  router.post("/trim", async (c) => {
     try {
       const cm = await getContextManager();
       if (!cm) {
-        return c.json({ error: 'Context manager not available' }, 503);
+        return c.json({ error: "Context manager not available" }, 503);
       }
 
       const currentSession = cm.getCurrentSession();
 
       if (!currentSession) {
-        return c.json({ error: 'No active session' }, 404);
+        return c.json({ error: "No active session" }, 404);
       }
 
       // Read optional trim options
       const body = await readJson<{
         maxOutputLength?: number;
-        trimMethod?: 'truncate' | 'ellipsis' | 'smart';
+        trimMethod?: "truncate" | "ellipsis" | "smart";
       }>(c);
 
       const result = cm.trimOutput(body || {});
 
       if (!result) {
-        return c.json({ error: 'Failed to trim output' }, 500);
+        return c.json({ error: "Failed to trim output" }, 500);
       }
 
       return c.json(result);
@@ -678,11 +689,11 @@ export function createContextManagerRouter() {
    *
    * Start auto-monitoring
    */
-  router.post('/start', async (c) => {
+  router.post("/start", async (c) => {
     try {
       const cm = await getContextManager();
       if (!cm) {
-        return c.json({ error: 'Context manager not available' }, 503);
+        return c.json({ error: "Context manager not available" }, 503);
       }
 
       cm.start();
@@ -697,11 +708,11 @@ export function createContextManagerRouter() {
    *
    * Stop auto-monitoring
    */
-  router.post('/stop', async (c) => {
+  router.post("/stop", async (c) => {
     try {
       const cm = await getContextManager();
       if (!cm) {
-        return c.json({ error: 'Context manager not available' }, 503);
+        return c.json({ error: "Context manager not available" }, 503);
       }
 
       cm.stop();

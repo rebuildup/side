@@ -1,5 +1,5 @@
-import { ChevronDown, ChevronRight, Tag, Plus, Trash2, Edit2 } from 'lucide-react';
-import type { TerminalGroup } from '../types';
+import { ChevronDown, ChevronRight, Edit2, Plus, Tag, Trash2 } from "lucide-react";
+import type { TerminalGroup } from "../types";
 
 interface TerminalGroupHeaderProps {
   group: TerminalGroup;
@@ -16,20 +16,12 @@ export function TerminalGroupHeader({
   onToggleCollapsed,
   onCreateTerminal,
   onDeleteGroup,
-  onRenameGroup
+  onRenameGroup,
 }: TerminalGroupHeaderProps) {
   return (
     <div className="terminal-group-header" style={{ borderTopColor: group.color }}>
-      <button
-        type="button"
-        className="terminal-group-toggle"
-        onClick={onToggleCollapsed}
-      >
-        {group.collapsed ? (
-          <ChevronRight size={14} />
-        ) : (
-          <ChevronDown size={14} />
-        )}
+      <button type="button" className="terminal-group-toggle" onClick={onToggleCollapsed}>
+        {group.collapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
         <span className="terminal-group-name">{group.name}</span>
         <span className="terminal-group-count">({terminalCount})</span>
       </button>
@@ -76,7 +68,7 @@ interface TerminalTagProps {
 
 export function TerminalTag({ tag, color }: TerminalTagProps) {
   return (
-    <span className="terminal-tag" style={{ borderColor: color || 'var(--border-dim)' }}>
+    <span className="terminal-tag" style={{ borderColor: color || "var(--border-dim)" }}>
       <Tag size={10} />
       {tag}
     </span>

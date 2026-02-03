@@ -1,4 +1,4 @@
-import { Component, type ReactNode } from 'react';
+import { Component, type ReactNode } from "react";
 
 interface Props {
   children: ReactNode;
@@ -20,8 +20,8 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Application error:', error);
-    console.error('Component stack:', errorInfo.componentStack);
+    console.error("Application error:", error);
+    console.error("Component stack:", errorInfo.componentStack);
   }
 
   handleReload = () => {

@@ -6,13 +6,13 @@
  * 2. LLM-based detailed analysis (only when keyword drift exceeds threshold)
  */
 
-import { ClaudeSession } from '../types';
+import type { ClaudeSession } from "../types";
 
 /**
  * Message structure for conversation tracking (local type for detector)
  */
 interface ClaudeMessage {
-  role: 'user' | 'assistant' | 'system';
+  role: "user" | "assistant" | "system";
   content: string;
   timestamp?: string;
 }
@@ -22,36 +22,140 @@ interface ClaudeMessage {
  */
 const TECH_KEYWORDS = new Set([
   // Languages
-  'javascript', 'typescript', 'python', 'java', 'go', 'rust', 'c++', 'csharp',
-  'jsx', 'tsx', 'html', 'css', 'scss', 'json', 'yaml', 'xml', 'sql',
+  "javascript",
+  "typescript",
+  "python",
+  "java",
+  "go",
+  "rust",
+  "c++",
+  "csharp",
+  "jsx",
+  "tsx",
+  "html",
+  "css",
+  "scss",
+  "json",
+  "yaml",
+  "xml",
+  "sql",
   // Frameworks
-  'react', 'vue', 'angular', 'svelte', 'next', 'nuxt', 'express', 'fastify',
-  'django', 'flask', 'spring', 'laravel', 'rails', 'nest', 'koa',
+  "react",
+  "vue",
+  "angular",
+  "svelte",
+  "next",
+  "nuxt",
+  "express",
+  "fastify",
+  "django",
+  "flask",
+  "spring",
+  "laravel",
+  "rails",
+  "nest",
+  "koa",
   // Tools
-  'git', 'docker', 'kubernetes', 'webpack', 'vite', 'eslint', 'prettier',
-  'jest', 'vitest', 'cypress', 'playwright', 'babel', 'tslint',
+  "git",
+  "docker",
+  "kubernetes",
+  "webpack",
+  "vite",
+  "eslint",
+  "prettier",
+  "jest",
+  "vitest",
+  "cypress",
+  "playwright",
+  "babel",
+  "tslint",
   // Concepts
-  'api', 'rest', 'graphql', 'grpc', 'websocket', 'http', 'https',
-  'database', 'sql', 'nosql', 'mongodb', 'postgresql', 'mysql', 'redis',
-  'authentication', 'authorization', 'jwt', 'oauth', 'session', 'cookie',
-  'component', 'hook', 'middleware', 'router', 'controller', 'service',
-  'interface', 'type', 'class', 'function', 'async', 'await', 'promise',
-  'frontend', 'backend', 'fullstack', 'devops', 'ci', 'cd',
+  "api",
+  "rest",
+  "graphql",
+  "grpc",
+  "websocket",
+  "http",
+  "https",
+  "database",
+  "sql",
+  "nosql",
+  "mongodb",
+  "postgresql",
+  "mysql",
+  "redis",
+  "authentication",
+  "authorization",
+  "jwt",
+  "oauth",
+  "session",
+  "cookie",
+  "component",
+  "hook",
+  "middleware",
+  "router",
+  "controller",
+  "service",
+  "interface",
+  "type",
+  "class",
+  "function",
+  "async",
+  "await",
+  "promise",
+  "frontend",
+  "backend",
+  "fullstack",
+  "devops",
+  "ci",
+  "cd",
   // Testing
-  'test', 'spec', 'mock', 'stub', 'snapshot', 'coverage',
+  "test",
+  "spec",
+  "mock",
+  "stub",
+  "snapshot",
+  "coverage",
   // Build/Deploy
-  'build', 'deploy', 'release', 'version', 'package', 'dependency',
+  "build",
+  "deploy",
+  "release",
+  "version",
+  "package",
+  "dependency",
 ]);
 
 /**
  * File extensions to extract as keywords
  */
-const FILE_EXTENSIONS = new Set([
-  '.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs',
-  '.py', '.rb', '.go', '.rs', '.java', '.kt', '.swift',
-  '.html', '.css', '.scss', '.sass', '.less',
-  '.json', '.yaml', '.yml', '.xml', '.toml', '.ini',
-  '.md', '.txt', '.log',
+const _FILE_EXTENSIONS = new Set([
+  ".ts",
+  ".tsx",
+  ".js",
+  ".jsx",
+  ".mjs",
+  ".cjs",
+  ".py",
+  ".rb",
+  ".go",
+  ".rs",
+  ".java",
+  ".kt",
+  ".swift",
+  ".html",
+  ".css",
+  ".scss",
+  ".sass",
+  ".less",
+  ".json",
+  ".yaml",
+  ".yml",
+  ".xml",
+  ".toml",
+  ".ini",
+  ".md",
+  ".txt",
+  ".log",
 ]);
 
 /**
@@ -59,7 +163,7 @@ const FILE_EXTENSIONS = new Set([
  */
 const PATTERNS = {
   // File paths: src/components/Button.tsx, /api/users
-  filePath: /[\w~/\.]+\.(?:ts|tsx|js|jsx|py|go|rs|java|html|css|scss|json|yaml|yml|md)/gi,
+  filePath: /[\w~/.]+\.(?:ts|tsx|js|jsx|py|go|rs|java|html|css|scss|json|yaml|yml|md)/gi,
 
   // URLs/URIs
   url: /https?:\/\/[^\s<>"]+/gi,
@@ -85,10 +189,10 @@ function extractKeywords(text: string): Set<string> {
 
   // Extract file paths
   const filePaths = text.match(PATTERNS.filePath) || [];
-  filePaths.forEach(path => {
+  filePaths.forEach((path) => {
     // Extract just the filename without extension
-    const filename = path.split(/[/\\]/).pop() || '';
-    const nameWithoutExt = filename.replace(/\.[^.]+$/, '');
+    const filename = path.split(/[/\\]/).pop() || "";
+    const nameWithoutExt = filename.replace(/\.[^.]+$/, "");
     if (nameWithoutExt.length > 2) {
       keywords.add(nameWithoutExt.toLowerCase());
     }
@@ -98,10 +202,10 @@ function extractKeywords(text: string): Set<string> {
 
   // Extract URLs (domain names)
   const urls = text.match(PATTERNS.url) || [];
-  urls.forEach(url => {
+  urls.forEach((url) => {
     try {
       const urlObj = new URL(url);
-      const domain = urlObj.hostname.replace('www.', '');
+      const domain = urlObj.hostname.replace("www.", "");
       keywords.add(domain);
     } catch {
       // Invalid URL, skip
@@ -114,7 +218,7 @@ function extractKeywords(text: string): Set<string> {
   const upperCase = text.match(PATTERNS.upperCase) || [];
   const kebabCase = text.match(PATTERNS.kebabCase) || [];
 
-  [...camelCase, ...pascalCase, ...upperCase, ...kebabCase].forEach(word => {
+  [...camelCase, ...pascalCase, ...upperCase, ...kebabCase].forEach((word) => {
     // Filter out common words
     if (word.length > 2 && !isCommonWord(word)) {
       keywords.add(word.toLowerCase());
@@ -123,7 +227,7 @@ function extractKeywords(text: string): Set<string> {
 
   // Extract known tech keywords
   const lowerText = text.toLowerCase();
-  TECH_KEYWORDS.forEach(keyword => {
+  TECH_KEYWORDS.forEach((keyword) => {
     if (lowerText.includes(keyword)) {
       keywords.add(keyword);
     }
@@ -137,12 +241,57 @@ function extractKeywords(text: string): Set<string> {
  */
 function isCommonWord(word: string): boolean {
   const commonWords = new Set([
-    'the', 'and', 'for', 'are', 'but', 'not', 'you', 'all', 'can', 'her',
-    'was', 'one', 'our', 'out', 'has', 'have', 'been', 'this', 'that',
-    'with', 'they', 'from', 'what', 'which', 'their', 'there', 'would',
-    'about', 'could', 'should', 'after', 'before', 'being', 'does', 'did',
-    'will', 'shall', 'may', 'might', 'must', 'into', 'through', 'during',
-    'these', 'those', 'each', 'every', 'some', 'such', 'your', 'mine',
+    "the",
+    "and",
+    "for",
+    "are",
+    "but",
+    "not",
+    "you",
+    "all",
+    "can",
+    "her",
+    "was",
+    "one",
+    "our",
+    "out",
+    "has",
+    "have",
+    "been",
+    "this",
+    "that",
+    "with",
+    "they",
+    "from",
+    "what",
+    "which",
+    "their",
+    "there",
+    "would",
+    "about",
+    "could",
+    "should",
+    "after",
+    "before",
+    "being",
+    "does",
+    "did",
+    "will",
+    "shall",
+    "may",
+    "might",
+    "must",
+    "into",
+    "through",
+    "during",
+    "these",
+    "those",
+    "each",
+    "every",
+    "some",
+    "such",
+    "your",
+    "mine",
   ]);
   return commonWords.has(word.toLowerCase());
 }
@@ -159,7 +308,7 @@ function jaccardSimilarity(set1: Set<string>, set2: Set<string>): number {
   const arr1 = Array.from(set1);
   const arr2 = Array.from(set2);
 
-  const intersection = new Set(arr1.filter(x => set2.has(x)));
+  const intersection = new Set(arr1.filter((x) => set2.has(x)));
   const union = new Set(arr1.concat(arr2));
 
   return intersection.size / union.size;
@@ -189,12 +338,12 @@ export class TopicDriftDetector {
     }
 
     // Extract keywords from initial prompt (access via metadata)
-    const initialPrompt = session.metadata.initialPrompt || session.messages[0]?.content || '';
+    const initialPrompt = session.metadata.initialPrompt || session.messages[0]?.content || "";
     const initialKeywords = extractKeywords(initialPrompt);
 
     // Extract keywords from recent messages (last 5 or all if fewer)
     const recentMessages = session.messages.slice(-5);
-    const recentText = recentMessages.map(m => m.content).join(' ');
+    const recentText = recentMessages.map((m) => m.content).join(" ");
     const recentKeywords = extractKeywords(recentText);
 
     // Calculate similarity and convert to drift
@@ -238,7 +387,7 @@ export class TopicDriftDetector {
     threshold: number = 0.5
   ): Promise<{
     driftScore: number;
-    method: 'keyword' | 'llm';
+    method: "keyword" | "llm";
     needsDeepAnalysis: boolean;
   }> {
     // Always run keyword-based detection first
@@ -248,7 +397,7 @@ export class TopicDriftDetector {
     if (keywordDrift < threshold) {
       return {
         driftScore: keywordDrift,
-        method: 'keyword',
+        method: "keyword",
         needsDeepAnalysis: false,
       };
     }
@@ -258,7 +407,7 @@ export class TopicDriftDetector {
 
     return {
       driftScore: llmDrift,
-      method: 'llm',
+      method: "llm",
       needsDeepAnalysis: llmDrift >= threshold,
     };
   }

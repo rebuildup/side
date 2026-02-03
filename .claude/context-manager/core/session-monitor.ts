@@ -4,17 +4,17 @@
  * Tracks session events, metrics, and health in real-time.
  */
 
-import {
-  ClaudeSession,
-  SessionEvent,
+import type {
   ClaudeMessage,
-  ToolExecution,
+  ClaudeSession,
   ErrorTracking,
   HealthAnalysis,
+  SessionEvent,
+  ToolExecution,
+  TrackErrorOptions,
   TrackMessageOptions,
   TrackToolOptions,
-  TrackErrorOptions,
-} from '../types';
+} from "../types";
 
 /**
  * Session Monitor
@@ -61,15 +61,11 @@ export class SessionMonitor {
    * Track a user or assistant message
    */
   trackMessage(
-    role: 'user' | 'assistant',
+    role: "user" | "assistant",
     content: string,
     options: TrackMessageOptions = {}
   ): void {
-    const {
-      updateMetrics = true,
-      analyzeDrift = true,
-      saveImmediately = true,
-    } = options;
+    const { updateMetrics = true, analyzeDrift = true, saveImmediately = true } = options;
 
     const message: ClaudeMessage = {
       role,
@@ -82,7 +78,7 @@ export class SessionMonitor {
     // Create event record
     const event: SessionEvent = {
       timestamp: message.timestamp,
-      type: 'message',
+      type: "message",
       data: { role, content, length: content.length },
     };
 
@@ -103,18 +99,10 @@ export class SessionMonitor {
   /**
    * Track a tool execution
    */
-  trackTool(
-    name: string,
-    args: unknown,
-    result: unknown,
-    options: TrackToolOptions = {}
-  ): void {
-    const {
-      recordEvent = true,
-      saveImmediately = true,
-    } = options;
+  trackTool(name: string, args: unknown, result: unknown, options: TrackToolOptions = {}): void {
+    const { recordEvent = true, saveImmediately = true } = options;
 
-    const startTime = Date.now();
+    const _startTime = Date.now();
 
     const toolExec: ToolExecution = {
       name,
@@ -128,7 +116,7 @@ export class SessionMonitor {
     if (recordEvent) {
       const event: SessionEvent = {
         timestamp: toolExec.timestamp,
-        type: 'tool',
+        type: "tool",
         data: {
           name,
           success: this.isSuccessfulResult(result),
@@ -142,15 +130,8 @@ export class SessionMonitor {
   /**
    * Track an error
    */
-  trackError(
-    error: Error | string,
-    options: TrackErrorOptions = {}
-  ): void {
-    const {
-      recoverable = false,
-      context = {},
-      saveImmediately = true,
-    } = options;
+  trackError(error: Error | string, options: TrackErrorOptions = {}): void {
+    const { recoverable = false, context = {}, saveImmediately = true } = options;
 
     const errorTracking: ErrorTracking = {
       error,
@@ -163,9 +144,9 @@ export class SessionMonitor {
 
     const event: SessionEvent = {
       timestamp: errorTracking.timestamp,
-      type: 'error',
+      type: "error",
       data: {
-        message: typeof error === 'string' ? error : error.message,
+        message: typeof error === "string" ? error : error.message,
         recoverable,
         context,
       },
@@ -210,7 +191,7 @@ export class SessionMonitor {
   /**
    * Calculate individual health factors
    */
-  private calculateHealthFactors(): HealthAnalysis['factors'] {
+  private calculateHealthFactors(): HealthAnalysis["factors"] {
     if (!this.currentSession) {
       return {
         drift: 0,
@@ -236,8 +217,7 @@ export class SessionMonitor {
 
     const errorRate =
       this.currentSession.metrics.messageCount > 0
-        ? this.currentSession.metrics.errorCount /
-          this.currentSession.metrics.messageCount
+        ? this.currentSession.metrics.errorCount / this.currentSession.metrics.messageCount
         : 0;
 
     // Cap at 1.0, with sigmoid curve for smoother transitions
@@ -270,9 +250,7 @@ export class SessionMonitor {
   /**
    * Calculate overall health score from factors
    */
-  private calculateOverallScore(
-    factors: HealthAnalysis['factors']
-  ): number {
+  private calculateOverallScore(factors: HealthAnalysis["factors"]): number {
     // Weight factors: drift is most important, then errors
     const weights = {
       drift: 0.4,
@@ -294,25 +272,27 @@ export class SessionMonitor {
   /**
    * Generate recommendations based on health factors
    */
-  private generateRecommendations(
-    factors: HealthAnalysis['factors']
-  ): string[] {
+  private generateRecommendations(factors: HealthAnalysis["factors"]): string[] {
     const recommendations: string[] = [];
 
     if (factors.drift > 0.5) {
-      recommendations.push('High topic drift detected. Consider creating a snapshot and starting a new session.');
+      recommendations.push(
+        "High topic drift detected. Consider creating a snapshot and starting a new session."
+      );
     }
 
     if (factors.errors > 0.5) {
-      recommendations.push('High error rate detected. Review recent errors for patterns.');
+      recommendations.push("High error rate detected. Review recent errors for patterns.");
     }
 
     if (factors.length > 0.7) {
-      recommendations.push('Session is becoming lengthy. Consider compacting or creating a snapshot.');
+      recommendations.push(
+        "Session is becoming lengthy. Consider compacting or creating a snapshot."
+      );
     }
 
     if (factors.activity < 0.3) {
-      recommendations.push('Session has been inactive. Consider ending or archiving.');
+      recommendations.push("Session has been inactive. Consider ending or archiving.");
     }
 
     return recommendations;
@@ -335,10 +315,10 @@ export class SessionMonitor {
       return false;
     }
 
-    if (typeof result === 'object') {
+    if (typeof result === "object") {
       // Check for common error indicators
       const obj = result as Record<string, unknown>;
-      if ('error' in obj || 'Error' in obj || 'errorCode' in obj) {
+      if ("error" in obj || "Error" in obj || "errorCode" in obj) {
         return false;
       }
     }

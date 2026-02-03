@@ -1,4 +1,4 @@
-import type { Workspace } from '../types';
+import type { Workspace } from "../types";
 
 interface WorkspaceListProps {
   workspaces: Workspace[];
@@ -6,14 +6,11 @@ interface WorkspaceListProps {
   onSelect: (workspaceId: string) => void;
 }
 
-const LABEL_WORKSPACE = '\u30ef\u30fc\u30af\u30b9\u30da\u30fc\u30b9';
-const LABEL_EMPTY = '\u30ef\u30fc\u30af\u30b9\u30da\u30fc\u30b9\u304c\u3042\u308a\u307e\u305b\u3093\u3002';
+const LABEL_WORKSPACE = "\u30ef\u30fc\u30af\u30b9\u30da\u30fc\u30b9";
+const LABEL_EMPTY =
+  "\u30ef\u30fc\u30af\u30b9\u30da\u30fc\u30b9\u304c\u3042\u308a\u307e\u305b\u3093\u3002";
 
-export function WorkspaceList({
-  workspaces,
-  selectedWorkspaceId,
-  onSelect
-}: WorkspaceListProps) {
+export function WorkspaceList({ workspaces, selectedWorkspaceId, onSelect }: WorkspaceListProps) {
   return (
     <section className="panel workspace-panel">
       <div className="panel-header">
@@ -29,7 +26,7 @@ export function WorkspaceList({
             <div
               key={workspace.id}
               className={`workspace-item ${
-                workspace.id === selectedWorkspaceId ? 'is-active' : ''
+                workspace.id === selectedWorkspaceId ? "is-active" : ""
               }`}
             >
               <button

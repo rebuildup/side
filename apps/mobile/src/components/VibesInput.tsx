@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, Text, StyleSheet, Alert } from 'react-native';
+import type React from "react";
+import { useState } from "react";
+import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 export interface VibesInputProps {
   onSend: (prompt: string) => void;
@@ -8,17 +9,17 @@ export interface VibesInputProps {
 
 export const VibesInput: React.FC<VibesInputProps> = ({
   onSend,
-  placeholder = 'Enter vibe coding prompt...'
+  placeholder = "Enter vibe coding prompt...",
 }) => {
-  const [text, setText] = useState('');
+  const [text, setText] = useState("");
 
   const handleSend = () => {
     if (!text.trim()) {
-      Alert.alert('Error', 'Please enter a prompt');
+      Alert.alert("Error", "Please enter a prompt");
       return;
     }
     onSend(text.trim());
-    setText('');
+    setText("");
   };
 
   return (
@@ -41,30 +42,30 @@ export const VibesInput: React.FC<VibesInputProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: "#1a1a1a",
     borderTopWidth: 1,
-    borderTopColor: '#3a3a3a',
-    padding: 16
+    borderTopColor: "#3a3a3a",
+    padding: 16,
   },
   input: {
-    backgroundColor: '#2a2a2a',
-    color: '#ffffff',
+    backgroundColor: "#2a2a2a",
+    color: "#ffffff",
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
     marginBottom: 8,
     minHeight: 100,
-    textAlignVertical: 'top'
+    textAlignVertical: "top",
   },
   sendButton: {
-    backgroundColor: '#2563eb',
+    backgroundColor: "#2563eb",
     borderRadius: 8,
     padding: 12,
-    alignItems: 'center'
+    alignItems: "center",
   },
   sendButtonText: {
-    color: '#ffffff',
+    color: "#ffffff",
     fontSize: 16,
-    fontWeight: '600'
-  }
+    fontWeight: "600",
+  },
 });

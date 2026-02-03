@@ -8,8 +8,8 @@
 export function normalizeWorkspacePath(value: string): string {
   return value
     .trim()
-    .replace(/[\\/]+$/, '')
-    .replace(/\\/g, '/')
+    .replace(/[\\/]+$/, "")
+    .replace(/\\/g, "/")
     .toLowerCase();
 }
 
@@ -17,7 +17,7 @@ export function normalizeWorkspacePath(value: string): string {
  * Determines the path separator used in the given path
  */
 export function getPathSeparator(value: string): string {
-  return value.includes('\\') ? '\\' : '/';
+  return value.includes("\\") ? "\\" : "/";
 }
 
 /**
@@ -25,7 +25,7 @@ export function getPathSeparator(value: string): string {
  */
 export function joinPath(base: string, next: string): string {
   const separator = getPathSeparator(base);
-  const trimmed = base.replace(/[\\/]+$/, '');
+  const trimmed = base.replace(/[\\/]+$/, "");
   return trimmed ? `${trimmed}${separator}${next}` : next;
 }
 
@@ -33,20 +33,17 @@ export function joinPath(base: string, next: string): string {
  * Gets the parent directory path
  */
 export function getParentPath(value: string): string {
-  const trimmed = value.replace(/[\\/]+$/, '');
+  const trimmed = value.replace(/[\\/]+$/, "");
   if (!trimmed) return value;
   if (/^[A-Za-z]:$/.test(trimmed)) {
     return `${trimmed}\\`;
   }
-  if (trimmed === '/') {
-    return '/';
+  if (trimmed === "/") {
+    return "/";
   }
-  const lastSlash = Math.max(
-    trimmed.lastIndexOf('/'),
-    trimmed.lastIndexOf('\\')
-  );
-  if (trimmed.startsWith('/') && lastSlash === 0) {
-    return '/';
+  const lastSlash = Math.max(trimmed.lastIndexOf("/"), trimmed.lastIndexOf("\\"));
+  if (trimmed.startsWith("/") && lastSlash === 0) {
+    return "/";
   }
   if (lastSlash <= 0) {
     return trimmed;

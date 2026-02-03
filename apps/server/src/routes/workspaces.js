@@ -1,0 +1,83 @@
+import crypto from "node:crypto";
+import { Hono } from "hono";
+import { DEFAULT_ROOT } from "../config.js";
+import { createHttpError, handleError, readJson } from "../utils/error.js";
+import { getWorkspaceKey, getWorkspaceName, normalizeWorkspacePath } from "../utils/path.js";
+const MAX_NAME_LENGTH = 100;
+const NAME_PATTERN = /^[\p{L}\p{N}\s\-_.]+$/u; // Unicode letters, numbers, spaces, hyphens, underscores, dots
+function validateName(name) {
+    if (!name) {
+        return undefined;
+    }
+    if (typeof name !== "string") {
+        throw createHttpError("name must be a string", 400);
+    }
+    const trimmed = name.trim();
+    if (trimmed.length === 0) {
+        return undefined;
+    }
+    if (trimmed.length > MAX_NAME_LENGTH) {
+        throw createHttpError(`name is too long (max: ${MAX_NAME_LENGTH} characters)`, 400);
+    }
+    if (!NAME_PATTERN.test(trimmed)) {
+        throw createHttpError("name contains invalid characters", 400);
+    }
+    return trimmed;
+}
+export function createWorkspaceRouter(db, workspaces, workspacePathIndex) {
+    const router = new Hono();
+    const insertWorkspace = db.prepare("INSERT INTO workspaces (id, name, path, normalized_path, created_at) VALUES (?, ?, ?, ?, ?)");
+    function createWorkspace(inputPath, name) {
+        const resolvedPath = normalizeWorkspacePath(inputPath);
+        const key = getWorkspaceKey(resolvedPath);
+        if (workspacePathIndex.has(key)) {
+            throw createHttpError("Workspace path already exists", 409);
+        }
+        const validatedName = validateName(name);
+        const workspace = {
+            id: crypto.randomUUID(),
+            name: validatedName || getWorkspaceName(resolvedPath, workspaces.size + 1),
+            path: resolvedPath,
+            createdAt: new Date().toISOString(),
+        };
+        workspaces.set(workspace.id, workspace);
+        workspacePathIndex.set(key, workspace.id);
+        insertWorkspace.run(workspace.id, workspace.name, workspace.path, key, workspace.createdAt);
+        return workspace;
+    }
+    router.get("/", (c) => {
+        return c.json(Array.from(workspaces.values()));
+    });
+    router.post("/", async (c) => {
+        try {
+            const body = await readJson(c);
+            if (!body?.path) {
+                throw createHttpError("path is required", 400);
+            }
+            const workspace = createWorkspace(body.path, body.name);
+            return c.json(workspace, 201);
+        }
+        catch (error) {
+            return handleError(c, error);
+        }
+    });
+    return router;
+}
+export function getConfigHandler() {
+    return (c) => {
+        try {
+            return c.json({ defaultRoot: normalizeWorkspacePath(DEFAULT_ROOT) });
+        }
+        catch (error) {
+            console.error("Failed to get config:", error);
+            return c.json({ defaultRoot: "" });
+        }
+    };
+}
+export function requireWorkspace(workspaces, workspaceId) {
+    const workspace = workspaces.get(workspaceId);
+    if (!workspace) {
+        throw createHttpError("Workspace not found", 404);
+    }
+    return workspace;
+}

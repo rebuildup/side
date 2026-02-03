@@ -1,32 +1,33 @@
-import React, { useId } from 'react';
+import type React from "react";
+import { useId } from "react";
 
 export interface SelectOption {
   value: string;
   label: string;
 }
 
-export interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'size'> {
+export interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, "size"> {
   label?: string;
   error?: string;
-  size?: 'sm' | 'md' | 'lg';
+  size?: "sm" | "md" | "lg";
   options: SelectOption[];
 }
 
 export const Select: React.FC<SelectProps> = ({
   label,
   error,
-  size = 'md',
+  size = "md",
   options,
-  className = '',
+  className = "",
   id,
   ...props
 }) => {
   const generatedId = useId();
   const selectId = id || generatedId;
   const sizeClasses = {
-    sm: 'px-2 py-1 text-sm',
-    md: 'px-3 py-2 text-base',
-    lg: 'px-4 py-3 text-lg'
+    sm: "px-2 py-1 text-sm",
+    md: "px-3 py-2 text-base",
+    lg: "px-4 py-3 text-lg",
   };
 
   return (
