@@ -6,7 +6,7 @@ import { MAX_FILE_SIZE, DEFAULT_ROOT } from '../config.js';
 import { createHttpError, handleError, readJson } from '../utils/error.js';
 import { resolveSafePath, normalizeWorkspacePath } from '../utils/path.js';
 import { requireWorkspace } from './workspaces.js';
-import { sortFileEntries } from '@deck-ide/shared/utils-node';
+import { sortFileEntries } from '@side-ide/shared/utils-node';
 
 // Allowed file extensions for file operations
 // This prevents writing executable files or configuration files that could be exploited

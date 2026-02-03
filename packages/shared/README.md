@@ -1,10 +1,10 @@
-# @deck-ide/shared
+# @side-ide/shared
 
-共有型定義とユーティリティ関数を提供するDeck IDEの共有パッケージです。
+共有型定義とユーティリティ関数を提供するS-IDEの共有パッケージです。
 
 ## 概要
 
-このパッケージは、Deck IDEモノレポ全体(web, server, desktop)で使用される共通のTypeScript型定義とユーティリティ関数を提供します。
+このパッケージは、S-IDEモノレポ全体(web, server, desktop, mobile)で使用される共通のTypeScript型定義とユーティリティ関数を提供します。
 
 ## 構成
 

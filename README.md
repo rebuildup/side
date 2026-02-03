@@ -1,8 +1,8 @@
-# Deck IDE
+# S-IDE (Side Studio IDE)
 
 > An intelligent development environment optimized for AI agent workflows with multi-terminal support, Monaco Editor integration, and built-in Git operations.
 
-Deck IDE is designed to maximize AI agent productivity by providing a clean, focused interface with powerful context management capabilities to combat "context rot" in long coding sessions.
+S-IDE (Side Studio IDE) is designed to maximize AI agent productivity by providing a clean, focused interface with powerful context management capabilities to combat "context rot" in long coding sessions.
 
 ---
 
@@ -53,16 +53,16 @@ Deck IDE includes an advanced **Context Manager** system specifically designed t
 
 ### Windows Desktop App (Recommended)
 
-1. Download the latest installer from [Releases](https://github.com/tako0614/ide/releases)
-2. Run `Deck-IDE-Setup-x.x.x.exe`
-3. Launch Deck IDE from the desktop or Start menu
+1. Download the latest installer from [Releases](https://github.com/rebuildup/side/releases)
+2. Run `S-IDE-Setup-x.x.x.exe`
+3. Launch S-IDE from the desktop or Start menu
 
 ### From Source
 
 ```bash
 # Clone the repository
-git clone https://github.com/tako0614/ide.git
-cd ide
+git clone https://github.com/rebuildup/side.git
+cd side
 
 # Install dependencies
 npm install
@@ -92,11 +92,13 @@ npm run build
 ## Project Structure
 
 ```
-ide/
+side/
 ├── apps/
-│   ├── desktop/          # Electron desktop app
-│   │   ├── src/          # Main process scripts
-│   │   ├── scripts/      # Build scripts
+│   ├── desktop/          # Tauri desktop app
+│   │   ├── src-tauri/    # Rust backend
+│   │   └── package.json
+│   ├── mobile/           # React Native mobile app
+│   │   ├── src/          # React Native components
 │   │   └── package.json
 │   ├── server/           # Backend API server
 │   │   ├── src/
@@ -104,14 +106,15 @@ ide/
 │   │   │   ├── middleware/# Express middleware
 │   │   │   └── utils/    # Server utilities
 │   │   └── package.json
-│   └── web/              # Frontend React app
+│   └── web/              # Frontend React PWA app
 │       ├── src/
 │       │   ├── components/# React components
 │       │   ├── hooks/    # Custom React hooks
 │       │   └── utils/    # Frontend utilities
 │       └── package.json
 ├── packages/
-│   └── shared/           # Shared utilities
+│   ├── shared/           # Shared utilities
+│   └── ui/               # Shared UI components
 ├── .claude/              # Claude Context Manager
 │   └── context-manager/  # Context management system
 ├── data/                 # SQLite database
@@ -143,9 +146,8 @@ ide/
 - **WebSocket (ws)** - Real-time terminal communication
 
 ### Desktop
-- **Electron 40** - Desktop framework
-- **Electron Builder** - Package builder
-- **electron-updater** - Auto-updates
+- **Tauri 2.0** - Desktop framework with Rust backend
+- **Rust** - Backend language for desktop app
 
 ---
 
@@ -466,7 +468,7 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ## Author
 
-**tako0614** - [GitHub](https://github.com/tako0614)
+**rebuildup** - [GitHub](https://github.com/rebuildup)
 
 ---
 
@@ -479,5 +481,5 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## Support
 
 For issues and questions:
-- Open an issue on [GitHub Issues](https://github.com/tako0614/ide/issues)
+- Open an issue on [GitHub Issues](https://github.com/rebuildup/side/issues)
 - Check existing documentation in the `docs/` directory

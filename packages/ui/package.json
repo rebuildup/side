@@ -1,5 +1,5 @@
 {
-  "name": "@deck-ide/ui",
+  "name": "@side-ide/ui",
   "version": "1.0.0",
   "type": "module",
   "main": "./dist/index.js",

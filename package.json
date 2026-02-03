@@ -1,5 +1,5 @@
 {
-  "name": "deck-ide",
+  "name": "side",
   "private": true,
   "workspaces": [
     "apps/*",

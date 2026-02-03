@@ -1,5 +1,5 @@
 // Re-export shared types
-export type { Workspace, Deck } from '@deck-ide/shared/types';
+export type { Workspace, Deck } from '@side-ide/shared/types';
 
 // Import WebSocket type explicitly from 'ws' package to avoid conflicts
 import type { WebSocket as WebSocketType } from 'ws';

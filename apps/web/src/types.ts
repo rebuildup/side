@@ -1,4 +1,4 @@
-// Re-export shared types from @deck-ide/shared
+// Re-export shared types from @side-ide/shared
 export type {
   FileEntryType,
   Workspace,

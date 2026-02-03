@@ -77,24 +77,24 @@ Node.js専用ユーティリティ:
 
 ```typescript
 // 型のインポート
-import type { Workspace, Deck, FileTreeNode } from '@deck-ide/shared/types';
+import type { Workspace, Deck, FileTreeNode } from '@side-ide/shared/types';
 
 // ブラウザ互換ユーティリティのインポート
-import { getLanguageFromPath, sortFileEntries } from '@deck-ide/shared/utils';
+import { getLanguageFromPath, sortFileEntries } from '@side-ide/shared/utils';
 ```
 
 ### サーバー (apps/server)
 
 ```typescript
 // 型のインポート
-import type { Workspace, Deck } from '@deck-ide/shared/types';
+import type { Workspace, Deck } from '@side-ide/shared/types';
 
 // Node.js専用ユーティリティのインポート
 import {
   normalizeWorkspacePath,
   getWorkspaceKey,
   sortFileEntries
-} from '@deck-ide/shared/utils-node';
+} from '@side-ide/shared/utils-node';
 ```
 
 ## 既存コードの更新
@@ -109,7 +109,7 @@ export type {
   Workspace,
   Deck,
   // ... その他の型
-} from '@deck-ide/shared/types';
+} from '@side-ide/shared/types';
 ```
 
 **削減**: 56行 → 24行 (32行削減)
@@ -119,7 +119,7 @@ export type {
 重複型定義を削除:
 
 ```typescript
-export type { Workspace, Deck } from '@deck-ide/shared/types';
+export type { Workspace, Deck } from '@side-ide/shared/types';
 ```
 
 **削減**: 29行 → 16行 (13行削減)

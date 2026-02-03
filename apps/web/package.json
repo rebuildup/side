@@ -1,5 +1,5 @@
 {
-  "name": "deck-ide-web",
+  "name": "side-web",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@deck-ide/shared": "file:../../packages/shared",
+    "@side-ide/shared": "file:../../packages/shared",
     "@monaco-editor/react": "^4.6.0",
     "lucide-react": "^0.563.0",
     "react": "^18.3.1",

@@ -26,7 +26,7 @@ jobs:
         run: npm ci
 
       - name: Build shared package
-        run: npm --workspace @deck-ide/shared run build
+        run: npm --workspace @side-ide/shared run build
 
       - name: Build desktop app
         run: npm run build:desktop
